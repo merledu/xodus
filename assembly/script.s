@@ -8,3 +8,4 @@ lw x3, 73(x6)
 bne x2, x7, LOOP
 auipc x4, 4
 jal JAL
+jalr x9

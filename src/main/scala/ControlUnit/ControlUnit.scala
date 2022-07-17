@@ -25,11 +25,6 @@ class ControlUnit extends Module
 
     // Input wires
     val opcode: UInt = dontTouch(WireInit(io.opcode))
-
-    // Intermediate wires
-    val i: Bool = dontTouch(WireInit(
-        opcode === 15.U || opcode === 19.U || opcode === 115.U
-    ))
     
     // Output wires
     val str_en  : Bool = dontTouch(WireInit(opcode === 35.U))
@@ -40,18 +35,21 @@ class ControlUnit extends Module
     val auipc_en: Bool = dontTouch(WireInit(opcode === 23.U))
     val lui_en  : Bool = dontTouch(WireInit(opcode === 55.U))
     val imm_en  : Bool = dontTouch(WireInit(
-        opcode === i || opcode === str_en
+        opcode === 15.U || opcode === 19.U || opcode === 115.U || opcode === str_en
     ))
     val wr_en   : Bool = dontTouch(WireInit(
-        opcode === 51.U || opcode === ld_en || opcode === i || opcode === jalr_en || opcode === auipc_en || opcode === lui_en || opcode === jal_en
+        opcode === 51.U || opcode === 3.U || opcode === 15.U || opcode === 19.U || opcode === 115.U || opcode === 103.U || opcode === 23.U || opcode === 55.U || opcode === 111.U
     ))
 
     // Wiring to outpin pins
     Array(
-        io.wr_en,  io.imm_en,  io.str_en, io.ld_en, io.br_en,
-        io.jal_en, io.jalr_en, auipc_en,  io.lui_en
+        io.wr_en,  io.imm_en,  io.str_en,   io.ld_en, io.br_en,
+        io.jal_en, io.jalr_en, io.auipc_en, io.lui_en
     ) zip Array(
-        wr_en,     imm_en,     str_en,    ld_en,    br_en,
-        jal_en,    jalr_en,    auipc_en,  lui_en
-    )
+        wr_en,     imm_en,     str_en,      ld_en,    br_en,
+        jal_en,    jalr_en,    auipc_en,    lui_en
+    ) foreach
+    {
+        x => x._1 := x._2
+    }
 }
