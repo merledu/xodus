@@ -18,7 +18,7 @@ class Decoder_IO extends Bundle
 }
 class Decoder extends Module
 {
-    // Initialzing IO pins and modules
+    // Initializing IO pins and modules
     val io: Decoder_IO = IO(new Decoder_IO())
     val r : R_Type = Module(new R_Type())
     val i : I_Type = Module(new I_Type())

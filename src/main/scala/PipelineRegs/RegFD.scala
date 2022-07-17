@@ -21,7 +21,7 @@ class RegFD extends Module
     val PC_in  : UInt = dontTouch(WireInit(io.PC_in))
     val inst_in: UInt = dontTouch(WireInit(io.inst_in))
 
-    // Initialzing registers
+    // Initializing registers
     val PC  :UInt = dontTouch(RegInit(0.U(32.W)))
     val inst:UInt = dontTouch(RegInit(0.U(32.W)))
 
