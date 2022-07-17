@@ -5,11 +5,11 @@ import chisel3._
 class RegFD_IO extends Bundle
 {
     // Input pins
-    val PC_in: UInt = Input(UInt(32.W))
+    val PC_in  : UInt = Input(UInt(32.W))
     val inst_in: UInt = Input(UInt(32.W))
 
     // Output pins
-    val PC_out: UInt = Output(UInt(32.W))
+    val PC_out  : UInt = Output(UInt(32.W))
     val inst_out: UInt = Output(UInt(32.W))
 }
 class RegFD extends Module
@@ -18,15 +18,15 @@ class RegFD extends Module
     val io: RegFD_IO = IO(new RegFD_IO())
 
     // Input wires
-    val PC_in: UInt = dontTouch(WireInit(io.PC_in))
+    val PC_in  : UInt = dontTouch(WireInit(io.PC_in))
     val inst_in: UInt = dontTouch(WireInit(io.inst_in))
 
     // Initialzing registers
-    val PC:UInt = dontTouch(RegInit(0.U(32.W)))
+    val PC  :UInt = dontTouch(RegInit(0.U(32.W)))
     val inst:UInt = dontTouch(RegInit(0.U(32.W)))
 
     // Output wires
-    val PC_out: UInt = dontTouch(WireInit(PC))
+    val PC_out  : UInt = dontTouch(WireInit(PC))
     val inst_out: UInt = dontTouch(WireInit(inst))
 
     // Wiring to output pins
