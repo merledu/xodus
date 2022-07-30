@@ -12,7 +12,7 @@ class I_Type_IO extends Bundle
     val rd_addr : UInt = Output(UInt(5.W))
     val func3   : UInt = Output(UInt(3.W))
     val rs1_addr: UInt = Output(UInt(5.W))
-    val imm     : SInt = Output(SInt(32.W))
+    val imm     : SInt = Output(SInt(12.W))
 }
 class I_Type extends Module
 {

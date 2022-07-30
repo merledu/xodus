@@ -3,7 +3,7 @@ package Decoder
 import chisel3._
 import chisel3.util._
 
-class SB_Type_IO extends Bundle
+class B_Type_IO extends Bundle
 {
     // Input pins
     val in    : UInt = Input(UInt(25.W))
@@ -13,12 +13,12 @@ class SB_Type_IO extends Bundle
     val func3   : UInt = Output(UInt(3.W))
     val rs1_addr: UInt = Output(UInt(5.W))
     val rs2_addr: UInt = Output(UInt(5.W))
-    val imm     : SInt = Output(SInt(32.W))
+    val imm     : SInt = Output(SInt(12.W))
 }
-class SB_Type extends Module
+class B_Type extends Module
 {
     // Initializing IO pins
-    val io: SB_Type_IO = IO(new SB_Type_IO())
+    val io: B_Type_IO = IO(new B_Type_IO())
 
     // Input wires
     val in    : UInt = dontTouch(WireInit(io.in))

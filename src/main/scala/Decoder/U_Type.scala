@@ -10,7 +10,7 @@ class U_Type_IO extends Bundle
 
     // Output pins
     val rd_addr: UInt = Output(UInt(5.W))
-    val imm    : SInt = Output(SInt(32.W))
+    val imm    : SInt = Output(SInt(20.W))
 }
 class U_Type extends Module
 {

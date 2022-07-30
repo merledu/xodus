@@ -30,9 +30,6 @@ class ControlUnit extends Module
     val wr_en   : Bool = dontTouch(WireInit(
         opcode === 51.U || opcode === 3.U || opcode === 15.U || opcode === 19.U || opcode === 115.U || opcode === 103.U || opcode === 23.U || opcode === 55.U || opcode === 111.U
     ))
-    val imm_en  : Bool = dontTouch(WireInit(
-        opcode === 15.U || opcode === 19.U || opcode === 115.U || opcode === 35.U
-    ))
     val str_en  : Bool = dontTouch(WireInit(opcode === 35.U))
     val ld_en   : Bool = dontTouch(WireInit(opcode === 3.U))
     val br_en   : Bool = dontTouch(WireInit(opcode === 99.U))
@@ -40,6 +37,9 @@ class ControlUnit extends Module
     val jalr_en : Bool = dontTouch(WireInit(opcode === 103.U))
     val auipc_en: Bool = dontTouch(WireInit(opcode === 23.U))
     val lui_en  : Bool = dontTouch(WireInit(opcode === 55.U))
+    val imm_en  : Bool = dontTouch(WireInit(
+        opcode === 15.U || opcode === 19.U || opcode === 115.U || opcode === 35.U || opcode === 3.U || opcode === 103.U
+    ))
 
     // Wiring to outpin pins
     Array(

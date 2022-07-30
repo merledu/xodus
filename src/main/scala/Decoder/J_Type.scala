@@ -3,7 +3,7 @@ package Decoder
 import chisel3._
 import chisel3.util._
 
-class UJ_Type_IO extends Bundle
+class J_Type_IO extends Bundle
 {
     // Input pins
     val in    : UInt = Input(UInt(25.W))
@@ -11,12 +11,12 @@ class UJ_Type_IO extends Bundle
 
     // Output pins
     val rd_addr: UInt = Output(UInt(5.W))
-    val imm    : SInt = Output(SInt(32.W))
+    val imm    : SInt = Output(SInt(20.W))
 }
-class UJ_Type extends Module
+class J_Type extends Module
 {
     // Initializing IO pins
-    val io: UJ_Type_IO = IO(new UJ_Type_IO())
+    val io: J_Type_IO = IO(new J_Type_IO())
 
     // Input wires
     val in    : UInt = dontTouch(WireInit(io.in))
