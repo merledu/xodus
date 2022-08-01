@@ -24,7 +24,7 @@ class J_Type extends Module
 
     // Output wires
     val rd_addr: UInt = dontTouch(WireInit(in(4, 0)))
-    val imm    : SInt = dontTouch(WireInit(Cat(in(24), in(12, 5), in(13), in(23, 14), 0.U).asSInt))
+    val imm    : SInt = dontTouch(WireInit(Cat(in(24), in(12, 5), in(13), in(23, 14), "b0".U).asSInt))
 
     // Output is thrown when opcode matches
     when (opcode === 111.U)

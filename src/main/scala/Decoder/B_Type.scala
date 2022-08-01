@@ -28,7 +28,7 @@ class B_Type extends Module
     val func3   : UInt = dontTouch(WireInit(in(7, 5)))
     val rs1_addr: UInt = dontTouch(WireInit(in(12, 8)))
     val rs2_addr: UInt = dontTouch(WireInit(in(17, 13)))
-    val imm     : SInt = dontTouch(WireInit(Cat(in(24), in(0), in(23, 18), in(4, 1), 0.U).asSInt))
+    val imm     : SInt = dontTouch(WireInit(Cat(in(24), in(0), in(23, 18), in(4, 1), "b0".U).asSInt))
 
     // Output is thrown when opcode matches
     when (opcode === 99.U)
