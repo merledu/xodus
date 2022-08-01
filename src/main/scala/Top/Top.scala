@@ -8,6 +8,7 @@ import RegFile.RegFile
 import ControlUnit.ControlUnit
 import ALU.ALU
 import Memory.Memory
+import WriteBack.WriteBack
 
 class Top extends Module
 {
@@ -22,6 +23,7 @@ class Top extends Module
     val RegAM      : RegAM       = Module(new RegAM())
     val Memory     : Memory      = Module(new Memory())
     val RegMW      : RegMW       = Module(new RegMW())
+    val WriteBack  : WriteBack   = Module(new WriteBack())
 
     /*******************************************************
                         WIRING THE MODULES
@@ -75,10 +77,15 @@ class Top extends Module
         // RegMW
         RegMW.io.PC_in,                       RegMW.io.alu_in,                     RegMW.io.mem_data_in,              RegMW.io.rd_addr_in,                 RegMW.io.i_s_b_imm_in,
         RegMW.io.u_j_imm_in,                  RegMW.io.wr_en_in,                   RegMW.io.br_en_in,                 RegMW.io.jalr_en_in,                 RegMW.io.jal_en_in,
-        RegMW.io.auipc_en_in,                 RegMW.io.lui_en_in
+        RegMW.io.auipc_en_in,                 RegMW.io.lui_en_in,
+
+        // WriteBack
+        WriteBack.io.PC,                      WriteBack.io.alu,                    WriteBack.io.mem_data,             WriteBack.io.i_s_b_imm,              WriteBack.io.u_j_imm,
+        WriteBack.io.wr_en,                   WriteBack.io.br_en,                  WriteBack.io.jalr_en,              WriteBack.io.jal_en,                 WriteBack.io.auipc_en,
+        WriteBack.io.lui_en
     ) zip Array(
         // Fetch
-        0.U,                                  0.B,  // Temporary values
+        WriteBack.io.nPC,                     WriteBack.io.nPC_en,
 
         // RegFD
         Fetch.io.PC_out,                      Fetch.io.inst_out,
@@ -87,7 +94,7 @@ class Top extends Module
         RegFD.io.inst_out,
 
         // RegFile
-        0.U,                                  0.S, /*Temp values*/                 Decoder.io.rs1_addr,               Decoder.io.rs2_addr,                 1.B, // Temp value
+        RegMW.io.rd_addr_out,                 WriteBack.io.rd_data,                Decoder.io.rs1_addr,               Decoder.io.rs2_addr,                 RegMW.io.wr_en_out,
 
         // Control Unit
         Decoder.io.opcode,                    Decoder.io.func3,                    Decoder.io.func7,                  Decoder.io.i_s_b_imm,
@@ -124,7 +131,12 @@ class Top extends Module
         // RegMW
         RegAM.io.PC_out,                      RegAM.io.alu_out,                    Memory.io.out,                     RegAM.io.rd_addr_out,                RegAM.io.i_s_b_imm_out,
         RegAM.io.u_j_imm_out,                 RegAM.io.wr_en_out,                  RegAM.io.br_en_out,                RegAM.io.jalr_en_out,                RegAM.io.jal_en_out,
-        RegAM.io.auipc_en_out,                RegAM.io.lui_en_out
+        RegAM.io.auipc_en_out,                RegAM.io.lui_en_out,
+
+        // WriteBack
+        RegMW.io.PC_out,                      RegMW.io.alu_out,                    RegMW.io.mem_data_out,             RegMW.io.i_s_b_imm_out,              RegMW.io.u_j_imm_out,
+        RegMW.io.wr_en_out,                   RegMW.io.br_en_out,                  RegMW.io.jalr_en_out,              RegMW.io.jal_en_out,                 RegMW.io.auipc_en_out,
+        RegMW.io.lui_en_out
     ) foreach
     {
         x => x._1 := x._2
