@@ -49,6 +49,8 @@ class RegDA_IO extends Bundle
     val lw_en_in                  : Bool = Input(Bool())
     val lbu_en_in                 : Bool = Input(Bool())
     val lhu_en_in                 : Bool = Input(Bool())
+    val rs1_addr_in               : UInt = Input(UInt(5.W))
+    val rs2_addr_in               : UInt = Input(UInt(5.W))
 
     // Output pins
     val PC_out                     : UInt = Output(UInt(32.W))
@@ -95,6 +97,8 @@ class RegDA_IO extends Bundle
     val lw_en_out                  : Bool = Output(Bool())
     val lbu_en_out                 : Bool = Output(Bool())
     val lhu_en_out                 : Bool = Output(Bool())
+    val rs1_addr_out               : UInt = Output(UInt(5.W))
+    val rs2_addr_out               : UInt = Output(UInt(5.W))
 }
 class RegDA extends Module
 {
@@ -146,6 +150,8 @@ class RegDA extends Module
     val lw_en_in                  : Bool = dontTouch(WireInit(io.lw_en_in))
     val lbu_en_in                 : Bool = dontTouch(WireInit(io.lbu_en_in))
     val lhu_en_in                 : Bool = dontTouch(WireInit(io.lhu_en_in))
+    val rs1_addr_in               : UInt = dontTouch(WireInit(io.rs1_addr_in))
+    val rs2_addr_in               : UInt = dontTouch(WireInit(io.rs2_addr_in))
 
     // Initializing registers
     val PC                     : UInt = dontTouch(RegInit(0.U(32.W)))
@@ -192,7 +198,8 @@ class RegDA extends Module
     val lw_en                  : Bool = dontTouch(RegInit(0.B))
     val lbu_en                 : Bool = dontTouch(RegInit(0.B))
     val lhu_en                 : Bool = dontTouch(RegInit(0.B))
-
+    val rs1_addr               : UInt = dontTouch(RegInit(0.U(5.W)))
+    val rs2_addr               : UInt = dontTouch(RegInit(0.U(5.W)))
 
     // Output wires
     val PC_out                     : UInt = dontTouch(WireInit(PC))
@@ -239,6 +246,8 @@ class RegDA extends Module
     val lw_en_out                  : Bool = dontTouch(WireInit(lw_en))
     val lbu_en_out                 : Bool = dontTouch(WireInit(lbu_en))
     val lhu_en_out                 : Bool = dontTouch(WireInit(lhu_en))
+    val rs1_addr_out               : UInt = dontTouch(WireInit(rs1_addr))
+    val rs2_addr_out               : UInt = dontTouch(WireInit(rs2_addr))
 
     // Wiring to output pins
     Array(
@@ -251,7 +260,8 @@ class RegDA extends Module
         io.OR_en_out,               io.AND_en_out,               io.subtraction_en_out,  io.equal_en_out,             io.notEqual_en_out,
         io.greaterThanEqual_en_out, io.greaterThanEqualU_en_out, io.jalrAddition_en_out, io.auipcAddition_en_out,     io.luiAddition_en_out,
         io.jalAddition_en_out,      io.sb_en_out,                io.sh_en_out,           io.sw_en_out,                io.lb_en_out,
-        io.lh_en_out,               io.lw_en_out,                io.lbu_en_out,          io.lhu_en_out,
+        io.lh_en_out,               io.lw_en_out,                io.lbu_en_out,          io.lhu_en_out,               io.rs1_addr_out,
+        io.rs2_addr_out,
 
         // Registers
         PC,                         opcode,                      rd_addr,                func3,                       rs1_data,
@@ -262,7 +272,8 @@ class RegDA extends Module
         OR_en,                      AND_en,                      subtraction_en,         equal_en,                    notEqual_en,
         greaterThanEqual_en,        greaterThanEqualU_en,        jalrAddition_en,        auipcAddition_en,            luiAddition_en,
         jalAddition_en,             sb_en,                       sh_en,                  sw_en,                       lb_en,
-        lh_en,                      lw_en,                       lbu_en,                 lhu_en
+        lh_en,                      lw_en,                       lbu_en,                 lhu_en,                      rs1_addr,
+        rs2_addr
     ) zip Array(
         // Output pins
         PC_out,                     opcode_out,                  rd_addr_out,            func3_out,                   rs1_data_out,
@@ -273,7 +284,8 @@ class RegDA extends Module
         OR_en_out,                  AND_en_out,                  subtraction_en_out,     equal_en_out,                notEqual_en_out,
         greaterThanEqual_en_out,    greaterThanEqualU_en_out,    jalrAddition_en_out,    auipcAddition_en_out,        luiAddition_en_out,
         jalAddition_en_out,         sb_en,                       sh_en,                  sw_en,                       lb_en,
-        lh_en,                      lw_en,                       lbu_en,                 lhu_en,
+        lh_en,                      lw_en,                       lbu_en,                 lhu_en,                      rs1_addr,
+        rs2_addr,
 
         // Registers
         PC_in,                      opcode_in,                   rd_addr_in,             func3_in,                    rs1_data_in,
@@ -284,7 +296,8 @@ class RegDA extends Module
         OR_en_in,                   AND_en_in,                   subtraction_en_in,      equal_en_in,                 notEqual_en_in,
         greaterThanEqual_en_in,     greaterThanEqualU_en_in,     jalrAddition_en_in,     auipc_en_in,                 luiAddition_en_in,
         jalAddition_en_in,          sb_en_in,                    sh_en_in,               sw_en_in,                    lb_en_in,
-        lh_en_in,                   lw_en_in,                    lbu_en_in,              lhu_en_in
+        lh_en_in,                   lw_en_in,                    lbu_en_in,              lhu_en_in,                   rs1_addr_in,
+        rs2_addr_in
     ) foreach
     {
         x => x._1 := x._2

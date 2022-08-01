@@ -25,6 +25,10 @@ class ALU_IO extends Bundle
     val greaterThanEqual_en    : Bool = Input(Bool())
     val greaterThanEqualU_en   : Bool = Input(Bool())
     val jalrAddition_en        : Bool = Input(Bool())
+    val forward_operand1       : UInt = Input(UInt(2.W))
+    val forward_operand2       : UInt = Input(UInt(2.W))
+    val RegAM_alu_out          : SInt = Input(SInt(32.W))
+    val RegMW_alu_out          : SInt = Input(SInt(32.W))
 
     // Output pins
     val out: SInt = Output(SInt(32.W))
@@ -54,10 +58,20 @@ class ALU extends Module
     val greaterThanEqual_en    : Bool = dontTouch(WireInit(io.greaterThanEqual_en))
     val greaterThanEqualU_en   : Bool = dontTouch(WireInit(io.greaterThanEqualU_en))
     val jalrAddition_en        : Bool = dontTouch(WireInit(io.jalrAddition_en))
+    val RegAM_alu_out          : SInt = dontTouch(WireInit(io.RegAM_alu_out))
+    val RegMW_alu_out          : SInt = dontTouch(WireInit(io.RegMW_alu_out))
+    val forward_operand1       : UInt = dontTouch(WireInit(io.forward_operand1))
+    val forward_operand2       : UInt = dontTouch(WireInit(io.forward_operand2))
 
     // Intermediate wires
-    val operand1: SInt = dontTouch(WireInit(rs1_data))
-    val operand2: SInt = dontTouch(WireInit(Mux(imm_en, i_s_b_imm, rs2_data)))
+    val operand1: SInt = dontTouch(WireInit(MuxLookup(forward_operand1, rs1_data, Array(
+        1.U -> RegAM_alu_out,
+        2.U -> RegMW_alu_out
+    ))))
+    val operand2: SInt = dontTouch(WireInit(Mux(imm_en, i_s_b_imm, MuxLookup(
+        forward_operand2, rs2_data, Array(
+        )
+    ))))
 
     // Operation wires
     val addition            : SInt = dontTouch(WireInit(operand1 + operand2))
@@ -74,7 +88,7 @@ class ALU extends Module
     val notEqual            : SInt = dontTouch(WireInit((operand1 =/= operand2).asSInt))
     val greaterThanEqual    : SInt = dontTouch(WireInit((operand1 >= operand2).asSInt))
     val greaterThanEqualU   : SInt = dontTouch(WireInit((operand1.asUInt >= operand2.asUInt).asSInt))
-    val jalrAddition        : SInt = dontTouch(WireInit(Cat((operand1 + i_s_b_imm)(31, 1), 0.U).asSInt))
+    val jalrAddition        : SInt = dontTouch(WireInit(Cat((operand1 + i_s_b_imm)(31, 1), "b0".U).asSInt))
 
     // Wiring to output pins
     io.out := MuxCase(0.S, Array(

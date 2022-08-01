@@ -9,6 +9,7 @@ import ControlUnit.ControlUnit
 import ALU.ALU
 import Memory.Memory
 import WriteBack.WriteBack
+import HazardModules._
 
 class Top extends Module
 {
@@ -24,6 +25,7 @@ class Top extends Module
     val Memory     : Memory      = Module(new Memory())
     val RegMW      : RegMW       = Module(new RegMW())
     val WriteBack  : WriteBack   = Module(new WriteBack())
+    val ForwardUnit: ForwardUnit = Module(new ForwardUnit())
 
     /*******************************************************
                         WIRING THE MODULES
@@ -54,7 +56,8 @@ class Top extends Module
         RegDA.io.OR_en_in,                    RegDA.io.AND_en_in,                  RegDA.io.subtraction_en_in,        RegDA.io.equal_en_in,                RegDA.io.notEqual_en_in,
         RegDA.io.greaterThanEqual_en_in,      RegDA.io.greaterThanEqualU_en_in,    RegDA.io.jalrAddition_en_in,       RegDA.io.auipcAddition_en_in,        RegDA.io.luiAddition_en_in,
         RegDA.io.jalAddition_en_in,           RegDA.io.sb_en_in,                   RegDA.io.sh_en_in,                 RegDA.io.sw_en_in,                   RegDA.io.lb_en_in,
-        RegDA.io.lh_en_in,                    RegDA.io.lw_en_in,                   RegDA.io.lbu_en_in,                RegDA.io.lhu_en_in,
+        RegDA.io.lh_en_in,                    RegDA.io.lw_en_in,                   RegDA.io.lbu_en_in,                RegDA.io.lhu_en_in,                  RegDA.io.rs1_addr_in,
+        RegDA.io.rs2_addr_in,
 
         // ALU
         ALU.io.rs1_data,                      ALU.io.rs2_data,                     ALU.io.i_s_b_imm,                  ALU.io.imm_en,                       ALU.io.addition_en,
@@ -82,7 +85,11 @@ class Top extends Module
         // WriteBack
         WriteBack.io.PC,                      WriteBack.io.alu,                    WriteBack.io.mem_data,             WriteBack.io.i_s_b_imm,              WriteBack.io.u_j_imm,
         WriteBack.io.wr_en,                   WriteBack.io.br_en,                  WriteBack.io.jalr_en,              WriteBack.io.jal_en,                 WriteBack.io.auipc_en,
-        WriteBack.io.lui_en
+        WriteBack.io.lui_en,
+
+        // ForwardUnit
+        ForwardUnit.io.RegDA_rs1_addr,        ForwardUnit.io.RegDA_rs2_addr,       ForwardUnit.io.RegAM_rd_addr,      ForwardUnit.io.RegAM_wr_en,          ForwardUnit.io.RegMW_rd_addr,
+        ForwardUnit.io.RegMW_wr_en
     ) zip Array(
         // Fetch
         WriteBack.io.nPC,                     WriteBack.io.nPC_en,
@@ -108,7 +115,8 @@ class Top extends Module
         ControlUnit.io.OR_en,                 ControlUnit.io.AND_en,               ControlUnit.io.subtraction_en,     ControlUnit.io.equal_en,             ControlUnit.io.notEqual_en,
         ControlUnit.io.greaterThanEqual_en,   ControlUnit.io.greaterThanEqualU_en, ControlUnit.io.jalrAddition_en,    ControlUnit.io.auipcAddition_en,     ControlUnit.io.luiAddition_en,
         ControlUnit.io.jalAddition_en,        ControlUnit.io.sb_en,                ControlUnit.io.sh_en,              ControlUnit.io.sw_en,                ControlUnit.io.lb_en,
-        ControlUnit.io.lh_en,                 ControlUnit.io.lw_en,                ControlUnit.io.lbu_en,             ControlUnit.io.lhu_en,
+        ControlUnit.io.lh_en,                 ControlUnit.io.lw_en,                ControlUnit.io.lbu_en,             ControlUnit.io.lhu_en,               Decoder.io.rs1_addr,
+        Decoder.io.rs2_addr,
 
         // ALU
         RegDA.io.rs1_data_out,                RegDA.io.rs2_data_out,               RegDA.io.i_s_b_imm_out,            RegDA.io.imm_en_out,                 RegDA.io.addition_en_out,
@@ -136,7 +144,11 @@ class Top extends Module
         // WriteBack
         RegMW.io.PC_out,                      RegMW.io.alu_out,                    RegMW.io.mem_data_out,             RegMW.io.i_s_b_imm_out,              RegMW.io.u_j_imm_out,
         RegMW.io.wr_en_out,                   RegMW.io.br_en_out,                  RegMW.io.jalr_en_out,              RegMW.io.jal_en_out,                 RegMW.io.auipc_en_out,
-        RegMW.io.lui_en_out
+        RegMW.io.lui_en_out,
+
+        // ForwardUnit
+        RegDA.io.rs1_addr_out,                RegDA.io.rs2_addr_out,               RegAM.io.rd_addr_out,              RegAM.io.wr_en_out,                  RegMW.io.rd_addr_out,
+        RegMW.io.wr_en_out
     ) foreach
     {
         x => x._1 := x._2
