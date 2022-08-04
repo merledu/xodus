@@ -16,6 +16,7 @@ class WriteBack_IO extends Bundle
     val jalr_en  : Bool = Input(Bool())
     val jal_en   : Bool = Input(Bool())
     val auipc_en : Bool = Input(Bool())
+    val ld_en    : Bool = Input(Bool())
     val lui_en   : Bool = Input(Bool())
 
     // Output pins
@@ -40,6 +41,7 @@ class WriteBack extends Module
     val jal_en   : Bool = dontTouch(WireInit(io.jal_en))
     val auipc_en : Bool = dontTouch(WireInit(io.auipc_en))
     val lui_en   : Bool = dontTouch(WireInit(io.lui_en))
+    val ld_en    : Bool = dontTouch(WireInit(io.ld_en))
 
     // Intermediate wires
     val auipc    : SInt = dontTouch(WireInit((PC + Cat(u_j_imm, Fill(12, "b0".U))).asSInt))
@@ -53,12 +55,14 @@ class WriteBack extends Module
     val nPC    : UInt = dontTouch(WireInit(MuxCase(0.U, Array(
         br_en               -> b_inst_PC,
         jal_en              -> jal_PC,
-        jalr_en             -> alu.asUInt
+        jalr_en             -> alu.asUInt,
     ))))
     val rd_data: SInt = dontTouch(WireInit(MuxCase(alu, Array(
         auipc_en            -> auipc,
         lui_en              -> lui,
-        (jal_en || jalr_en) -> PC4_rd
+        (jal_en || jalr_en) -> PC4_rd,
+        ld_en               -> mem_data
+
     ))))
     val nPC_en : Bool = dontTouch(WireInit(br_en || jal_en || jalr_en))
 

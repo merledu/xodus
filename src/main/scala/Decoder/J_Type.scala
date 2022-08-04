@@ -11,28 +11,20 @@ class J_Type_IO extends Bundle
 
     // Output pins
     val rd_addr: UInt = Output(UInt(5.W))
-    val imm    : SInt = Output(SInt(20.W))
+    val imm    : SInt = Output(SInt(32.W))
 }
 class J_Type extends Module
 {
     // Initializing IO pins
-    val io: J_Type_IO = IO(new J_Type_IO())
-
-    // Input wires
-    val in    : UInt = dontTouch(WireInit(io.in))
-    val opcode: UInt = dontTouch(WireInit(io.opcode))
-
-    // Output wires
-    val rd_addr: UInt = dontTouch(WireInit(in(4, 0)))
-    val imm    : SInt = dontTouch(WireInit(Cat(in(24), in(12, 5), in(13), in(23, 14), "b0".U).asSInt))
+    val io: J_Type_IO = IO(new J_Type_IO)
 
     // Output is thrown when opcode matches
-    when (opcode === 111.U)
+    when (io.opcode === 111.U)
     {
         Array(
-            io.rd_addr, io.imm
+            io.rd_addr,  io.imm
         ) zip Array(
-            rd_addr,    imm
+            io.in(4, 0), Cat(io.in(24), io.in(12, 5), io.in(13), io.in(23, 14), "b0".U).asSInt
         ) foreach
         {
             x => x._1 := x._2

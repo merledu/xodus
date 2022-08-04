@@ -16,9 +16,7 @@ class Fetch_IO extends Bundle
 class Fetch extends Module
 {
     // Initializing IO pins
-    val io: Fetch_IO = IO(new Fetch_IO())
-
-    // Input wires
+    val io    : Fetch_IO = IO(new Fetch_IO)
     val nPC_in: UInt = dontTouch(WireInit(io.nPC_in))
     val nPC_en: Bool = dontTouch(WireInit(io.nPC_en))
 
@@ -31,17 +29,20 @@ class Fetch extends Module
     // Loading instructions from memory
     loadMemoryFromFile(inst_mem, "assembly/hex.txt")
 
-    // Output wires
+    // Intermediate wires
+    val PC4     : UInt = dontTouch(WireInit(PC + 4.U(32.W)))
     val PC_out  : UInt = dontTouch(WireInit(PC))
     val inst_out: UInt = dontTouch(WireInit(inst_mem.read(PC(25, 2))))
+    val nPC   : UInt = dontTouch(WireInit(Mux(nPC_en, nPC_in, PC4)))
 
     // Wiring to output pins
     Array(
         io.PC_out, io.inst_out, PC
     ) zip Array(
-        PC_out,    inst_out,    Mux(nPC_en, nPC_in, PC + 4.U)
+        PC_out,    inst_out,    nPC
     ) foreach
     {
         x => x._1 := x._2
     }
 }
+

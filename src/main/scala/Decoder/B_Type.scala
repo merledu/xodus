@@ -13,30 +13,26 @@ class B_Type_IO extends Bundle
     val func3   : UInt = Output(UInt(3.W))
     val rs1_addr: UInt = Output(UInt(5.W))
     val rs2_addr: UInt = Output(UInt(5.W))
-    val imm     : SInt = Output(SInt(12.W))
+    val imm     : SInt = Output(SInt(32.W))
 }
 class B_Type extends Module
 {
     // Initializing IO pins
-    val io: B_Type_IO = IO(new B_Type_IO())
-
-    // Input wires
+    val io    : B_Type_IO = IO(new B_Type_IO)
     val in    : UInt = dontTouch(WireInit(io.in))
     val opcode: UInt = dontTouch(WireInit(io.opcode))
 
-    // Output wires
-    val func3   : UInt = dontTouch(WireInit(in(7, 5)))
-    val rs1_addr: UInt = dontTouch(WireInit(in(12, 8)))
-    val rs2_addr: UInt = dontTouch(WireInit(in(17, 13)))
-    val imm     : SInt = dontTouch(WireInit(Cat(in(24), in(0), in(23, 18), in(4, 1), "b0".U).asSInt))
+    val b_id
+    val func3
+    val rs1_addr
 
     // Output is thrown when opcode matches
-    when (opcode === 99.U)
+    when (io.opcode === 99.U)
     {
         Array(
-            io.func3, io.rs1_addr, io.rs2_addr, io.imm
+            io.func3,    io.rs1_addr,  io.rs2_addr,   io.imm
         ) zip Array(
-            func3,    rs1_addr,    rs2_addr,    imm
+            io.in(7, 5), io.in(12, 8), io.in(17, 13), Cat(io.in(24), io.in(0), io.in(23, 18), io.in(4, 1), "b0".U).asSInt
         ) foreach
         {
             x => x._1 := x._2

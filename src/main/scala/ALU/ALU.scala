@@ -28,7 +28,7 @@ class ALU_IO extends Bundle
     val forward_operand1       : UInt = Input(UInt(2.W))
     val forward_operand2       : UInt = Input(UInt(2.W))
     val RegAM_alu_out          : SInt = Input(SInt(32.W))
-    val RegMW_alu_out          : SInt = Input(SInt(32.W))
+    val WriteBack_rd_data      : SInt = Input(SInt(32.W))
 
     // Output pins
     val out: SInt = Output(SInt(32.W))
@@ -59,17 +59,19 @@ class ALU extends Module
     val greaterThanEqualU_en   : Bool = dontTouch(WireInit(io.greaterThanEqualU_en))
     val jalrAddition_en        : Bool = dontTouch(WireInit(io.jalrAddition_en))
     val RegAM_alu_out          : SInt = dontTouch(WireInit(io.RegAM_alu_out))
-    val RegMW_alu_out          : SInt = dontTouch(WireInit(io.RegMW_alu_out))
+    val WriteBack_rd_data      : SInt = dontTouch(WireInit(io.WriteBack_rd_data))
     val forward_operand1       : UInt = dontTouch(WireInit(io.forward_operand1))
     val forward_operand2       : UInt = dontTouch(WireInit(io.forward_operand2))
 
     // Intermediate wires
     val operand1: SInt = dontTouch(WireInit(MuxLookup(forward_operand1, rs1_data, Array(
         1.U -> RegAM_alu_out,
-        2.U -> RegMW_alu_out
+        2.U -> WriteBack_rd_data
     ))))
     val operand2: SInt = dontTouch(WireInit(Mux(imm_en, i_s_b_imm, MuxLookup(
         forward_operand2, rs2_data, Array(
+            1.U -> RegAM_alu_out,
+            2.U -> WriteBack_rd_data
         )
     ))))
 

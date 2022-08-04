@@ -1,4 +1,4 @@
-package HazardModules
+package ControlUnit
 
 import chisel3._
 import chisel3.util._

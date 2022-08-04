@@ -18,13 +18,11 @@ class R_Type_IO extends Bundle
 class R_Type extends Module
 {
     // Initializing IO pins
-    val io: R_Type_IO = IO(new R_Type_IO())
-
-    // Input wires
+    val io    : R_Type_IO = IO(new R_Type_IO)
     val in    : UInt = dontTouch(WireInit(io.in))
     val opcode: UInt = dontTouch(WireInit(io.opcode))
 
-    // Output wires
+    // Intermediate wires
     val rd_addr : UInt = dontTouch(WireInit(in(4, 0)))
     val func3   : UInt = dontTouch(WireInit(in(7, 5)))
     val rs1_addr: UInt = dontTouch(WireInit(in(12, 8)))
@@ -32,7 +30,7 @@ class R_Type extends Module
     val func7   : UInt = dontTouch(WireInit(in(24, 18)))
 
     // Output is thrown when opcode matches
-    when (opcode === 51.U)
+    when (io.opcode === 51.U)
     {
         Array(
             io.rd_addr, io.func3, io.rs1_addr, io.rs2_addr, io.func7

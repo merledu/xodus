@@ -6,10 +6,10 @@ import chisel3.util._
 class ControlUnit_IO extends Bundle
 {
     // Input pins
-    val opcode   : UInt = Input(UInt(7.W))
-    val func3    : UInt = Input(UInt(3.W))
-    val func7    : UInt = Input(UInt(7.W))
-    val i_s_b_imm: SInt = Input(SInt(12.W))
+    val opcode: UInt = Input(UInt(7.W))
+    val func3 : UInt = Input(UInt(3.W))
+    val func7 : UInt = Input(UInt(7.W))
+    val imm   : SInt = Input(SInt(32.W))
 
     // Output pins
     val wr_en                  : Bool = Output(Bool())
@@ -36,9 +36,6 @@ class ControlUnit_IO extends Bundle
     val greaterThanEqual_en    : Bool = Output(Bool())
     val greaterThanEqualU_en   : Bool = Output(Bool())
     val jalrAddition_en        : Bool = Output(Bool())
-    val auipcAddition_en       : Bool = Output(Bool())
-    val luiAddition_en         : Bool = Output(Bool())
-    val jalAddition_en         : Bool = Output(Bool())
     val sb_en                  : Bool = Output(Bool())
     val sh_en                  : Bool = Output(Bool())
     val sw_en                  : Bool = Output(Bool())
@@ -51,88 +48,136 @@ class ControlUnit_IO extends Bundle
 class ControlUnit extends Module
 {
     // Initializing IO pins
-    val io: ControlUnit_IO = IO(new ControlUnit_IO())
-
-    // Input wires
-    val opcode   : UInt = dontTouch(WireInit(io.opcode))
-    val func3    : UInt = dontTouch(WireInit(io.func3))
-    val func7    : UInt = dontTouch(WireInit(io.func7))
-    val i_s_b_imm: SInt = dontTouch(WireInit(io.i_s_b_imm))
+    val io    : ControlUnit_IO = IO(new ControlUnit_IO())
+    val opcode: UInt = dontTouch(WireInit(io.opcode))
+    val func3 : UInt = dontTouch(WireInit(io.func3))
+    val func7 : UInt = dontTouch(WireInit(io.func7))
+    val imm   : SInt = dontTouch(WireInit(io.imm))
 
     // Intermediate wires
     val func7_func3_opcode_id: UInt = dontTouch(WireInit(Cat(func7, func3, opcode)))
     val func3_opcode_id      : UInt = dontTouch(WireInit(Cat(func3, opcode)))
-    val imm_func3_opcode_id  : UInt = dontTouch(WireInit(Cat(i_s_b_imm(11, 5), func3, opcode)))
+    val imm_func3_opcode_id  : UInt = dontTouch(WireInit(Cat(imm(11, 5), func3, opcode)))
 
-    // Output wires
-    val wr_en                  : Bool = dontTouch(WireInit(
-//              R          lb, lh, lw, bu, lhu            I                jalr               auipc               lui                jal
-        opcode === 51.U ||    opcode === 3.U   || opcode === 19.U || opcode === 103.U || opcode === 23.U || opcode === 55.U || opcode === 111.U
-    ))
-    val str_en                 : Bool = dontTouch(WireInit(opcode === 35.U))   // sb, sh, sw, sbu, shu
-    val ld_en                  : Bool = dontTouch(WireInit(opcode === 3.U))    // lb, lh, lw, lbu, lhu
-    val br_en                  : Bool = dontTouch(WireInit(opcode === 99.U))   // beq, bne, blt, bge, bltu, bgeu
-    val jal_en                 : Bool = dontTouch(WireInit(opcode === 111.U))  // jal
-    val jalr_en                : Bool = dontTouch(WireInit(opcode === 103.U))  // jalr
-    val auipc_en               : Bool = dontTouch(WireInit(opcode === 23.U))   // auipc
-    val lui_en                 : Bool = dontTouch(WireInit(opcode === 55.U))   // lui
+    // Encoded ID wires
+    // - R-Type IDs
+    val r_id   : UInt = dontTouch(WireInit(51.U(7.W)))
+    val add_id : UInt = dontTouch(WireInit(51.U(17.W)))
+    val sub_id : UInt = dontTouch(WireInit(32819.U(17.W)))
+    val sll_id : UInt = dontTouch(WireInit(179.U(17.W)))
+    val slt_id : UInt = dontTouch(WireInit(307.U(17.W)))
+    val sltu_id: UInt = dontTouch(WireInit(435.U(17.W)))
+    val xor_id : UInt = dontTouch(WireInit(563.U(17.W)))
+    val srl_id : UInt = dontTouch(WireInit(691.U(17.W)))
+    val sra_id : UInt = dontTouch(WireInit(33459.U(17.W)))
+    val or_id  : UInt = dontTouch(WireInit(819.U(17.W)))
+    val and_id : UInt = dontTouch(WireInit(947.U(17.W)))
+    
+    // - I-Type IDs
+    val i_math_id: UInt = dontTouch(WireInit(19.U(7.W)))
+    val i_ld_id  : UInt = dontTouch(WireInit(3.U(7.W)))
+    // -- Load IDs
+    val lb_id : UInt = dontTouch(WireInit(3.U(10.W)))
+    val lh_id : UInt = dontTouch(WireInit(131.U(10.W)))
+    val lw_id : UInt = dontTouch(WireInit(259.U(10.W)))
+    val lbu_id: UInt = dontTouch(WireInit(515.U(10.W)))
+    val lhu_id: UInt = dontTouch(WireInit(643.U(10.W)))
+    // -- Math IDs
+    val addi_id : UInt = dontTouch(WireInit(19.U(10.W)))
+    val slli_id : UInt = dontTouch(WireInit(147.U(17.W)))
+    val slti_id : UInt = dontTouch(WireInit(275.U(10.W)))
+    val sltiu_id: UInt = dontTouch(WireInit(403.U(10.W)))
+    val xori_id : UInt = dontTouch(WireInit(531.U(10.W)))
+    val srli_id : UInt = dontTouch(WireInit(659.U(17.W)))
+    val srai_id : UInt = dontTouch(WireInit(33427.U(17.W)))
+    val ori_id  : UInt = dontTouch(WireInit(787.U(10.W)))
+    val andi_id : UInt = dontTouch(WireInit(915.U(10.W)))
+    // -- Jump and Link ID
+    val jalr_id: UInt = dontTouch(WireInit(103.U(10.W)))
+
+    // - S-Type IDs
+    val s_id : UInt = dontTouch(WireInit(35.U(7.W)))
+    val sb_id: UInt = dontTouch(WireInit(35.U(10.W)))
+    val sh_id: UInt = dontTouch(WireInit(163.U(10.W)))
+    val sw_id: UInt = dontTouch(WireInit(291.U(10.W)))
+
+    // - B-Type IDs
+    val b_id   : UInt = dontTouch(WireInit(99.U(7.W)))
+    val beq_id : UInt = dontTouch(WireInit(99.U(10.W)))
+    val bne_id : UInt = dontTouch(WireInit(227.U(10.W)))
+    val blt_id : UInt = dontTouch(WireInit(611.U(10.W)))
+    val bge_id : UInt = dontTouch(WireInit(739.U(10.W)))
+    val bltu_id: UInt = dontTouch(WireInit(867.U(10.W)))
+    val bgeu_id: UInt = dontTouch(WireInit(995.U(10.W)))
+
+    // - U-Type IDs
+    val auipc_id: UInt = dontTouch(WireInit(23.U(7.W)))
+    val lui_id  : UInt = dontTouch(WireInit(55.U(7.W)))
+    
+    // - J-Type IDs
+    val jal_id: UInt = dontTouch(WireInit(111.U(7.W)))
+    
+    // Data memory control
+    val lb_en : Bool = dontTouch(WireInit(func3_opcode_id === lb_id))
+    val lh_en : Bool = dontTouch(WireInit(func3_opcode_id === lh_id))
+    val lw_en : Bool = dontTouch(WireInit(func3_opcode_id === lw_id))
+    val lbu_en: Bool = dontTouch(WireInit(func3_opcode_id === lbu_id))
+    val lhu_en: Bool = dontTouch(WireInit(func3_opcode_id === lhu_id))
+    val sb_en : Bool = dontTouch(WireInit(func3_opcode_id === sb_id))
+    val sh_en : Bool = dontTouch(WireInit(func3_opcode_id === sh_id))
+    val sw_en : Bool = dontTouch(WireInit(func3_opcode_id === sw_id))
+    val str_en: Bool = dontTouch(WireInit(opcode === s_id))
+    val ld_en : Bool = dontTouch(WireInit(opcode === i_ld_id))
+
+    // WriteBack control
+    val br_en   : Bool = dontTouch(WireInit(opcode === b_id))
+    val jal_en  : Bool = dontTouch(WireInit(opcode === jal_id))
+    val jalr_en : Bool = dontTouch(WireInit(opcode === jalr_id))
+    val auipc_en: Bool = dontTouch(WireInit(opcode === auipc_id))
+    val lui_en  : Bool = dontTouch(WireInit(opcode === lui_id))
+
+    // ALU control
     val imm_en                 : Bool = dontTouch(WireInit(
-//              I          sb, sh, sw, sbu, shu    lb, lh, lw, bu, lhu          jalr
-        opcode === 19.U ||    opcode === 35.U   ||    opcode === 3.U   || opcode === 103.U
+        opcode === i_math_id || str_en || ld_en || jalr_en
     ))
     val addition_en            : Bool = dontTouch(WireInit(
-//   lb, lh, lw, lbu, lhu                addi            sb, sh, sw, sbu, shu                   add
-        opcode === 3.U    || func3_opcode_id === 19.U ||    opcode === 35.U   || func7_func3_opcode_id === 51.U
+        ld_en || func3_opcode_id === addi_id || str_en || func7_func3_opcode_id === add_id
     ))
     val shiftLeftLogical_en    : Bool = dontTouch(WireInit(
-//                    slli                              sll
-        imm_func3_opcode_id === 147.U || func7_func3_opcode_id === 179.U
+        imm_func3_opcode_id === slli_id || func7_func3_opcode_id === sll_id
     ))
     val lessThan_en            : Bool = dontTouch(WireInit(
-//                  slti                           slt                              blt
-        func3_opcode_id === 275.U || func7_func3_opcode_id === 307.U || func3_opcode_id === 611.U
+        func3_opcode_id === slti_id || func7_func3_opcode_id === slt_id || func3_opcode_id === blt_id
     ))
     val lessThanU_en           : Bool = dontTouch(WireInit(
-//                  sltiu                         sltu                              bltu
-        func3_opcode_id === 403.U || func7_func3_opcode_id === 435.U || func3_opcode_id === 867.U
+        func3_opcode_id === sltiu_id || func7_func3_opcode_id === sltu_id || func3_opcode_id === bltu_id
     ))
     val XOR_en                 : Bool = dontTouch(WireInit(
-//                 xori                             xor
-        func3_opcode_id === 531.U || func7_func3_opcode_id === 563.U
+        func3_opcode_id === xori_id || func7_func3_opcode_id === xor_id
     ))
     val shiftRightLogical_en   : Bool = dontTouch(WireInit(
-//                    srli                               srl
-        imm_func3_opcode_id === 659.U || func7_func3_opcode_id === 691.U
+        imm_func3_opcode_id === srli_id || func7_func3_opcode_id === srl_id
     ))
     val shiftRightArithmetic_en: Bool = dontTouch(WireInit(
-//                     srai                                sra
-        imm_func3_opcode_id === 33427.U || func7_func3_opcode_id === 33459.U
+        imm_func3_opcode_id === srai_id || func7_func3_opcode_id === sra_id
     ))
     val OR_en                  : Bool = dontTouch(WireInit(
-//                   ori                              or
-        func3_opcode_id === 787.U || func7_func3_opcode_id === 819.U
+        func3_opcode_id === ori_id || func7_func3_opcode_id === or_id
     ))
     val AND_en                 : Bool = dontTouch(WireInit(
-//                   andi                          and
-        func3_opcode_id === 915.U || func7_func3_opcode_id === 947.U
+        func3_opcode_id === andi_id || func7_func3_opcode_id === and_id
     ))
-    val subtraction_en         : Bool = dontTouch(WireInit(func7_func3_opcode_id === 32819.U))  // sub
-    val equal_en               : Bool = dontTouch(WireInit(func3_opcode_id === 99.U))  // beq
-    val notEqual_en            : Bool = dontTouch(WireInit(func3_opcode_id === 227.U))  // bne
-    val greaterThanEqual_en    : Bool = dontTouch(WireInit(func3_opcode_id === 739.U))  // bge
-    val greaterThanEqualU_en   : Bool = dontTouch(WireInit(func3_opcode_id === 995.U))  // bgeu
-    val jalrAddition_en        : Bool = dontTouch(WireInit(func3_opcode_id === 103.U))  // jalr
-    val auipcAddition_en       : Bool = dontTouch(WireInit(opcode === 23.U))  // auipc
-    val luiAddition_en         : Bool = dontTouch(WireInit(opcode === 55.U))  // lui
-    val jalAddition_en         : Bool = dontTouch(WireInit(opcode === 111.U))  // jal
-    val sb_en                  : Bool = dontTouch(WireInit(func3 === "b000".U))  // sb
-    val sh_en                  : Bool = dontTouch(WireInit(func3 === "b001".U))  // sh
-    val sw_en                  : Bool = dontTouch(WireInit(func3 === "b010".U))  // sw
-    val lb_en                  : Bool = dontTouch(WireInit(func3 === "b000".U))  // lb
-    val lh_en                  : Bool = dontTouch(WireInit(func3 === "b001".U))  // lh
-    val lw_en                  : Bool = dontTouch(WireInit(func3 === "b010".U))  // lw
-    val lbu_en                 : Bool = dontTouch(WireInit(func3 === "b100".U))  // lbu
-    val lhu_en                 : Bool = dontTouch(WireInit(func3 === "b101".U))  // lhu
+    val subtraction_en         : Bool = dontTouch(WireInit(func7_func3_opcode_id === sub_id))
+    val equal_en               : Bool = dontTouch(WireInit(func3_opcode_id === beq_id))
+    val notEqual_en            : Bool = dontTouch(WireInit(func3_opcode_id === bne_id))
+    val greaterThanEqual_en    : Bool = dontTouch(WireInit(func3_opcode_id === bge_id))
+    val greaterThanEqualU_en   : Bool = dontTouch(WireInit(func3_opcode_id === bgeu_id))
+    val jalrAddition_en        : Bool = dontTouch(WireInit(func3_opcode_id === jalr_id))
+
+    // RegFile control
+    val wr_en: Bool = dontTouch(WireInit(
+        opcode === r_id || ld_en || opcode === i_math_id || jalr_en || auipc_en || lui_en || jal_en
+    ))
 
     // Wiring to outpin pins
     Array(
@@ -140,19 +185,20 @@ class ControlUnit extends Module
         io.jal_en,                  io.jalr_en,             io.auipc_en,             io.lui_en,          io.addition_en,
         io.shiftLeftLogical_en,     io.lessThan_en,         io.lessThanU_en,         io.XOR_en,          io.shiftRightLogical_en,
         io.shiftRightArithmetic_en, io.OR_en,               io.AND_en,               io.subtraction_en,  io.equal_en,
-        io.notEqual_en,             io.greaterThanEqual_en, io.greaterThanEqualU_en, io.jalrAddition_en, io.auipcAddition_en,
-        io.luiAddition_en,          io.jalAddition_en,      io.sb_en,                io.sh_en,           io.sw_en,
-        io.lb_en,                   io.lh_en,               io.lw_en,                io.lbu_en,          io.lhu_en
+        io.notEqual_en,             io.greaterThanEqual_en, io.greaterThanEqualU_en, io.jalrAddition_en, io.sb_en,
+        io.sh_en,                   io.sw_en,               io.lb_en,                io.lh_en,           io.lw_en,
+        io.lbu_en,                  io.lhu_en
     ) zip Array(
         wr_en,                      imm_en,                 str_en,                  ld_en,              br_en,
         jal_en,                     jalr_en,                auipc_en,                lui_en,             addition_en,
         shiftLeftLogical_en,        lessThan_en,            lessThanU_en,            XOR_en,             shiftRightLogical_en,
         shiftRightArithmetic_en,    OR_en,                  AND_en,                  subtraction_en,     equal_en,
-        notEqual_en,                greaterThanEqual_en,    greaterThanEqualU_en,    jalrAddition_en,    auipcAddition_en,
-        luiAddition_en,             jalAddition_en,         sb_en,                   sh_en,              sw_en,
-        lb_en,                      lh_en,                  lw_en,                   lbu_en,             lhu_en
+        notEqual_en,                greaterThanEqual_en,    greaterThanEqualU_en,    jalrAddition_en,    sb_en,
+        sh_en,                      sw_en,                  lb_en,                   lh_en,              lw_en,
+        lbu_en,                     lhu_en
     ) foreach
     {
         x => x._1 := x._2
     }
 }
+

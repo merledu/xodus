@@ -1,32 +1,36 @@
 package PipelineRegs
 
 import chisel3._
+import chisel3.util._
 
 class RegAM_IO extends Bundle
 {
     // Input pins
-    val PC_in       : UInt = Input(UInt(32.W))
-    val alu_in      : SInt = Input(SInt(32.W))
-    val rd_addr_in  : UInt = Input(UInt(5.W))
-    val rs2_data_in : SInt = Input(SInt(32.W))
-    val i_s_b_imm_in: SInt = Input(SInt(12.W))
-    val u_j_imm_in  : SInt = Input(SInt(20.W))
-    val wr_en_in    : Bool = Input(Bool())
-    val str_en_in   : Bool = Input(Bool())
-    val ld_en_in    : Bool = Input(Bool())
-    val br_en_in    : Bool = Input(Bool())
-    val jalr_en_in  : Bool = Input(Bool())
-    val jal_en_in   : Bool = Input(Bool())
-    val auipc_en_in : Bool = Input(Bool())
-    val lui_en_in   : Bool = Input(Bool())
-    val sb_en_in    : Bool = Input(Bool())
-    val sh_en_in    : Bool = Input(Bool())
-    val sw_en_in    : Bool = Input(Bool())
-    val lb_en_in    : Bool = Input(Bool())
-    val lh_en_in    : Bool = Input(Bool())
-    val lw_en_in    : Bool = Input(Bool())
-    val lbu_en_in   : Bool = Input(Bool())
-    val lhu_en_in   : Bool = Input(Bool())
+    val PC_in            : UInt = Input(UInt(32.W))
+    val alu_in           : SInt = Input(SInt(32.W))
+    val rd_addr_in       : UInt = Input(UInt(5.W))
+    val rs2_data_in      : SInt = Input(SInt(32.W))
+    val i_s_b_imm_in     : SInt = Input(SInt(12.W))
+    val u_j_imm_in       : SInt = Input(SInt(20.W))
+    val wr_en_in         : Bool = Input(Bool())
+    val str_en_in        : Bool = Input(Bool())
+    val ld_en_in         : Bool = Input(Bool())
+    val br_en_in         : Bool = Input(Bool())
+    val jalr_en_in       : Bool = Input(Bool())
+    val jal_en_in        : Bool = Input(Bool())
+    val auipc_en_in      : Bool = Input(Bool())
+    val lui_en_in        : Bool = Input(Bool())
+    val sb_en_in         : Bool = Input(Bool())
+    val sh_en_in         : Bool = Input(Bool())
+    val sw_en_in         : Bool = Input(Bool())
+    val lb_en_in         : Bool = Input(Bool())
+    val lh_en_in         : Bool = Input(Bool())
+    val lw_en_in         : Bool = Input(Bool())
+    val lbu_en_in        : Bool = Input(Bool())
+    val lhu_en_in        : Bool = Input(Bool())
+    val imm_en           : Bool = Input(Bool())
+    val forward_operand2 : UInt = Input(UInt(2.W))
+    val WriteBack_rd_data: SInt = Input(SInt(32.W))
 
     // Output pins
     val PC_out       : UInt = Output(UInt(32.W))
@@ -58,28 +62,30 @@ class RegAM extends Module
     val io: RegAM_IO = IO(new RegAM_IO())
 
     // Input wires
-    val PC_in       : UInt = dontTouch(WireInit(io.PC_in))
-    val alu_in      : SInt = dontTouch(WireInit(io.alu_in))
-    val rd_addr_in  : UInt = dontTouch(WireInit(io.rd_addr_in))
-    val rs2_data_in : SInt = dontTouch(WireInit(io.rs2_data_in))
-    val i_s_b_imm_in: SInt = dontTouch(WireInit(io.i_s_b_imm_in))
-    val u_j_imm_in  : SInt = dontTouch(WireInit(io.u_j_imm_in))
-    val wr_en_in    : Bool = dontTouch(WireInit(io.wr_en_in))
-    val str_en_in   : Bool = dontTouch(WireInit(io.str_en_in))
-    val ld_en_in    : Bool = dontTouch(WireInit(io.ld_en_in))
-    val br_en_in    : Bool = dontTouch(WireInit(io.br_en_in))
-    val jalr_en_in  : Bool = dontTouch(WireInit(io.jalr_en_in))
-    val jal_en_in   : Bool = dontTouch(WireInit(io.jal_en_in))
-    val auipc_en_in : Bool = dontTouch(WireInit(io.auipc_en_in))
-    val lui_en_in   : Bool = dontTouch(WireInit(io.lui_en_in))
-    val sb_en_in    : Bool = dontTouch(WireInit(io.sb_en_in))
-    val sh_en_in    : Bool = dontTouch(WireInit(io.sh_en_in))
-    val sw_en_in    : Bool = dontTouch(WireInit(io.sw_en_in))
-    val lb_en_in    : Bool = dontTouch(WireInit(io.lb_en_in))
-    val lh_en_in    : Bool = dontTouch(WireInit(io.lh_en_in))
-    val lw_en_in    : Bool = dontTouch(WireInit(io.lw_en_in))
-    val lbu_en_in   : Bool = dontTouch(WireInit(io.lbu_en_in))
-    val lhu_en_in   : Bool = dontTouch(WireInit(io.lhu_en_in))
+    val PC_in           : UInt = dontTouch(WireInit(io.PC_in))
+    val alu_in          : SInt = dontTouch(WireInit(io.alu_in))
+    val rd_addr_in      : UInt = dontTouch(WireInit(io.rd_addr_in))
+    val rs2_data_in     : SInt = dontTouch(WireInit(0.S(32.W)))
+    val i_s_b_imm_in    : SInt = dontTouch(WireInit(io.i_s_b_imm_in))
+    val u_j_imm_in      : SInt = dontTouch(WireInit(io.u_j_imm_in))
+    val wr_en_in        : Bool = dontTouch(WireInit(io.wr_en_in))
+    val str_en_in       : Bool = dontTouch(WireInit(io.str_en_in))
+    val ld_en_in        : Bool = dontTouch(WireInit(io.ld_en_in))
+    val br_en_in        : Bool = dontTouch(WireInit(io.br_en_in))
+    val jalr_en_in      : Bool = dontTouch(WireInit(io.jalr_en_in))
+    val jal_en_in       : Bool = dontTouch(WireInit(io.jal_en_in))
+    val auipc_en_in     : Bool = dontTouch(WireInit(io.auipc_en_in))
+    val lui_en_in       : Bool = dontTouch(WireInit(io.lui_en_in))
+    val sb_en_in        : Bool = dontTouch(WireInit(io.sb_en_in))
+    val sh_en_in        : Bool = dontTouch(WireInit(io.sh_en_in))
+    val sw_en_in        : Bool = dontTouch(WireInit(io.sw_en_in))
+    val lb_en_in        : Bool = dontTouch(WireInit(io.lb_en_in))
+    val lh_en_in        : Bool = dontTouch(WireInit(io.lh_en_in))
+    val lw_en_in        : Bool = dontTouch(WireInit(io.lw_en_in))
+    val lbu_en_in       : Bool = dontTouch(WireInit(io.lbu_en_in))
+    val lhu_en_in       : Bool = dontTouch(WireInit(io.lhu_en_in))
+    val forward_operand2: UInt = dontTouch(WireInit(io.forward_operand2))
+    val imm_en          : Bool = dontTouch(WireInit(io.imm_en))
 
     // Initializing registers
     val PC       : UInt = dontTouch(RegInit(0.U(32.W)))
@@ -129,6 +135,12 @@ class RegAM extends Module
     val lbu_en_out   : Bool = dontTouch(WireInit(lbu_en))
     val lhu_en_out   : Bool = dontTouch(WireInit(lhu_en))
 
+    // Data hazard wires
+    rs2_data_in := MuxLookup(forward_operand2, io.rs2_data_in, Array(
+        1.U -> alu_out,
+        2.U -> io.WriteBack_rd_data
+    ))
+
     // Wiring to output pins
     Array(
         // Output pins
@@ -146,11 +158,11 @@ class RegAM extends Module
         lbu_en,         lhu_en
     ) zip Array(
         // Output pins
-        PC,             alu,           rd_addr,         rs2_data,        i_s_b_imm,
-        u_j_imm,        wr_en,         str_en,          ld_en,           br_en,
-        jalr_en,        jal_en,        auipc_en,        lui_en,          sb_en,
-        sh_en,          sw_en,         lb_en,           lh_en,           lw_en,
-        lbu_en,         lhu_en,
+        PC_out,         alu_out,       rd_addr_out,     rs2_data_out,    i_s_b_imm_out,
+        u_j_imm_out,    wr_en_out,     str_en_out,      ld_en_out,       br_en_out,
+        jalr_en_out,    jal_en_out,    auipc_en_out,    lui_en_out,      sb_en_out,
+        sh_en_out,      sw_en_out,     lb_en_out,       lh_en_out,       lw_en_out,
+        lbu_en_out,     lhu_en_out,
 
         // Registers
         PC_in,          alu_in,        rd_addr_in,      rs2_data_in,     i_s_b_imm_in,
