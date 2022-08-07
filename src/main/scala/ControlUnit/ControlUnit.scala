@@ -6,18 +6,28 @@ import chisel3.util._
 class ControlUnit_IO extends Bundle
 {
     // Input pins
-    val opcode: UInt = Input(UInt(7.W))
-    val func3 : UInt = Input(UInt(3.W))
-    val func7 : UInt = Input(UInt(7.W))
-    val imm   : SInt = Input(SInt(32.W))
+    val opcode      : UInt = Input(UInt(7.W))
+    val func3       : UInt = Input(UInt(3.W))
+    val func7       : UInt = Input(UInt(7.W))
+    val imm         : SInt = Input(SInt(32.W))
+    val r_id        : UInt = Input(UInt(7.W))
+    val i_math_id   : UInt = Input(UInt(7.W))
+    val i_load_id   : UInt = Input(UInt(7.W))
+    val i_jalr_id   : UInt = Input(UInt(7.W))
+    val s_id        : UInt = Input(UInt(7.W))
+    val b_id        : UInt = Input(UInt(7.W))
+    val u_auipc_id  : UInt = Input(UInt(7.W))
+    val u_lui_id    : UInt = Input(UInt(7.W))
+    val j_id        : UInt = Input(UInt(7.W))
+    val stallControl: Bool = Input(Bool())
 
     // Output pins
     val wr_en                  : Bool = Output(Bool())
     val imm_en                 : Bool = Output(Bool())
     val str_en                 : Bool = Output(Bool())
-    val ld_en                  : Bool = Output(Bool())
+    val load_en                : Bool = Output(Bool())
     val br_en                  : Bool = Output(Bool())
-    val jal_en                 : Bool = Output(Bool())
+    val j_en                   : Bool = Output(Bool())
     val jalr_en                : Bool = Output(Bool())
     val auipc_en               : Bool = Output(Bool())
     val lui_en                 : Bool = Output(Bool())
@@ -48,11 +58,21 @@ class ControlUnit_IO extends Bundle
 class ControlUnit extends Module
 {
     // Initializing IO pins
-    val io    : ControlUnit_IO = IO(new ControlUnit_IO())
-    val opcode: UInt = dontTouch(WireInit(io.opcode))
-    val func3 : UInt = dontTouch(WireInit(io.func3))
-    val func7 : UInt = dontTouch(WireInit(io.func7))
-    val imm   : SInt = dontTouch(WireInit(io.imm))
+    val io          : ControlUnit_IO = IO(new ControlUnit_IO)
+    val opcode      : UInt = dontTouch(WireInit(io.opcode))
+    val func3       : UInt = dontTouch(WireInit(io.func3))
+    val func7       : UInt = dontTouch(WireInit(io.func7))
+    val imm         : SInt = dontTouch(WireInit(io.imm))
+    val r_id        : UInt = dontTouch(WireInit(io.r_id))
+    val i_math_id   : UInt = dontTouch(WireInit(io.i_math_id))
+    val i_load_id   : UInt = dontTouch(WireInit(io.i_load_id))
+    val i_jalr_id   : UInt = dontTouch(WireInit(io.i_jalr_id))
+    val s_id        : UInt = dontTouch(WireInit(io.s_id))
+    val b_id        : UInt = dontTouch(WireInit(io.b_id))
+    val u_auipc_id  : UInt = dontTouch(WireInit(io.u_auipc_id))
+    val u_lui_id    : UInt = dontTouch(WireInit(io.u_lui_id))
+    val j_id        : UInt = dontTouch(WireInit(io.j_id))
+    val stallControl: Bool = dontTouch(WireInit(io.stallControl))
 
     // Intermediate wires
     val func7_func3_opcode_id: UInt = dontTouch(WireInit(Cat(func7, func3, opcode)))
@@ -61,7 +81,6 @@ class ControlUnit extends Module
 
     // Encoded ID wires
     // - R-Type IDs
-    val r_id   : UInt = dontTouch(WireInit(51.U(7.W)))
     val add_id : UInt = dontTouch(WireInit(51.U(17.W)))
     val sub_id : UInt = dontTouch(WireInit(32819.U(17.W)))
     val sll_id : UInt = dontTouch(WireInit(179.U(17.W)))
@@ -74,8 +93,6 @@ class ControlUnit extends Module
     val and_id : UInt = dontTouch(WireInit(947.U(17.W)))
     
     // - I-Type IDs
-    val i_math_id: UInt = dontTouch(WireInit(19.U(7.W)))
-    val i_ld_id  : UInt = dontTouch(WireInit(3.U(7.W)))
     // -- Load IDs
     val lb_id : UInt = dontTouch(WireInit(3.U(10.W)))
     val lh_id : UInt = dontTouch(WireInit(131.U(10.W)))
@@ -92,30 +109,19 @@ class ControlUnit extends Module
     val srai_id : UInt = dontTouch(WireInit(33427.U(17.W)))
     val ori_id  : UInt = dontTouch(WireInit(787.U(10.W)))
     val andi_id : UInt = dontTouch(WireInit(915.U(10.W)))
-    // -- Jump and Link ID
-    val jalr_id: UInt = dontTouch(WireInit(103.U(10.W)))
 
     // - S-Type IDs
-    val s_id : UInt = dontTouch(WireInit(35.U(7.W)))
     val sb_id: UInt = dontTouch(WireInit(35.U(10.W)))
     val sh_id: UInt = dontTouch(WireInit(163.U(10.W)))
     val sw_id: UInt = dontTouch(WireInit(291.U(10.W)))
 
     // - B-Type IDs
-    val b_id   : UInt = dontTouch(WireInit(99.U(7.W)))
     val beq_id : UInt = dontTouch(WireInit(99.U(10.W)))
     val bne_id : UInt = dontTouch(WireInit(227.U(10.W)))
     val blt_id : UInt = dontTouch(WireInit(611.U(10.W)))
     val bge_id : UInt = dontTouch(WireInit(739.U(10.W)))
     val bltu_id: UInt = dontTouch(WireInit(867.U(10.W)))
     val bgeu_id: UInt = dontTouch(WireInit(995.U(10.W)))
-
-    // - U-Type IDs
-    val auipc_id: UInt = dontTouch(WireInit(23.U(7.W)))
-    val lui_id  : UInt = dontTouch(WireInit(55.U(7.W)))
-    
-    // - J-Type IDs
-    val jal_id: UInt = dontTouch(WireInit(111.U(7.W)))
     
     // Data memory control
     val lb_en : Bool = dontTouch(WireInit(func3_opcode_id === lb_id))
@@ -127,21 +133,21 @@ class ControlUnit extends Module
     val sh_en : Bool = dontTouch(WireInit(func3_opcode_id === sh_id))
     val sw_en : Bool = dontTouch(WireInit(func3_opcode_id === sw_id))
     val str_en: Bool = dontTouch(WireInit(opcode === s_id))
-    val ld_en : Bool = dontTouch(WireInit(opcode === i_ld_id))
+    val load_en : Bool = dontTouch(WireInit(opcode === i_load_id))
 
     // WriteBack control
     val br_en   : Bool = dontTouch(WireInit(opcode === b_id))
-    val jal_en  : Bool = dontTouch(WireInit(opcode === jal_id))
-    val jalr_en : Bool = dontTouch(WireInit(opcode === jalr_id))
-    val auipc_en: Bool = dontTouch(WireInit(opcode === auipc_id))
-    val lui_en  : Bool = dontTouch(WireInit(opcode === lui_id))
+    val j_en  : Bool = dontTouch(WireInit(opcode === j_id))
+    val jalr_en : Bool = dontTouch(WireInit(opcode === i_jalr_id))
+    val auipc_en: Bool = dontTouch(WireInit(opcode === u_auipc_id))
+    val lui_en  : Bool = dontTouch(WireInit(opcode === u_lui_id))
 
     // ALU control
     val imm_en                 : Bool = dontTouch(WireInit(
-        opcode === i_math_id || str_en || ld_en || jalr_en
+        opcode === i_math_id || str_en || load_en || jalr_en
     ))
     val addition_en            : Bool = dontTouch(WireInit(
-        ld_en || func3_opcode_id === addi_id || str_en || func7_func3_opcode_id === add_id
+        load_en || func3_opcode_id === addi_id || str_en || func7_func3_opcode_id === add_id
     ))
     val shiftLeftLogical_en    : Bool = dontTouch(WireInit(
         imm_func3_opcode_id === slli_id || func7_func3_opcode_id === sll_id
@@ -172,25 +178,25 @@ class ControlUnit extends Module
     val notEqual_en            : Bool = dontTouch(WireInit(func3_opcode_id === bne_id))
     val greaterThanEqual_en    : Bool = dontTouch(WireInit(func3_opcode_id === bge_id))
     val greaterThanEqualU_en   : Bool = dontTouch(WireInit(func3_opcode_id === bgeu_id))
-    val jalrAddition_en        : Bool = dontTouch(WireInit(func3_opcode_id === jalr_id))
+    val jalrAddition_en        : Bool = dontTouch(WireInit(func3_opcode_id === i_jalr_id))
 
     // RegFile control
     val wr_en: Bool = dontTouch(WireInit(
-        opcode === r_id || ld_en || opcode === i_math_id || jalr_en || auipc_en || lui_en || jal_en
+        opcode === r_id || load_en || opcode === i_math_id || jalr_en || auipc_en || lui_en || j_en
     ))
 
     // Wiring to outpin pins
     Array(
-        io.wr_en,                   io.imm_en,              io.str_en,               io.ld_en,           io.br_en,
-        io.jal_en,                  io.jalr_en,             io.auipc_en,             io.lui_en,          io.addition_en,
+        io.wr_en,                   io.imm_en,              io.str_en,               io.load_en,         io.br_en,
+        io.j_en,                    io.jalr_en,             io.auipc_en,             io.lui_en,          io.addition_en,
         io.shiftLeftLogical_en,     io.lessThan_en,         io.lessThanU_en,         io.XOR_en,          io.shiftRightLogical_en,
         io.shiftRightArithmetic_en, io.OR_en,               io.AND_en,               io.subtraction_en,  io.equal_en,
         io.notEqual_en,             io.greaterThanEqual_en, io.greaterThanEqualU_en, io.jalrAddition_en, io.sb_en,
         io.sh_en,                   io.sw_en,               io.lb_en,                io.lh_en,           io.lw_en,
         io.lbu_en,                  io.lhu_en
     ) zip Array(
-        wr_en,                      imm_en,                 str_en,                  ld_en,              br_en,
-        jal_en,                     jalr_en,                auipc_en,                lui_en,             addition_en,
+        wr_en,                      imm_en,                 str_en,                  load_en,            br_en,
+        j_en,                       jalr_en,                auipc_en,                lui_en,             addition_en,
         shiftLeftLogical_en,        lessThan_en,            lessThanU_en,            XOR_en,             shiftRightLogical_en,
         shiftRightArithmetic_en,    OR_en,                  AND_en,                  subtraction_en,     equal_en,
         notEqual_en,                greaterThanEqual_en,    greaterThanEqualU_en,    jalrAddition_en,    sb_en,
@@ -198,7 +204,7 @@ class ControlUnit extends Module
         lbu_en,                     lhu_en
     ) foreach
     {
-        x => x._1 := x._2
+        x => x._1 := Mux(stallControl, 0.B, x._2)
     }
 }
 

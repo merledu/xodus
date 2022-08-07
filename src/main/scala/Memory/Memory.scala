@@ -9,7 +9,7 @@ class Memory_IO extends Bundle
     val alu_in  : SInt = Input(SInt(32.W))
     val rs2_data: SInt = Input(SInt(32.W))
     val str_en  : Bool = Input(Bool())
-    val ld_en   : Bool = Input(Bool())
+    val load_en : Bool = Input(Bool())
     val sb_en   : Bool = Input(Bool())
     val sh_en   : Bool = Input(Bool())
     val sw_en   : Bool = Input(Bool())
@@ -25,13 +25,11 @@ class Memory_IO extends Bundle
 class Memory extends Module
 {
     // Initializing IO pins
-    val io: Memory_IO = IO(new Memory_IO())
-
-    // Input wires
+    val io: Memory_IO = IO(new Memory_IO)
     val alu_in  : SInt = dontTouch(WireInit(io.alu_in))
     val rs2_data: SInt = dontTouch(WireInit(io.rs2_data))
     val str_en  : Bool = dontTouch(WireInit(io.str_en))
-    val ld_en   : Bool = dontTouch(WireInit(io.ld_en))
+    val load_en : Bool = dontTouch(WireInit(io.load_en))
     val sb_en   : Bool = dontTouch(WireInit(io.sb_en))
     val sh_en   : Bool = dontTouch(WireInit(io.sh_en))
     val sw_en   : Bool = dontTouch(WireInit(io.sw_en))
@@ -42,14 +40,16 @@ class Memory extends Module
     val lhu_en  : Bool = dontTouch(WireInit(io.lhu_en))
 
     // Data memory
-    val data_mem: Mem[SInt] = Mem(1024, SInt(32.W))
+    val data_mem: Mem[SInt] = Mem(16777216, SInt(32.W))
 
     // Intermediate wires
     val address : UInt = dontTouch(WireInit(alu_in(23, 0)))
+    val mem_data: SInt = dontTouch(WireInit(data_mem.read(address)))
+
+    // Store wires
     val sb      : SInt = dontTouch(WireInit(rs2_data(7, 0).asSInt))
     val sh      : SInt = dontTouch(WireInit(rs2_data(15, 0).asSInt))
     val sw      : SInt = dontTouch(WireInit(rs2_data))
-    val mem_data: SInt = dontTouch(WireInit(data_mem.read(address)))
 
     // Storing to data memory
     when (str_en)
@@ -61,7 +61,7 @@ class Memory extends Module
         )))
     }
     
-    // Output wires
+    // Load wires
     val lb : SInt = dontTouch(WireInit(mem_data(7, 0).asSInt))
     val lh : SInt = dontTouch(WireInit(mem_data(15, 0).asSInt))
     val lw : SInt = dontTouch(WireInit(mem_data))
@@ -69,7 +69,7 @@ class Memory extends Module
     val lhu: UInt = dontTouch(WireInit(mem_data(15, 0)))
 
     // Loading data from data memory
-    when (ld_en)
+    when (load_en)
     {
         io.out := MuxCase(0.S, Array(
             lb_en  -> lb,

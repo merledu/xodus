@@ -21,8 +21,6 @@ class ForwardUnit extends Module
 {
     // Initializing IO pins
     val io: ForwardUnit_IO = IO(new ForwardUnit_IO())
-
-    // Input wires
     val RegDA_rs1_addr: UInt = dontTouch(WireInit(io.RegDA_rs1_addr))
     val RegDA_rs2_addr: UInt = dontTouch(WireInit(io.RegDA_rs2_addr))
     val RegAM_rd_addr : UInt = dontTouch(WireInit(io.RegAM_rd_addr))
@@ -40,7 +38,7 @@ class ForwardUnit extends Module
     val MW_rs1_hazard: Bool = dontTouch(WireInit(RegDA_rs1_addr === RegMW_rd_addr))
     val MW_rs2_hazard: Bool = dontTouch(WireInit(RegDA_rs2_addr === RegMW_rd_addr))
     
-    // Output wires
+    // Intermediate wires
     val forward_operand1: UInt = dontTouch(WireInit(MuxCase(0.U, Array(
         (AM_hazard && AM_rs1_hazard)                                  -> 1.U,
         (MW_hazard && MW_rs1_hazard && !(AM_hazard && AM_rs1_hazard)) -> 2.U

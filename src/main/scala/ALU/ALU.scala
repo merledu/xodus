@@ -8,7 +8,7 @@ class ALU_IO extends Bundle
     // Input pins
     val rs1_data               : SInt = Input(SInt(32.W))
     val rs2_data               : SInt = Input(SInt(32.W))
-    val i_s_b_imm              : SInt = Input(SInt(12.W))
+    val imm                    : SInt = Input(SInt(32.W))
     val imm_en                 : Bool = Input(Bool())
     val addition_en            : Bool = Input(Bool())
     val shiftLeftLogical_en    : Bool = Input(Bool())
@@ -25,10 +25,6 @@ class ALU_IO extends Bundle
     val greaterThanEqual_en    : Bool = Input(Bool())
     val greaterThanEqualU_en   : Bool = Input(Bool())
     val jalrAddition_en        : Bool = Input(Bool())
-    val forward_operand1       : UInt = Input(UInt(2.W))
-    val forward_operand2       : UInt = Input(UInt(2.W))
-    val RegAM_alu_out          : SInt = Input(SInt(32.W))
-    val WriteBack_rd_data      : SInt = Input(SInt(32.W))
 
     // Output pins
     val out: SInt = Output(SInt(32.W))
@@ -36,12 +32,10 @@ class ALU_IO extends Bundle
 class ALU extends Module
 {
     // Initializing IO pins
-    val io: ALU_IO = IO(new ALU_IO())
-
-    // Input wires
+    val io: ALU_IO = IO(new ALU_IO)
     val rs1_data               : SInt = dontTouch(WireInit(io.rs1_data))
     val rs2_data               : SInt = dontTouch(WireInit(io.rs2_data))
-    val i_s_b_imm              : SInt = dontTouch(WireInit(io.i_s_b_imm))
+    val imm                    : SInt = dontTouch(WireInit(io.imm))
     val imm_en                 : Bool = dontTouch(WireInit(io.imm_en))
     val addition_en            : Bool = dontTouch(WireInit(io.addition_en))
     val shiftLeftLogical_en    : Bool = dontTouch(WireInit(io.shiftLeftLogical_en))
@@ -58,24 +52,12 @@ class ALU extends Module
     val greaterThanEqual_en    : Bool = dontTouch(WireInit(io.greaterThanEqual_en))
     val greaterThanEqualU_en   : Bool = dontTouch(WireInit(io.greaterThanEqualU_en))
     val jalrAddition_en        : Bool = dontTouch(WireInit(io.jalrAddition_en))
-    val RegAM_alu_out          : SInt = dontTouch(WireInit(io.RegAM_alu_out))
-    val WriteBack_rd_data      : SInt = dontTouch(WireInit(io.WriteBack_rd_data))
-    val forward_operand1       : UInt = dontTouch(WireInit(io.forward_operand1))
-    val forward_operand2       : UInt = dontTouch(WireInit(io.forward_operand2))
 
     // Intermediate wires
-    val operand1: SInt = dontTouch(WireInit(MuxLookup(forward_operand1, rs1_data, Array(
-        1.U -> RegAM_alu_out,
-        2.U -> WriteBack_rd_data
-    ))))
-    val operand2: SInt = dontTouch(WireInit(Mux(imm_en, i_s_b_imm, MuxLookup(
-        forward_operand2, rs2_data, Array(
-            1.U -> RegAM_alu_out,
-            2.U -> WriteBack_rd_data
-        )
-    ))))
+    val operand1: SInt = dontTouch(WireInit(rs1_data))
+    val operand2: SInt = dontTouch(WireInit(Mux(imm_en, imm, rs2_data)))
 
-    // Operation wires
+    // Intermediate wires
     val addition            : SInt = dontTouch(WireInit(operand1 + operand2))
     val lessThan            : SInt = dontTouch(WireInit((operand1 < operand2).asSInt))
     val lessThanU           : SInt = dontTouch(WireInit((operand1.asUInt < operand2.asUInt).asSInt))
@@ -90,25 +72,25 @@ class ALU extends Module
     val notEqual            : SInt = dontTouch(WireInit((operand1 =/= operand2).asSInt))
     val greaterThanEqual    : SInt = dontTouch(WireInit((operand1 >= operand2).asSInt))
     val greaterThanEqualU   : SInt = dontTouch(WireInit((operand1.asUInt >= operand2.asUInt).asSInt))
-    val jalrAddition        : SInt = dontTouch(WireInit(Cat((operand1 + i_s_b_imm)(31, 1), "b0".U).asSInt))
+    val jalrAddition        : SInt = dontTouch(WireInit(Cat((operand1 + imm)(31, 1), "b0".U).asSInt))
 
     // Wiring to output pins
     io.out := MuxCase(0.S, Array(
-        addition_en             -> addition,              // lb, lh, lw, lbu, lhu, addi, sb, sh, sw, add
-        shiftLeftLogical_en     -> shiftLeftLogical,      // slli, sll
-        lessThan_en             -> lessThan,              // slti, slt, blt
-        lessThanU_en            -> lessThanU,             // sltiu, sltu, bltu
-        XOR_en                  -> XOR,                   // xori, xor
-        shiftRightLogical_en    -> shiftRightLogical,     // srli, srl
-        shiftRightArithmetic_en -> shiftRightArithmetic,  // srai, srai
-        OR_en                   -> OR,                    // ori, or
-        AND_en                  -> AND,                   // andi, and
-        subtraction_en          -> subtraction,           // sub
-        equal_en                -> equal,                 // beq
-        notEqual_en             -> notEqual,              // bne
-        greaterThanEqual_en     -> greaterThanEqual,      // bge
-        greaterThanEqualU_en    -> greaterThanEqualU,     // bgeu
-        jalrAddition_en         -> jalrAddition,          // jalr
+        addition_en             -> addition,
+        shiftLeftLogical_en     -> shiftLeftLogical,
+        lessThan_en             -> lessThan,
+        lessThanU_en            -> lessThanU,
+        XOR_en                  -> XOR,
+        shiftRightLogical_en    -> shiftRightLogical,
+        shiftRightArithmetic_en -> shiftRightArithmetic,
+        OR_en                   -> OR,
+        AND_en                  -> AND,
+        subtraction_en          -> subtraction,
+        equal_en                -> equal,
+        notEqual_en             -> notEqual,
+        greaterThanEqual_en     -> greaterThanEqual,
+        greaterThanEqualU_en    -> greaterThanEqualU,
+        jalrAddition_en         -> jalrAddition,
     ))
 }
 
