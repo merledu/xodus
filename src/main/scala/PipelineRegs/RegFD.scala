@@ -18,9 +18,9 @@ class RegFD extends Module
 {
     // Initializing IO pins
     val io     : RegFD_IO = IO(new RegFD_IO)
-    val PC_in  : UInt = dontTouch(WireInit(io.PC_in))
-    val inst_in: UInt = dontTouch(WireInit(io.inst_in))
-    val PC4_in : UInt = dontTouch(WireInit(io.PC4_in))
+    val PC_in  : UInt     = dontTouch(WireInit(io.PC_in))
+    val inst_in: UInt     = dontTouch(WireInit(io.inst_in))
+    val PC4_in : UInt     = dontTouch(WireInit(io.PC4_in))
 
     // Initializing registers
     val PC  : UInt = dontTouch(RegInit(0.U(32.W)))
@@ -33,13 +33,13 @@ class RegFD extends Module
     val PC4_out : UInt = dontTouch(WireInit(PC4))
 
     // Wiring to output pins
-    Array(
+    Seq(
         // Output pins
         io.PC_out, io.inst_out, io.PC4_out,
 
         // Registers
         PC,        inst,        PC4
-    ) zip Array(
+    ) zip Seq(
         // Output pins
         PC_out,    inst_out,    PC4_out,
 

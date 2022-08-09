@@ -1,4 +1,4 @@
-package Decoder
+package DecodeStage
 
 import chisel3._
 import chisel3.util._
@@ -30,7 +30,7 @@ class Decoder extends Module
 {
     // Initializing IO pins and modules
     val io  : Decoder_IO = IO(new Decoder_IO())
-    val inst: UInt = dontTouch(WireInit(io.inst))
+    val inst: UInt       = dontTouch(WireInit(io.inst))
 
     // Type IDs
     val r_id      : UInt = dontTouch(WireInit(51.U))
@@ -70,20 +70,20 @@ class Decoder extends Module
     val func7   : UInt = dontTouch(WireInit(Mux(opcode === r_id, inst(31, 25), 0.U)))
 
     // Immediate generation
-    val i_imm   : SInt = dontTouch(WireInit(Mux(opcode === i_math_id || opcode === i_load_id || opcode === i_fence_id || opcode === i_jalr_id || opcode === i_call_id, inst(31, 20).asSInt, 0.S)))
-    val s_imm   : SInt = dontTouch(WireInit(Mux(opcode === s_id, Cat(inst(31, 25), inst(11, 7)).asSInt, 0.S)))
-    val b_imm   : SInt = dontTouch(WireInit(Mux(opcode === b_id, Cat(inst(31), inst(7), inst(30, 25), inst(11, 8), "b0".U).asSInt, 0.S)))
-    val u_imm   : SInt = dontTouch(WireInit(Mux(opcode === u_auipc_id || opcode === u_lui_id, inst(31, 12).asSInt, 0.S)))
-    val j_imm   : SInt = dontTouch(WireInit(Mux(opcode === j_id, Cat(inst(31), inst(19, 12), inst(20), inst(30, 21), "b0".U).asSInt, 0.S)))
-    val imm     : SInt = dontTouch(WireInit(i_imm | s_imm | b_imm | u_imm | j_imm))
+    val i_imm: SInt = dontTouch(WireInit(Mux(opcode === i_math_id || opcode === i_load_id || opcode === i_fence_id || opcode === i_jalr_id || opcode === i_call_id, inst(31, 20).asSInt, 0.S)))
+    val s_imm: SInt = dontTouch(WireInit(Mux(opcode === s_id, Cat(inst(31, 25), inst(11, 7)).asSInt, 0.S)))
+    val b_imm: SInt = dontTouch(WireInit(Mux(opcode === b_id, Cat(inst(31), inst(7), inst(30, 25), inst(11, 8), "b0".U).asSInt, 0.S)))
+    val u_imm: SInt = dontTouch(WireInit(Mux(opcode === u_auipc_id || opcode === u_lui_id, inst(31, 12).asSInt, 0.S)))
+    val j_imm: SInt = dontTouch(WireInit(Mux(opcode === j_id, Cat(inst(31), inst(19, 12), inst(20), inst(30, 21), "b0".U).asSInt, 0.S)))
+    val imm  : SInt = dontTouch(WireInit(i_imm | s_imm | b_imm | u_imm | j_imm))
 
     // Wiring to output pins
-    Array(
+    Seq(
         io.opcode,    io.rd_addr, io.func3, io.rs1_addr,   io.rs2_addr,
         io.func7,     io.imm,     io.r_id,  io.i_math_id,  io.i_load_id,
         io.i_jalr_id, io.s_id,    io.b_id,  io.u_auipc_id, io.u_lui_id,
         io.j_id
-    ) zip Array(
+    ) zip Seq(
         opcode,       rd_addr,    func3,    rs1_addr,      rs2_addr,
         func7,        imm,        r_id,     i_math_id,     i_load_id,
         i_jalr_id,    s_id,       b_id,     u_auipc_id,    u_lui_id,

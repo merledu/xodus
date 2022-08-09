@@ -1,4 +1,4 @@
-package RegFile
+package DecodeStage
 
 import chisel3._
 
@@ -39,13 +39,13 @@ class RegFile extends Module
     val rs2_data: SInt = dontTouch(WireInit(regFile.read(rs2_addr)))
 
     // Wiring to output pins
-    Array(
-        Array(io.rs1_data, rs1_data), Array(io.rs2_data, rs2_data)
-    ) zip Array(
-        rs1_addr, rs2_addr
+    Seq(
+        io.rs1_data,         io.rs2_data
+    ) zip Seq(
+        (rs1_addr,rs1_data), (rs2_addr, rs2_data)
     ) foreach
     {
-        x => x._1(0) := Mux(x._2 === 0.U, 0.S, x._1(1))
+        x => x._1 := Mux(x._2._1 === 0.U, 0.S, x._2._2)
     }
 }
 

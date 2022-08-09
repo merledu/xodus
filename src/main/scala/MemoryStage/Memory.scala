@@ -1,4 +1,4 @@
-package Memory
+package MemoryStage
 
 import chisel3._
 import chisel3.util._
@@ -25,19 +25,19 @@ class Memory_IO extends Bundle
 class Memory extends Module
 {
     // Initializing IO pins
-    val io: Memory_IO = IO(new Memory_IO)
-    val alu_in  : SInt = dontTouch(WireInit(io.alu_in))
-    val rs2_data: SInt = dontTouch(WireInit(io.rs2_data))
-    val str_en  : Bool = dontTouch(WireInit(io.str_en))
-    val load_en : Bool = dontTouch(WireInit(io.load_en))
-    val sb_en   : Bool = dontTouch(WireInit(io.sb_en))
-    val sh_en   : Bool = dontTouch(WireInit(io.sh_en))
-    val sw_en   : Bool = dontTouch(WireInit(io.sw_en))
-    val lb_en   : Bool = dontTouch(WireInit(io.lb_en))
-    val lh_en   : Bool = dontTouch(WireInit(io.lh_en))
-    val lw_en   : Bool = dontTouch(WireInit(io.lw_en))
-    val lbu_en  : Bool = dontTouch(WireInit(io.lbu_en))
-    val lhu_en  : Bool = dontTouch(WireInit(io.lhu_en))
+    val io      : Memory_IO = IO(new Memory_IO)
+    val alu_in  : SInt      = dontTouch(WireInit(io.alu_in))
+    val rs2_data: SInt      = dontTouch(WireInit(io.rs2_data))
+    val str_en  : Bool      = dontTouch(WireInit(io.str_en))
+    val load_en : Bool      = dontTouch(WireInit(io.load_en))
+    val sb_en   : Bool      = dontTouch(WireInit(io.sb_en))
+    val sh_en   : Bool      = dontTouch(WireInit(io.sh_en))
+    val sw_en   : Bool      = dontTouch(WireInit(io.sw_en))
+    val lb_en   : Bool      = dontTouch(WireInit(io.lb_en))
+    val lh_en   : Bool      = dontTouch(WireInit(io.lh_en))
+    val lw_en   : Bool      = dontTouch(WireInit(io.lw_en))
+    val lbu_en  : Bool      = dontTouch(WireInit(io.lbu_en))
+    val lhu_en  : Bool      = dontTouch(WireInit(io.lhu_en))
 
     // Data memory
     val data_mem: Mem[SInt] = Mem(16777216, SInt(32.W))
@@ -54,7 +54,7 @@ class Memory extends Module
     // Storing to data memory
     when (str_en)
     {
-        data_mem.write(address, MuxCase(0.S, Array(
+        data_mem.write(address, MuxCase(0.S, Seq(
             sb_en -> sb,
             sh_en -> sh,
             sw_en -> sw
@@ -71,7 +71,7 @@ class Memory extends Module
     // Loading data from data memory
     when (load_en)
     {
-        io.out := MuxCase(0.S, Array(
+        io.out := MuxCase(0.S, Seq(
             lb_en  -> lb,
             lh_en  -> lh,
             lw_en  -> lw,

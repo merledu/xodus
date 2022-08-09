@@ -1,4 +1,4 @@
-package ALU
+package ExecuteStage
 
 import chisel3._
 import chisel3.util._
@@ -20,10 +20,6 @@ class ALU_IO extends Bundle
     val OR_en                  : Bool = Input(Bool())
     val AND_en                 : Bool = Input(Bool())
     val subtraction_en         : Bool = Input(Bool())
-    val equal_en               : Bool = Input(Bool())
-    val notEqual_en            : Bool = Input(Bool())
-    val greaterThanEqual_en    : Bool = Input(Bool())
-    val greaterThanEqualU_en   : Bool = Input(Bool())
     val jalrAddition_en        : Bool = Input(Bool())
 
     // Output pins
@@ -32,26 +28,22 @@ class ALU_IO extends Bundle
 class ALU extends Module
 {
     // Initializing IO pins
-    val io: ALU_IO = IO(new ALU_IO)
-    val rs1_data               : SInt = dontTouch(WireInit(io.rs1_data))
-    val rs2_data               : SInt = dontTouch(WireInit(io.rs2_data))
-    val imm                    : SInt = dontTouch(WireInit(io.imm))
-    val imm_en                 : Bool = dontTouch(WireInit(io.imm_en))
-    val addition_en            : Bool = dontTouch(WireInit(io.addition_en))
-    val shiftLeftLogical_en    : Bool = dontTouch(WireInit(io.shiftLeftLogical_en))
-    val lessThan_en            : Bool = dontTouch(WireInit(io.lessThan_en))
-    val lessThanU_en           : Bool = dontTouch(WireInit(io.lessThanU_en))
-    val XOR_en                 : Bool = dontTouch(WireInit(io.XOR_en))
-    val shiftRightLogical_en   : Bool = dontTouch(WireInit(io.shiftLeftLogical_en))
-    val shiftRightArithmetic_en: Bool = dontTouch(WireInit(io.shiftRightArithmetic_en))
-    val OR_en                  : Bool = dontTouch(WireInit(io.OR_en))
-    val AND_en                 : Bool = dontTouch(WireInit(io.AND_en))
-    val subtraction_en         : Bool = dontTouch(WireInit(io.subtraction_en))
-    val equal_en               : Bool = dontTouch(WireInit(io.equal_en))
-    val notEqual_en            : Bool = dontTouch(WireInit(io.notEqual_en))
-    val greaterThanEqual_en    : Bool = dontTouch(WireInit(io.greaterThanEqual_en))
-    val greaterThanEqualU_en   : Bool = dontTouch(WireInit(io.greaterThanEqualU_en))
-    val jalrAddition_en        : Bool = dontTouch(WireInit(io.jalrAddition_en))
+    val io                     : ALU_IO = IO(new ALU_IO)
+    val rs1_data               : SInt   = dontTouch(WireInit(io.rs1_data))
+    val rs2_data               : SInt   = dontTouch(WireInit(io.rs2_data))
+    val imm                    : SInt   = dontTouch(WireInit(io.imm))
+    val imm_en                 : Bool   = dontTouch(WireInit(io.imm_en))
+    val addition_en            : Bool   = dontTouch(WireInit(io.addition_en))
+    val shiftLeftLogical_en    : Bool   = dontTouch(WireInit(io.shiftLeftLogical_en))
+    val lessThan_en            : Bool   = dontTouch(WireInit(io.lessThan_en))
+    val lessThanU_en           : Bool   = dontTouch(WireInit(io.lessThanU_en))
+    val XOR_en                 : Bool   = dontTouch(WireInit(io.XOR_en))
+    val shiftRightLogical_en   : Bool   = dontTouch(WireInit(io.shiftLeftLogical_en))
+    val shiftRightArithmetic_en: Bool   = dontTouch(WireInit(io.shiftRightArithmetic_en))
+    val OR_en                  : Bool   = dontTouch(WireInit(io.OR_en))
+    val AND_en                 : Bool   = dontTouch(WireInit(io.AND_en))
+    val subtraction_en         : Bool   = dontTouch(WireInit(io.subtraction_en))
+    val jalrAddition_en        : Bool   = dontTouch(WireInit(io.jalrAddition_en))
 
     // Intermediate wires
     val operand1: SInt = dontTouch(WireInit(rs1_data))
@@ -68,14 +60,10 @@ class ALU extends Module
     val shiftRightLogical   : SInt = dontTouch(WireInit((operand1.asUInt >> operand2(4, 0)).asSInt))
     val shiftRightArithmetic: SInt = dontTouch(WireInit((operand1 >> operand2(4, 0)).asSInt))
     val subtraction         : SInt = dontTouch(WireInit(operand1 - operand2))
-    val equal               : SInt = dontTouch(WireInit((operand1 === operand2).asSInt))
-    val notEqual            : SInt = dontTouch(WireInit((operand1 =/= operand2).asSInt))
-    val greaterThanEqual    : SInt = dontTouch(WireInit((operand1 >= operand2).asSInt))
-    val greaterThanEqualU   : SInt = dontTouch(WireInit((operand1.asUInt >= operand2.asUInt).asSInt))
     val jalrAddition        : SInt = dontTouch(WireInit(Cat((operand1 + imm)(31, 1), "b0".U).asSInt))
 
     // Wiring to output pins
-    io.out := MuxCase(0.S, Array(
+    io.out := MuxCase(0.S, Seq(
         addition_en             -> addition,
         shiftLeftLogical_en     -> shiftLeftLogical,
         lessThan_en             -> lessThan,
@@ -86,10 +74,6 @@ class ALU extends Module
         OR_en                   -> OR,
         AND_en                  -> AND,
         subtraction_en          -> subtraction,
-        equal_en                -> equal,
-        notEqual_en             -> notEqual,
-        greaterThanEqual_en     -> greaterThanEqual,
-        greaterThanEqualU_en    -> greaterThanEqualU,
         jalrAddition_en         -> jalrAddition,
     ))
 }

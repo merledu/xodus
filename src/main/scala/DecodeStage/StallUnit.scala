@@ -1,4 +1,4 @@
-package ControlUnit
+package DecodeStage
 
 import chisel3._
 
@@ -39,12 +39,12 @@ class StallUnit extends Module
     val loadHazard: Bool = dontTouch(WireInit(load_en && (rs1_Hazard || rs2_Hazard)))
 
     // Wiring to output pins
-    Array(
+    Seq(
         io.forward_inst, io.forward_PC, io.stallControl
     ) map ( _ := Mux(loadHazard, 1.B, 0.B) )
-    Array(
+    Seq(
         io.inst,    io.PC_out, io.stallPC_out
-    ) zip Array(
+    ) zip Seq(
         RegFD_inst, PC_in,     stallPC_in
     ) foreach
     {
