@@ -19,12 +19,15 @@ class ForwardUnit_IO extends Bundle
     val load_en       : Bool = Input(Bool())
     val RegAM_load_en : Bool = Input(Bool())
     val RegMW_load_en : Bool = Input(Bool())
+    val jalr_en       : Bool = Input(Bool())
 
     // Output pins
-    val forward_operand1   : UInt = Output(UInt(2.W))
-    val forward_operand2   : UInt = Output(UInt(2.W))
-    val forward_br_operand1: UInt = Output(UInt(3.W))
-    val forward_br_operand2: UInt = Output(UInt(3.W))
+    val forward_operand1     : UInt = Output(UInt(2.W))
+    val forward_operand2     : UInt = Output(UInt(2.W))
+    val forward_jump_operand1: UInt = Output(UInt(3.W))
+    val forward_jump_operand2: UInt = Output(UInt(3.W))
+    val forward_rs1_rd_data  : Bool = Output(Bool())
+    val forward_rs2_rd_data  : Bool = Output(Bool())
 }
 class ForwardUnit extends Module
 {
@@ -39,66 +42,76 @@ class ForwardUnit extends Module
     val RegDA_rd_addr : UInt           = dontTouch(WireInit(io.RegDA_rd_addr))
     val rs1_addr      : UInt           = dontTouch(WireInit(io.rs1_addr))
     val rs2_addr      : UInt           = dontTouch(WireInit(io.rs2_addr))
-    val b_en         : Bool           = dontTouch(WireInit(io.b_en))
+    val b_en          : Bool           = dontTouch(WireInit(io.b_en))
     val load_en       : Bool           = dontTouch(WireInit(io.load_en))
     val RegAM_load_en : Bool           = dontTouch(WireInit(io.RegAM_load_en))
     val RegMW_load_en : Bool           = dontTouch(WireInit(io.RegMW_load_en))
+    val jalr_en       : Bool           = dontTouch(WireInit(io.jalr_en))
 
     // ALU Hazard wires
-    val ALU_br_hazard    : Bool = dontTouch(WireInit(b_en && RegDA_rd_addr =/= 0.U))
-    val ALU_rs1_br_hazard: Bool = dontTouch(WireInit(ALU_br_hazard && RegDA_rd_addr === rs1_addr))
-    val ALU_rs2_br_hazard: Bool = dontTouch(WireInit(ALU_br_hazard && RegDA_rd_addr === rs2_addr))
+    val ALU_rd_addr: Bool = dontTouch(WireInit(RegDA_rd_addr =/= 0.U))
+    // - Jump Hazard
+    val ALU_jump_hazard    : Bool = dontTouch(WireInit((b_en || jalr_en) && ALU_rd_addr))
+    val ALU_rs1_jump_hazard: Bool = dontTouch(WireInit(ALU_jump_hazard && RegDA_rd_addr === rs1_addr))
+    val ALU_rs2_jump_hazard: Bool = dontTouch(WireInit(ALU_jump_hazard && RegDA_rd_addr === rs2_addr))
 
     // ALU-Memory Hazard wires
+    val AM_rd_addr: Bool = dontTouch(WireInit(RegAM_rd_addr =/= 0.U))
     // - Data Hazard
-    val AM_hazard     : Bool = dontTouch(WireInit(RegAM_wr_en === 1.B && RegAM_rd_addr =/= 0.U))
+    val AM_hazard     : Bool = dontTouch(WireInit(RegAM_wr_en && AM_rd_addr))
     val AM_rs1_hazard : Bool = dontTouch(WireInit(AM_hazard && RegDA_rs1_addr === RegAM_rd_addr))
     val AM_rs2_hazard : Bool = dontTouch(WireInit(AM_hazard && RegDA_rs2_addr === RegAM_rd_addr))
-    // - Branch Hazard
-    val AM_br_hazard    : Bool = dontTouch(WireInit(b_en && RegAM_rd_addr =/= 0.U))
-    val AM_rs1_br_hazard: Bool = dontTouch(WireInit(AM_br_hazard && RegAM_rd_addr === rs1_addr && !ALU_rs1_br_hazard))
-    val AM_rs2_br_hazard: Bool = dontTouch(WireInit(AM_br_hazard && RegAM_rd_addr === rs2_addr && !ALU_rs2_br_hazard))
+    // - Jump Hazard
+    val AM_jump_hazard    : Bool = dontTouch(WireInit((b_en || jalr_en) && AM_rd_addr))
+    val AM_rs1_jump_hazard: Bool = dontTouch(WireInit(AM_jump_hazard && RegAM_rd_addr === rs1_addr && !ALU_rs1_jump_hazard))
+    val AM_rs2_jump_hazard: Bool = dontTouch(WireInit(AM_jump_hazard && RegAM_rd_addr === rs2_addr && !ALU_rs2_jump_hazard))
 
     // Memory-WriteBack Hazard wires
+    val MW_rd_addr: Bool = dontTouch(WireInit(RegMW_rd_addr =/= 0.U))
     // - Data Hazard
-    val MW_hazard    : Bool = dontTouch(WireInit(RegMW_wr_en === 1.B && RegMW_rd_addr =/= 0.U))
-    val MW_rs1_hazard: Bool = dontTouch(WireInit(MW_hazard && RegDA_rs1_addr === RegMW_rd_addr))
-    val MW_rs2_hazard: Bool = dontTouch(WireInit(MW_hazard && RegDA_rs2_addr === RegMW_rd_addr))
-    // - Branch Hazard
-    val MW_br_hazard    : Bool = dontTouch(WireInit(b_en && RegMW_rd_addr =/= 0.U))
-    val MW_rs1_br_hazard: Bool = dontTouch(WireInit(MW_br_hazard && RegMW_rd_addr === rs1_addr && !ALU_rs1_br_hazard && !AM_rs1_br_hazard))
-    val MW_rs2_br_hazard: Bool = dontTouch(WireInit(MW_br_hazard && RegMW_rd_addr === rs2_addr && !ALU_rs2_br_hazard && !AM_rs2_br_hazard))
+    val MW_hazard    : Bool = dontTouch(WireInit(RegMW_wr_en && MW_rd_addr))
+    val MW_rs1_hazard: Bool = dontTouch(WireInit(MW_hazard && RegDA_rs1_addr === RegMW_rd_addr && !AM_rs1_hazard))
+    val MW_rs2_hazard: Bool = dontTouch(WireInit(MW_hazard && RegDA_rs2_addr === RegMW_rd_addr && !AM_rs2_hazard))
+    // - Jump Hazard
+    val MW_jump_hazard    : Bool = dontTouch(WireInit((b_en || jalr_en) && MW_rd_addr))
+    val MW_rs1_jump_hazard: Bool = dontTouch(WireInit(MW_jump_hazard && RegMW_rd_addr === rs1_addr && !ALU_rs1_jump_hazard && !AM_rs1_jump_hazard))
+    val MW_rs2_jump_hazard: Bool = dontTouch(WireInit(MW_jump_hazard && RegMW_rd_addr === rs2_addr && !ALU_rs2_jump_hazard && !AM_rs2_jump_hazard))
+
+    // WriteBack-Decode Hazard wires
+    val WD_rs1_hazard: Bool = dontTouch(WireInit(RegMW_wr_en && RegMW_rd_addr === rs1_addr && MW_rd_addr))
+    val WD_rs2_hazard: Bool = dontTouch(WireInit(RegMW_wr_en && RegMW_rd_addr === rs2_addr && MW_rd_addr))
 
     // Intermediate wires
-    val forward_operand1: UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
-        AM_rs1_hazard                        -> 1.U,
-        (MW_rs1_hazard && !AM_rs1_hazard)    -> 2.U,
+    val forward_operand1     : UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
+        AM_rs1_hazard                          -> 1.U,
+        MW_rs1_hazard                          -> 2.U,
     ))))
-    val forward_operand2: UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
-        (AM_rs2_hazard)                      -> 1.U,
-        (MW_rs2_hazard && !AM_rs2_hazard)    -> 2.U,
-        
+    val forward_operand2     : UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
+        AM_rs2_hazard                          -> 1.U,
+        MW_rs2_hazard                          -> 2.U,
     ))))
-    val forward_br_operand1: UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
-        (ALU_rs1_br_hazard && !load_en)      -> 1.U,
-        (AM_rs1_br_hazard && !RegAM_load_en) -> 2.U,
-        /*(*/MW_rs1_br_hazard /*&& !RegMW_load_en)*/ -> 3.U,
-        (AM_rs1_br_hazard && RegAM_load_en)  -> 4.U
-        //(MW_rs1_br_hazard && RegMW_load_en)  -> 7.U
+    val forward_jump_operand1: UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
+        (ALU_rs1_jump_hazard && !load_en)      -> 1.U,
+        (AM_rs1_jump_hazard && !RegAM_load_en) -> 2.U,
+        MW_rs1_jump_hazard                     -> 3.U,
+        (AM_rs1_jump_hazard && RegAM_load_en)  -> 4.U
     ))))
-    val forward_br_operand2: UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
-        (ALU_rs2_br_hazard && !load_en)      -> 1.U,
-        (AM_rs2_br_hazard && !RegAM_load_en) -> 2.U,
-        /*(*/MW_rs2_br_hazard /*&& !RegMW_load_en)*/ -> 3.U,
-        (AM_rs2_br_hazard && RegAM_load_en)  -> 4.U
-        //(MW_rs2_br_hazard && RegMW_load_en)  -> 7.U
+    val forward_jump_operand2: UInt = dontTouch(WireInit(MuxCase(0.U, Seq(
+        (ALU_rs2_jump_hazard && !load_en)      -> 1.U,
+        (AM_rs2_jump_hazard && !RegAM_load_en) -> 2.U,
+        MW_rs2_jump_hazard                     -> 3.U,
+        (AM_rs2_jump_hazard && RegAM_load_en)  -> 4.U
     ))))
+    val forward_rs1_rd_data  : Bool = dontTouch(WireInit(Mux(WD_rs1_hazard, 1.B, 0.B)))
+    val forward_rs2_rd_data  : Bool = dontTouch(WireInit(Mux(WD_rs2_hazard, 1.B, 0.B)))
 
     // Wiring to output pins
     Seq(
-        io.forward_operand1, io.forward_operand2, io.forward_br_operand1, io.forward_br_operand2
+        io.forward_operand1,    io.forward_operand2, io.forward_jump_operand1, io.forward_jump_operand2, io.forward_rs1_rd_data,
+        io.forward_rs2_rd_data
     ) zip Seq(
-        forward_operand1,    forward_operand2,    forward_br_operand1,    forward_br_operand2
+        forward_operand1,       forward_operand2,    forward_jump_operand1,    forward_jump_operand2,    forward_rs1_rd_data,
+        forward_rs2_rd_data
     ) foreach
     {
         x => x._1 := x._2

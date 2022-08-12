@@ -19,7 +19,7 @@ class Decoder_IO extends Bundle
     val r_id      : UInt = Output(UInt(7.W))
     val i_math_id : UInt = Output(UInt(7.W))
     val i_load_id : UInt = Output(UInt(7.W))
-    val i_jalr_id : UInt = Output(UInt(7.W))
+    val i_jalr_id : UInt = Output(UInt(10.W))
     val s_id      : UInt = Output(UInt(7.W))
     val b_id      : UInt = Output(UInt(7.W))
     val u_auipc_id: UInt = Output(UInt(7.W))

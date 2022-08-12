@@ -7,7 +7,6 @@ class WriteBack_IO extends Bundle
 {
     // Input pins
     val PC      : UInt = Input(UInt(32.W))
-    val PC4     : UInt = Input(UInt(32.W))
     val alu     : SInt = Input(SInt(32.W))
     val mem_data: SInt = Input(SInt(32.W))
     val imm     : SInt = Input(SInt(32.W))
@@ -18,8 +17,6 @@ class WriteBack_IO extends Bundle
     val lui_en  : Bool = Input(Bool())
 
     // Output pins
-    val nPC    : UInt = Output(UInt(32.W))
-    val nPC_en : Bool = Output(Bool())
     val rd_data: SInt = Output(SInt(32.W))
 }
 class WriteBack extends Module
@@ -27,7 +24,6 @@ class WriteBack extends Module
     // Initializing IO pins
     val io      : WriteBack_IO = IO(new WriteBack_IO)
     val PC      : UInt = dontTouch(WireInit(io.PC))
-    val PC4     : UInt = dontTouch(WireInit(io.PC4))
     val alu     : SInt = dontTouch(WireInit(io.alu))
     val mem_data: SInt = dontTouch(WireInit(io.mem_data))
     val imm     : SInt = dontTouch(WireInit(io.imm))
@@ -41,25 +37,16 @@ class WriteBack extends Module
     val u_imm  : SInt = dontTouch(WireInit(imm << 12.U))
     val auipc  : SInt = dontTouch(WireInit((PC + u_imm.asUInt).asSInt))
     val lui    : SInt = dontTouch(WireInit(u_imm.asSInt))
-    val PC4_rd : SInt = dontTouch(WireInit(PC4.asSInt))
+    val PC4_rd : SInt = dontTouch(WireInit((PC + 4.U).asSInt))
     val PC_imm : UInt = dontTouch(WireInit(PC + imm.asUInt))
-    val nPC    : UInt = dontTouch(WireInit(Mux(jal_en, PC_imm, alu.asUInt)))  // default: jalr_PC -> rs1 + imm
     val rd_data: SInt = dontTouch(WireInit(MuxCase(alu, Seq(
         auipc_en            -> auipc,
         lui_en              -> lui,
         (jal_en || jalr_en) -> PC4_rd,
         load_en             -> mem_data
     ))))
-    val nPC_en : Bool = dontTouch(WireInit(jal_en || jalr_en))
 
     // Wiring to output pins
-    Seq(
-        io.nPC, io.nPC_en, io.rd_data
-    ) zip Seq(
-        nPC,    nPC_en,    rd_data
-    ) foreach
-    {
-        x => x._1 := x._2
-    }
+    io.rd_data := rd_data
 }
 

@@ -17,15 +17,14 @@ class ControlUnit_IO extends Bundle
     val s_id        : UInt = Input(UInt(7.W))
     val u_auipc_id  : UInt = Input(UInt(7.W))
     val u_lui_id    : UInt = Input(UInt(7.W))
-    val j_id        : UInt = Input(UInt(7.W))
     val stallControl: Bool = Input(Bool())
+    val jal_en      : Bool = Input(Bool())
 
     // Output pins
     val wr_en                  : Bool = Output(Bool())
     val imm_en                 : Bool = Output(Bool())
     val str_en                 : Bool = Output(Bool())
     val load_en                : Bool = Output(Bool())
-    val j_en                   : Bool = Output(Bool())
     val jalr_en                : Bool = Output(Bool())
     val auipc_en               : Bool = Output(Bool())
     val lui_en                 : Bool = Output(Bool())
@@ -64,8 +63,8 @@ class ControlUnit extends Module
     val s_id        : UInt           = dontTouch(WireInit(io.s_id))
     val u_auipc_id  : UInt           = dontTouch(WireInit(io.u_auipc_id))
     val u_lui_id    : UInt           = dontTouch(WireInit(io.u_lui_id))
-    val j_id        : UInt           = dontTouch(WireInit(io.j_id))
     val stallControl: Bool           = dontTouch(WireInit(io.stallControl))
+    val jal_en      : Bool           = dontTouch(WireInit(io.jal_en))
 
     // Intermediate wires
     val func7_func3_opcode_id: UInt = dontTouch(WireInit(Cat(func7, func3, opcode)))
@@ -121,7 +120,6 @@ class ControlUnit extends Module
     val load_en: Bool = dontTouch(WireInit(opcode === i_load_id))
 
     // WriteBack control
-    val j_en    : Bool = dontTouch(WireInit(opcode === j_id))
     val jalr_en : Bool = dontTouch(WireInit(opcode === i_jalr_id))
     val auipc_en: Bool = dontTouch(WireInit(opcode === u_auipc_id))
     val lui_en  : Bool = dontTouch(WireInit(opcode === u_lui_id))
@@ -162,24 +160,24 @@ class ControlUnit extends Module
 
     // RegFile control
     val wr_en: Bool = dontTouch(WireInit(
-        opcode === r_id || load_en || opcode === i_math_id || jalr_en || auipc_en || lui_en || j_en
+        opcode === r_id || load_en || opcode === i_math_id || jalr_en || auipc_en || lui_en || jal_en
     ))
 
     // Wiring to outpin pins
     Seq(
-        io.wr_en,       io.imm_en,       io.str_en,         io.load_en,              io.j_en,
-        io.jalr_en,     io.auipc_en,     io.lui_en,         io.addition_en,          io.shiftLeftLogical_en,
-        io.lessThan_en, io.lessThanU_en, io.XOR_en,         io.shiftRightLogical_en, io.shiftRightArithmetic_en,
-        io.OR_en,       io.AND_en,       io.subtraction_en, io.jalrAddition_en,      io.sb_en,
-        io.sh_en,       io.sw_en,        io.lb_en,          io.lh_en,                io.lw_en,
-        io.lbu_en,      io.lhu_en
+        io.wr_en,        io.imm_en,         io.str_en,               io.load_en,                 io.jalr_en,
+        io.auipc_en,     io.lui_en,         io.addition_en,          io.shiftLeftLogical_en,     io.lessThan_en,
+        io.lessThanU_en, io.XOR_en,         io.shiftRightLogical_en, io.shiftRightArithmetic_en, io.OR_en,
+        io.AND_en,       io.subtraction_en, io.jalrAddition_en,      io.sb_en,                   io.sh_en,
+        io.sw_en,        io.lb_en,          io.lh_en,                io.lw_en,                   io.lbu_en,
+        io.lhu_en
     ) zip Seq(
-        wr_en,          imm_en,          str_en,            load_en,                 j_en,
-        jalr_en,        auipc_en,        lui_en,            addition_en,             shiftLeftLogical_en,
-        lessThan_en,    lessThanU_en,    XOR_en,            shiftRightLogical_en,    shiftRightArithmetic_en,
-        OR_en,          AND_en,          subtraction_en,    jalrAddition_en,         sb_en,
-        sh_en,          sw_en,           lb_en,             lh_en,                   lw_en,
-        lbu_en,         lhu_en
+        wr_en,           imm_en,            str_en,                  load_en,                    jalr_en,
+        auipc_en,        lui_en,            addition_en,             shiftLeftLogical_en,        lessThan_en,
+        lessThanU_en,    XOR_en,            shiftRightLogical_en,    shiftRightArithmetic_en,    OR_en,
+        AND_en,          subtraction_en,    jalrAddition_en,         sb_en,                      sh_en,
+        sw_en,           lb_en,             lh_en,                   lw_en,                      lbu_en,
+        lhu_en
     ) foreach
     {
         x => x._1 := Mux(stallControl, 0.B, x._2)
