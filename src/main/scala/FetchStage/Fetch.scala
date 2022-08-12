@@ -46,8 +46,8 @@ class Fetch extends Module
     // Instruction memory
     val inst_mem: Mem[UInt] = Mem(16777216, UInt(32.W))
 
-    // Loading instructions from memory
-    loadMemoryFromFile(inst_mem, "assembly/hex.txt")
+    // Loading instructions into instruction memory
+    loadMemoryFromFile(inst_mem, "simulation/hex.txt")
 
     // Intermediate wires
     val PC_out   : UInt = dontTouch(WireInit(Mux(br_en || jal_en || jalr_en, 0.U, PC)))
