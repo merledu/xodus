@@ -1,15 +1,15 @@
 from re import sub
 
 # Reading the log file
-with open('log.txt', 'r', encoding='UTF-8') as f:
+with open('simulation/log.txt', 'r', encoding='UTF-8') as f:
     log = f.readlines()
 
 # Reading the assembly
-with open('assembly.s', 'r', encoding='UTF-8') as f:
+with open('simulation/assembly.s', 'r', encoding='UTF-8') as f:
     assembly = f.readlines()
 
 # Reading the hex file
-with open('hex.txt', 'r', encoding='UTF-8') as f:
+with open('simulation/hex.txt', 'r', encoding='UTF-8') as f:
     hex = f.readlines()
 
 # Refining the log output

@@ -105,9 +105,9 @@ PC: 0000006c, INST: 00000000, RD_ADDR: 00, RD_DATA: 00000000
 PC: 00000070, INST: 00000000, RD_ADDR: 00, RD_DATA: 00000000
 [info] SimulationTest:
 [info] - Simulation
-[info] Run completed in 10 seconds, 92 milliseconds.
+[info] Run completed in 10 seconds, 522 milliseconds.
 [info] Total number of tests run: 1
 [info] Suites: completed 1, aborted 0
 [info] Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
 [info] All tests passed.
-[success] Total time: 13 s, completed Aug 14, 2022, 3:37:41 PM
+[success] Total time: 13 s, completed Aug 14, 2022, 7:06:59 PM
