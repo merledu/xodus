@@ -17,7 +17,7 @@ keyList = [k for k in regVal[0]]
 # print(refAssembly)
 
 with open('ISSlog.csv', 'w', encoding='UTF-8') as f:
-    f.write(f'{keyList[0]}, {keyList[1]}, {keyList[2]}, {keyList[3]}, INSTRUCTION\n')
+    f.write(f'{keyList[0]}, {keyList[1]}, {keyList[2]}, {keyList[3]}\n')
     for i in range(len(regVal)):
         f.write(f'{regVal[i][keyList[0]]}, {regVal[i][keyList[1]]}, {regVal[i][keyList[2]]}, {regVal[i][keyList[3]]}\n')
 
