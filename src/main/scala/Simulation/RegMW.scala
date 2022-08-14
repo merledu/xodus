@@ -16,6 +16,7 @@ class RegMW_IO extends Bundle
     val auipc_en_in: Bool = Input(Bool())
     val lui_en_in  : Bool = Input(Bool())
     val load_en_in : Bool = Input(Bool())
+    val inst_in    : UInt = Input(UInt(32.W))
 
     // Output pins
     val PC_out      : UInt = Output(UInt(32.W))
@@ -29,6 +30,7 @@ class RegMW_IO extends Bundle
     val auipc_en_out: Bool = Output(Bool())
     val lui_en_out  : Bool = Output(Bool())
     val load_en_out : Bool = Output(Bool())
+    val inst_out    : UInt = Output(UInt(32.W))
 }
 class RegMW extends Module
 {
@@ -45,6 +47,7 @@ class RegMW extends Module
     val auipc_en_in: Bool     = dontTouch(WireInit(io.auipc_en_in))
     val lui_en_in  : Bool     = dontTouch(WireInit(io.lui_en_in))
     val load_en_in : Bool     = dontTouch(WireInit(io.load_en_in))
+    val inst_in    : UInt     = dontTouch(WireInit(io.inst_in))
 
     // Initializing registers
     val PC      : UInt = dontTouch(RegInit(0.U(32.W)))
@@ -58,6 +61,7 @@ class RegMW extends Module
     val auipc_en: Bool = dontTouch(RegInit(0.B))
     val lui_en  : Bool = dontTouch(RegInit(0.B))
     val load_en : Bool = dontTouch(RegInit(0.B))
+    val inst    : UInt = dontTouch(RegInit(0.U(32.W)))
 
     // Intermediate wires
     val PC_out      : UInt = dontTouch(WireInit(PC))
@@ -71,28 +75,29 @@ class RegMW extends Module
     val auipc_en_out: Bool = dontTouch(WireInit(auipc_en))
     val lui_en_out  : Bool = dontTouch(WireInit(lui_en))
     val load_en_out : Bool = dontTouch(WireInit(load_en))
+    val inst_out    : UInt = dontTouch(WireInit(inst))
 
     // Wiring to output pins
     Array(
         // Output pins
         io.PC_out,      io.alu_out,     io.mem_data_out, io.rd_addr_out,  io.imm_out,
         io.wr_en_out,   io.jalr_en_out, io.jal_en_out,   io.auipc_en_out, io.lui_en_out,
-        io.load_en_out,
+        io.load_en_out, io.inst_out,
 
         // Registers
-        PC,            alu,            mem_data,        rd_addr,         imm,
-        wr_en,         jalr_en,        jal_en,          auipc_en,        lui_en,
-        load_en
+        PC,             alu,            mem_data,        rd_addr,         imm,
+        wr_en,          jalr_en,        jal_en,          auipc_en,        lui_en,
+        load_en,        inst
     ) zip Array(
         // Output pins
-        PC_out,        alu_out,        mem_data_out,    rd_addr_out,     imm_out,
-        wr_en_out,     jalr_en_out,    jal_en_out,      auipc_en_out,    lui_en_out,
-        load_en_out,
+        PC_out,         alu_out,        mem_data_out,    rd_addr_out,     imm_out,
+        wr_en_out,      jalr_en_out,    jal_en_out,      auipc_en_out,    lui_en_out,
+        load_en_out,    inst_out,
 
         // Registers
-        PC_in,         alu_in,         mem_data_in,     rd_addr_in,      imm_in,
-        wr_en_in,      jalr_en_in,     jal_en_in,       auipc_en_in,     lui_en_in,
-        load_en_in
+        PC_in,          alu_in,         mem_data_in,     rd_addr_in,      imm_in,
+        wr_en_in,       jalr_en_in,     jal_en_in,       auipc_en_in,     lui_en_in,
+        load_en_in,     inst_in
     ) foreach
     {
         x => x._1 := x._2

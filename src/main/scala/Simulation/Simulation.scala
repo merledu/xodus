@@ -89,7 +89,7 @@ class Simulation extends Module
         // RegMW
         RegMW.io.PC_in,      RegMW.io.alu_in,     RegMW.io.mem_data_in, RegMW.io.rd_addr_in,  RegMW.io.imm_in,
         RegMW.io.wr_en_in,   RegMW.io.jalr_en_in, RegMW.io.jal_en_in,   RegMW.io.auipc_en_in, RegMW.io.lui_en_in,
-        RegMW.io.load_en_in,
+        RegMW.io.load_en_in, RegMW.io.inst_in,
 
         // WriteBack
         WriteBack.io.PC,     WriteBack.io.alu,      WriteBack.io.mem_data, WriteBack.io.imm,    WriteBack.io.jalr_en,
@@ -154,7 +154,7 @@ class Simulation extends Module
         // RegMW
         RegAM.io.PC_out,      RegAM.io.alu_out,     Memory.io.out,       RegAM.io.rd_addr_out,  RegAM.io.imm_out,
         RegAM.io.wr_en_out,   RegAM.io.jalr_en_out, RegAM.io.jal_en_out, RegAM.io.auipc_en_out, RegAM.io.lui_en_out,
-        RegAM.io.load_en_out,
+        RegAM.io.load_en_out, RegAM.io.inst_out,
 
         // WriteBack
         RegMW.io.PC_out,     RegMW.io.alu_out,      RegMW.io.mem_data_out, RegMW.io.imm_out,     RegMW.io.jalr_en_out,
@@ -165,11 +165,10 @@ class Simulation extends Module
     }
 
     /*******************************
-    * Log, in format of Spike-ISS *
+    * Log, in format of Spike-ISS  *
     *******************************/
 
-    printf("PC: %x, INST: %x, REG_NO: %d, REG_VAL: %x\n", RegAM.io.PC_out, RegAM.io.inst_out,
-        Mux(RegMW.io.wr_en_out, RegMW.io.rd_addr_out, 0.U),
-        Mux(RegMW.io.wr_en_out, WriteBack.io.rd_data, 0.S))
+    printf("PC: %x, INST: %x, RD_ADDR: %x, RD_DATA: %x\n",  RegMW.io.PC_out, RegMW.io.inst_out,
+        Mux(RegMW.io.wr_en_out, RegMW.io.rd_addr_out, 0.U), Mux(RegMW.io.wr_en_out, WriteBack.io.rd_data, 0.S))
 }
 
