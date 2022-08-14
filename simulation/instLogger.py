@@ -26,7 +26,7 @@ hexInst = [sub('\n', '', _) for _ in hex]
 instDict = {hexInst[i].lower(): refAssembly[i] for i in range(len(hexInst))}
 instDict['00000000'] = ''
 
-with open('ISSlog.csv', 'w', encoding='UTF-8') as f:
+with open('simulation/ISSlog.csv', 'w', encoding='UTF-8') as f:
     f.write(f'{keyList[0]}, {keyList[1]}, {keyList[2]}, {keyList[3]}, INSTRUCTIONS\n')
     for i in range(len(regVal)):
         f.write(f'{regVal[i][keyList[0]]}, {regVal[i][keyList[1]]}, {regVal[i][keyList[2]]}, {regVal[i][keyList[3]]}, {instDict[regVal[i][keyList[1]]]}\n')
