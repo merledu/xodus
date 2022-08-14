@@ -1,4 +1,26 @@
-XODUS32-5S
-=======================
+# XODUS32-5S
 
 A 5 stage 32 bit RISC-V I(Base) extension core
+
+## Simulation
+
+1. Edit the `assembly.s` file with your own assembly code and place the hex instructions in `hex.txt` in the `simulation` directory.
+
+A template file is also given. Follow the pattern for a successful simulation.
+
+2. Start the simulation
+
+    testOnly Top.TopTest -- -DwriteVcd=1
+
+3. A `Top.vcd` file is situated in `test_run_dir/XODUS32_5S/`. Use a vcd file viewer like gtkwave to view the RTL.
+
+## ISS Log
+
+A log file in the Spike-ISS format can also be generated.
+
+1. Run the log script
+
+    ./logGenerator.sh
+
+2. A CSV file `ISSlog.csv` will be generated.
+
