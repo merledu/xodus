@@ -31,7 +31,9 @@ A log file in the Spike-ISS format can also be generated.
 
 1. Run the log script
 
-    ./logGenerator.sh
+```
+./logGenerator.sh
+```
 
 2. A CSV file `ISSlog.csv` will be generated.
 
