@@ -5,7 +5,7 @@ A 5 stage 32 bit RISC-V I(Base) extension core
 ## Dependencies
 
 - sbt
-- openjdk
+- openjdk 18
 
 ## Simulation
 
@@ -13,27 +13,34 @@ A 5 stage 32 bit RISC-V I(Base) extension core
 
 2. Before starting the simulation, make sure you're in the root directory of the repository.
 
-```
+```bash
 sbt
 ```
 
 3. The sbt server will be started. To generate the RTL file,
 
-```
+```bash
 testOnly Top.TopTest -- -DwriteVcd=1
 ```
 
-4. A `Top.vcd` file is situated in `test_run_dir/XODUS32_5S/`. Use a vcd file viewer like gtkwave to view the RTL.
+4. A `Top.vcd` file is situated in `test_run_dir/XODUS32_5S/`. Use a vcd file viewer like `gtkwave` to view the RTL.
 
 ## ISS Log
 
 A log file in the Spike-ISS format can also be generated.
 
-1. Run the log script
+1. In the `sbt` shell, run
 
-```
-./logGenerator.sh
+```bash
+testOnly Tracer.TracerTopTest -- -DwriteVcd=1
 ```
 
-2. A CSV file `ISSlog.csv` will be generated.
+2. from the root directory, cd into the `trace` directory and execute `traceGenerator.sh` file.
+
+```bash
+cd trace
+./traceGenerator.sh
+```
+
+3. A CSV file `trace.csv` along with a log file `trace.log` will be generated.
 
