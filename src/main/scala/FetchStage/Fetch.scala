@@ -1,5 +1,6 @@
 package FetchStage
 
+import scala.math.pow
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFile
@@ -23,6 +24,7 @@ class Fetch_IO extends Bundle
     val PC_out  : UInt = Output(UInt(32.W))
     val inst_out: UInt = Output(UInt(32.W))
     val PC4     : UInt = Output(UInt(32.W))
+    val nPC_out : UInt = Output(UInt(32.W))
 }
 class Fetch extends Module
 {
@@ -44,14 +46,14 @@ class Fetch extends Module
     val PC: UInt = dontTouch(RegInit(0.U(32.W)))
 
     // Instruction memory
-    val inst_mem: Mem[UInt] = Mem(16777216, UInt(32.W))
+    val inst_mem: Mem[UInt] = Mem(pow(2, 16).toInt, UInt(32.W))
 
     // Loading instructions into instruction memory
-    loadMemoryFromFile(inst_mem, "simulation/hex.txt")
+    loadMemoryFromFile(inst_mem, "assembly/assembly.hex")
 
     // Intermediate wires
     val PC_out   : UInt = dontTouch(WireInit(Mux(br_en || jal_en || jalr_en, 0.U, PC)))
-    val inst_num : UInt = dontTouch(WireInit(PC_out(25, 2)))
+    val inst_num : UInt = dontTouch(WireInit(PC_out(17, 2)))
     val PC4      : UInt = dontTouch(WireInit(PC_out + 4.U))
     val br_jal_PC: UInt = dontTouch(WireInit(RegFD_PC + imm.asUInt))
     val inst_out : UInt = dontTouch(WireInit(Mux(br_en || jal_en || jalr_en, 0.U, inst_mem.read(inst_num))))
@@ -62,16 +64,13 @@ class Fetch extends Module
     ))))
 
     // Wiring to output pins
+    io.PC4 := PC4
+
     Seq(
-        io.PC4, PC
-    ) zip Seq(
-        PC4,    nPC
-    ) foreach
-    {
-        x => x._1 := x._2
-    }
+        PC, io.nPC_out
+    ) map ( x => x := nPC )
     Seq(
-        io.PC_out,              io.inst_out
+        io.PC_out, io.inst_out
     ) zip Seq(
         (PC_out, stallPC), (inst_out, StallUnit_inst)
     ) foreach

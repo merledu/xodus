@@ -1,4 +1,4 @@
-ASSEMBLY TEMPLATE
+ASSEMBLY TEMPLATE:-
 
 addi x2, x0, 6
 bne x2, x2, END
@@ -8,7 +8,9 @@ li x3, 5
 JUMP: xor t1, t2, t1   # A label and the very next code should be on the same line
 END:                   # The ending label can be left as is
 
-HEX TEMPLATE
+
+
+HEX TEMPLATE:-
 
 00354843
 434A34B6               # Hex values can be uppercase

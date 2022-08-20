@@ -22,6 +22,7 @@ class RegDA_IO extends Bundle
     val WriteBack_rd_data  : SInt = Input(SInt(32.W))
     val stallControl_in    : Bool = Input(Bool())
     val jal_en_in          : Bool = Input(Bool())
+    val jalr_en_in         : Bool = Input(Bool())
     val forward_rs1_rd_data: Bool = Input(Bool())
     val forward_rs2_rd_data: Bool = Input(Bool())
 
@@ -38,6 +39,7 @@ class RegDA_IO extends Bundle
     val imm_out         : SInt = Output(SInt(32.W))
     val stallControl_out: Bool = Output(Bool())
     val jal_en_out      : Bool = Output(Bool())
+    val jalr_en_out     : Bool = Output(Bool())
 }
 class RegDA extends Module
 {
@@ -58,6 +60,7 @@ class RegDA extends Module
     val RegAM_rd_data      : SInt     = dontTouch(WireInit(io.RegAM_rd_data))
     val WriteBack_rd_data  : SInt     = dontTouch(WireInit(io.WriteBack_rd_data))
     val stallControl_in    : Bool     = dontTouch(WireInit(io.stallControl_in))
+    val jalr_en_in         : Bool     = dontTouch(WireInit(io.jalr_en_in))
     val jal_en_in          : Bool     = dontTouch(WireInit(io.jal_en_in))
     val forward_rs1_rd_data: Bool     = dontTouch(WireInit(io.forward_rs1_rd_data))
     val forward_rs2_rd_data: Bool     = dontTouch(WireInit(io.forward_rs2_rd_data))
@@ -75,6 +78,7 @@ class RegDA extends Module
     val imm         : SInt = dontTouch(RegInit(0.S(32.W)))
     val stallControl: Bool = dontTouch(RegInit(0.B))
     val jal_en      : Bool = dontTouch(RegInit(0.B))
+    val jalr_en     : Bool = dontTouch(RegInit(0.B))
     
     // Intermediate wires
     val PC_out          : UInt = dontTouch(WireInit(PC))
@@ -95,30 +99,31 @@ class RegDA extends Module
     val imm_out         : SInt = dontTouch(WireInit(imm))
     val stallControl_out: Bool = dontTouch(WireInit(stallControl))
     val jal_en_out      : Bool = dontTouch(WireInit(jal_en))
+    val jalr_en_out     : Bool = dontTouch(WireInit(jalr_en))
     val rs1_data_PC     : SInt = dontTouch(WireInit(Mux(forward_rs1_rd_data, WriteBack_rd_data, rs1_data_in)))
     val rs2_data_PC     : SInt = dontTouch(WireInit(Mux(forward_rs2_rd_data, WriteBack_rd_data, rs2_data_in)))
 
     // Wiring to output pins
     Seq(
         // Output pins
-        io.PC_out,           io.opcode_out,       io.rd_addr_out,   io.func3_out,     io.rs1_addr_out,
-        io.rs1_data_out,     io.rs2_addr_out,     io.rs2_data_out,  io.func7_out,     io.imm_out,
-        io.stallControl_out, io.jal_en_out,
+        io.PC_out,           io.opcode_out,   io.rd_addr_out,  io.func3_out, io.rs1_addr_out,
+        io.rs1_data_out,     io.rs2_addr_out, io.rs2_data_out, io.func7_out, io.imm_out,
+        io.stallControl_out, io.jal_en_out,   io.jalr_en_out,
 
         // Registers
-        PC,                  opcode,              rd_addr,          func3,            rs1_addr,
-        rs1_data,            rs2_addr,            rs2_data,         func7,            imm,
-        stallControl,        jal_en
+        PC,           opcode,   rd_addr,  func3, rs1_addr,
+        rs1_data,     rs2_addr, rs2_data, func7, imm,
+        stallControl, jal_en,   jalr_en
     ) zip Seq(               
         // Output pins       
-        PC_out,              opcode_out,          rd_addr_out,      func3_out,        rs1_addr_out,
-        rs1_data_out,        rs2_addr_out,        rs2_data_out,     func7_out,        imm_out,
-        stallControl_out,    jal_en_out,
-                             
+        PC_out,           opcode_out,   rd_addr_out,  func3_out, rs1_addr_out,
+        rs1_data_out,     rs2_addr_out, rs2_data_out, func7_out, imm_out,
+        stallControl_out, jal_en_out,   jalr_en_out,
+        
         // Registers         
-        PC_in,               opcode_in,           rd_addr_in,       func3_in,         rs1_addr_in,
-        rs1_data_PC,         rs2_addr_in,         rs2_data_PC,      func7_in,         imm_in,
-        stallControl_in,     jal_en_in
+        PC_in,           opcode_in,   rd_addr_in,  func3_in, rs1_addr_in,
+        rs1_data_PC,     rs2_addr_in, rs2_data_PC, func7_in, imm_in,
+        stallControl_in, jal_en_in,   jalr_en_in
     ) foreach
     {
         x => x._1 := x._2

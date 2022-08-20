@@ -13,19 +13,18 @@ class ControlUnit_IO extends Bundle
     val r_id        : UInt = Input(UInt(7.W))
     val i_math_id   : UInt = Input(UInt(7.W))
     val i_load_id   : UInt = Input(UInt(7.W))
-    val i_jalr_id   : UInt = Input(UInt(7.W))
     val s_id        : UInt = Input(UInt(7.W))
     val u_auipc_id  : UInt = Input(UInt(7.W))
     val u_lui_id    : UInt = Input(UInt(7.W))
     val stallControl: Bool = Input(Bool())
     val jal_en      : Bool = Input(Bool())
+    val jalr_en     : Bool = Input(Bool())
 
     // Output pins
     val wr_en                  : Bool = Output(Bool())
     val imm_en                 : Bool = Output(Bool())
     val str_en                 : Bool = Output(Bool())
     val load_en                : Bool = Output(Bool())
-    val jalr_en                : Bool = Output(Bool())
     val auipc_en               : Bool = Output(Bool())
     val lui_en                 : Bool = Output(Bool())
     val addition_en            : Bool = Output(Bool())
@@ -38,7 +37,6 @@ class ControlUnit_IO extends Bundle
     val OR_en                  : Bool = Output(Bool())
     val AND_en                 : Bool = Output(Bool())
     val subtraction_en         : Bool = Output(Bool())
-    val jalrAddition_en        : Bool = Output(Bool())
     val sb_en                  : Bool = Output(Bool())
     val sh_en                  : Bool = Output(Bool())
     val sw_en                  : Bool = Output(Bool())
@@ -59,12 +57,12 @@ class ControlUnit extends Module
     val r_id        : UInt           = dontTouch(WireInit(io.r_id))
     val i_math_id   : UInt           = dontTouch(WireInit(io.i_math_id))
     val i_load_id   : UInt           = dontTouch(WireInit(io.i_load_id))
-    val i_jalr_id   : UInt           = dontTouch(WireInit(io.i_jalr_id))
     val s_id        : UInt           = dontTouch(WireInit(io.s_id))
     val u_auipc_id  : UInt           = dontTouch(WireInit(io.u_auipc_id))
     val u_lui_id    : UInt           = dontTouch(WireInit(io.u_lui_id))
     val stallControl: Bool           = dontTouch(WireInit(io.stallControl))
     val jal_en      : Bool           = dontTouch(WireInit(io.jal_en))
+    val jalr_en     : Bool           = dontTouch(WireInit(io.jalr_en))
 
     // Intermediate wires
     val func7_func3_opcode_id: UInt = dontTouch(WireInit(Cat(func7, func3, opcode)))
@@ -118,15 +116,12 @@ class ControlUnit extends Module
     val sw_en  : Bool = dontTouch(WireInit(func3_opcode_id === sw_id))
     val str_en : Bool = dontTouch(WireInit(opcode === s_id))
     val load_en: Bool = dontTouch(WireInit(opcode === i_load_id))
-
-    // WriteBack control
-    val jalr_en : Bool = dontTouch(WireInit(opcode === i_jalr_id))
-    val auipc_en: Bool = dontTouch(WireInit(opcode === u_auipc_id))
-    val lui_en  : Bool = dontTouch(WireInit(opcode === u_lui_id))
-
+    
     // ALU control
+    val auipc_en               : Bool = dontTouch(WireInit(opcode === u_auipc_id))
+    val lui_en                 : Bool = dontTouch(WireInit(opcode === u_lui_id))
     val imm_en                 : Bool = dontTouch(WireInit(
-        opcode === i_math_id || str_en || load_en || jalr_en
+        opcode === i_math_id || str_en || load_en || auipc_en || lui_en
     ))
     val addition_en            : Bool = dontTouch(WireInit(
         load_en || func3_opcode_id === addi_id || str_en || func7_func3_opcode_id === add_id
@@ -156,8 +151,7 @@ class ControlUnit extends Module
         func3_opcode_id === andi_id || func7_func3_opcode_id === and_id
     ))
     val subtraction_en         : Bool = dontTouch(WireInit(func7_func3_opcode_id === sub_id))
-    val jalrAddition_en        : Bool = dontTouch(WireInit(func3_opcode_id === i_jalr_id))
-
+    
     // RegFile control
     val wr_en: Bool = dontTouch(WireInit(
         opcode === r_id || load_en || opcode === i_math_id || jalr_en || auipc_en || lui_en || jal_en
@@ -165,19 +159,17 @@ class ControlUnit extends Module
 
     // Wiring to outpin pins
     Seq(
-        io.wr_en,        io.imm_en,         io.str_en,               io.load_en,                 io.jalr_en,
-        io.auipc_en,     io.lui_en,         io.addition_en,          io.shiftLeftLogical_en,     io.lessThan_en,
-        io.lessThanU_en, io.XOR_en,         io.shiftRightLogical_en, io.shiftRightArithmetic_en, io.OR_en,
-        io.AND_en,       io.subtraction_en, io.jalrAddition_en,      io.sb_en,                   io.sh_en,
-        io.sw_en,        io.lb_en,          io.lh_en,                io.lw_en,                   io.lbu_en,
-        io.lhu_en
+        io.wr_en,          io.imm_en,               io.str_en,                  io.load_en,     io.auipc_en,
+        io.lui_en,         io.addition_en,          io.shiftLeftLogical_en,     io.lessThan_en, io.lessThanU_en,
+        io.XOR_en,         io.shiftRightLogical_en, io.shiftRightArithmetic_en, io.OR_en,       io.AND_en,
+        io.subtraction_en, io.sb_en,                io.sh_en,                   io.sw_en,       io.lb_en,
+        io.lh_en,          io.lw_en,                io.lbu_en,                  io.lhu_en
     ) zip Seq(
-        wr_en,           imm_en,            str_en,                  load_en,                    jalr_en,
-        auipc_en,        lui_en,            addition_en,             shiftLeftLogical_en,        lessThan_en,
-        lessThanU_en,    XOR_en,            shiftRightLogical_en,    shiftRightArithmetic_en,    OR_en,
-        AND_en,          subtraction_en,    jalrAddition_en,         sb_en,                      sh_en,
-        sw_en,           lb_en,             lh_en,                   lw_en,                      lbu_en,
-        lhu_en
+        wr_en,          imm_en,               str_en,                  load_en,     auipc_en,
+        lui_en,         addition_en,          shiftLeftLogical_en,     lessThan_en, lessThanU_en,
+        XOR_en,         shiftRightLogical_en, shiftRightArithmetic_en, OR_en,       AND_en,
+        subtraction_en, sb_en,                sh_en,                   sw_en,       lb_en,
+        lh_en,          lw_en,                lbu_en,                  lhu_en
     ) foreach
     {
         x => x._1 := Mux(stallControl, 0.B, x._2)

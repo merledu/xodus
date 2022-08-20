@@ -6,6 +6,7 @@ import chisel3.util._
 class ALU_IO extends Bundle
 {
     // Input pins
+    val PC                     : UInt = Input(UInt(32.W))
     val rs1_data               : SInt = Input(SInt(32.W))
     val rs2_data               : SInt = Input(SInt(32.W))
     val imm                    : SInt = Input(SInt(32.W))
@@ -20,7 +21,10 @@ class ALU_IO extends Bundle
     val OR_en                  : Bool = Input(Bool())
     val AND_en                 : Bool = Input(Bool())
     val subtraction_en         : Bool = Input(Bool())
-    val jalrAddition_en        : Bool = Input(Bool())
+    val jalr_en                : Bool = Input(Bool())
+    val jal_en                 : Bool = Input(Bool())
+    val auipc_en               : Bool = Input(Bool())
+    val lui_en                 : Bool = Input(Bool())
 
     // Output pins
     val out: SInt = Output(SInt(32.W))
@@ -29,6 +33,7 @@ class ALU extends Module
 {
     // Initializing IO pins
     val io                     : ALU_IO = IO(new ALU_IO)
+    val PC                     : UInt   = dontTouch(WireInit(io.PC))
     val rs1_data               : SInt   = dontTouch(WireInit(io.rs1_data))
     val rs2_data               : SInt   = dontTouch(WireInit(io.rs2_data))
     val imm                    : SInt   = dontTouch(WireInit(io.imm))
@@ -43,7 +48,10 @@ class ALU extends Module
     val OR_en                  : Bool   = dontTouch(WireInit(io.OR_en))
     val AND_en                 : Bool   = dontTouch(WireInit(io.AND_en))
     val subtraction_en         : Bool   = dontTouch(WireInit(io.subtraction_en))
-    val jalrAddition_en        : Bool   = dontTouch(WireInit(io.jalrAddition_en))
+    val jalr_en                : Bool   = dontTouch(WireInit(io.jalr_en))
+    val jal_en                 : Bool   = dontTouch(WireInit(io.jal_en))
+    val auipc_en               : Bool   = dontTouch(WireInit(io.auipc_en))
+    val lui_en                 : Bool   = dontTouch(WireInit(io.lui_en))
 
     // Intermediate wires
     val operand1: SInt = dontTouch(WireInit(rs1_data))
@@ -60,7 +68,11 @@ class ALU extends Module
     val shiftRightLogical   : SInt = dontTouch(WireInit((operand1.asUInt >> operand2(4, 0)).asSInt))
     val shiftRightArithmetic: SInt = dontTouch(WireInit((operand1 >> operand2(4, 0)).asSInt))
     val subtraction         : SInt = dontTouch(WireInit(operand1 - operand2))
-    val jalrAddition        : SInt = dontTouch(WireInit(Cat((operand1 + imm)(31, 1), "b0".U).asSInt))
+    val PC4                 : SInt = dontTouch(WireInit((PC + 4.U).asSInt))
+    val PC4_en              : Bool = dontTouch(WireInit(jalr_en || jal_en))
+    val u_imm               : SInt = dontTouch(WireInit(imm << 12.U))
+    val auipc               : SInt = dontTouch(WireInit((PC + u_imm.asUInt).asSInt))
+    val lui                 : SInt = dontTouch(WireInit(u_imm))
 
     // Wiring to output pins
     io.out := MuxCase(0.S, Seq(
@@ -74,7 +86,9 @@ class ALU extends Module
         OR_en                   -> OR,
         AND_en                  -> AND,
         subtraction_en          -> subtraction,
-        jalrAddition_en         -> jalrAddition,
+        PC4_en                  -> PC4,
+        auipc_en                -> auipc,
+        lui_en                  -> lui
     ))
 }
 

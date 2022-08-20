@@ -2,6 +2,7 @@ package MemoryStage
 
 import chisel3._
 import chisel3.util._
+import scala.math.pow
 
 class Memory_IO extends Bundle
 {
@@ -40,10 +41,10 @@ class Memory extends Module
     val lhu_en  : Bool      = dontTouch(WireInit(io.lhu_en))
 
     // Data memory
-    val data_mem: Mem[SInt] = Mem(16777216, SInt(32.W))
+    val data_mem: Mem[SInt] = Mem(pow(2, 16).toInt, SInt(32.W))
 
     // Intermediate wires
-    val address : UInt = dontTouch(WireInit(alu_in(23, 0)))
+    val address : UInt = dontTouch(WireInit(alu_in(15, 0)))
     val mem_data: SInt = dontTouch(WireInit(data_mem.read(address)))
 
     // Store wires
