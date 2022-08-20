@@ -8,3 +8,8 @@ sbt "exit"
 cd trace
 echo "Trace successfully generated"
 
+# Generating CSV file
+echo "Generating CSV..."
+python toCSV.py
+echo "CSV generated successfully"
+
