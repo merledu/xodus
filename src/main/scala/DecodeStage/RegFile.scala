@@ -25,18 +25,18 @@ class RegFile extends Module
     val rs2_addr: UInt       = dontTouch(WireInit(io.rs2_addr))
     val wr_en   : Bool       = dontTouch(WireInit(io.wr_en))
 
-    // Register file
-    val regFile: Mem[SInt] = Mem(32, SInt(32.W))
-
+    // Register File
+    val regFile: Vec[SInt] = Reg(Vec(32, SInt(32.W)))
+    
     // Data is written when wr_en is high
-    when (wr_en)
+    when (wr_en && (rd_addr =/= 0.U))
     {
-        regFile.write(rd_addr, rd_data)
+        regFile(rd_addr) := rd_data
     }
 
     // Intermediate wires
-    val rs1_data: SInt = dontTouch(WireInit(regFile.read(rs1_addr)))
-    val rs2_data: SInt = dontTouch(WireInit(regFile.read(rs2_addr)))
+    val rs1_data: SInt = dontTouch(WireInit(regFile(rs1_addr)))
+    val rs2_data: SInt = dontTouch(WireInit(regFile(rs2_addr)))
 
     // Wiring to output pins
     Seq(
