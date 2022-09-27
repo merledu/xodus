@@ -9,7 +9,7 @@ class TracerTopTest extends AnyFreeSpec with ChiselScalatestTester
     {
         test(new TracerTop())
         {
-            x => x.clock.step(100)
+            x => x.clock.step(500)
         }
     }
 }

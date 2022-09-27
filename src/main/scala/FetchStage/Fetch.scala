@@ -5,8 +5,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFile
 
-class Fetch_IO extends Bundle
-{
+class Fetch_IO extends Bundle {
     // Input pins
     val forward_inst  : Bool = Input(Bool())
     val StallUnit_inst: UInt = Input(UInt(32.W))
@@ -26,8 +25,7 @@ class Fetch_IO extends Bundle
     val PC4     : UInt = Output(UInt(32.W))
     val nPC_out : UInt = Output(UInt(32.W))
 }
-class Fetch extends Module
-{
+class Fetch extends Module {
     // Initializing IO pins
     val io            : Fetch_IO = IO(new Fetch_IO)
     val forward_inst  : Bool     = dontTouch(WireInit(io.forward_inst))
@@ -69,12 +67,12 @@ class Fetch extends Module
     Seq(
         PC, io.nPC_out
     ) map ( x => x := nPC )
+
     Seq(
         io.PC_out, io.inst_out
     ) zip Seq(
         (PC_out, stallPC), (inst_out, StallUnit_inst)
-    ) foreach
-    {
+    ) foreach {
         x => x._1 := Mux(forward_inst, x._2._2, x._2._1)
     }
 }

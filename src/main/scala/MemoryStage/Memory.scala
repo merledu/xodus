@@ -44,7 +44,7 @@ class Memory extends Module
     val data_mem: Mem[SInt] = Mem(pow(2, 16).toInt, SInt(32.W))
 
     // Intermediate wires
-    val address : UInt = dontTouch(WireInit(alu_in(15, 0)))
+    val address : UInt = dontTouch(WireInit(alu_in.asUInt))
     val mem_data: SInt = dontTouch(WireInit(data_mem.read(address)))
 
     // Store wires

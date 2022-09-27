@@ -9,7 +9,7 @@ class TopTest extends AnyFreeSpec with ChiselScalatestTester
     {
         test(new Top())
         {
-            x => x.clock.step(100)
+            x => x.clock.step(500)
         }
     }
 }

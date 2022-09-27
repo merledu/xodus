@@ -24,7 +24,7 @@ class Tracer_IO extends Bundle
     val RegAM_str_en     : Bool = Input(Bool())
     val RegAM_alu        : SInt = Input(SInt(32.W))
 
-    // Output ports  (Commented ports are not used by this tracer, need to be added in the future)
+    // Output ports  (TODO: Commented ports are not used by this tracer, need to be added in the future)
     // - Instruction metadata
     // val rvfi_valid: UInt = Output(UInt(NRET.W))
     // val rvfi_order: UInt = Output(UInt((NRET * 64).W))
@@ -67,7 +67,7 @@ class Tracer extends Module
     val Fetch_nPC        : UInt      = dontTouch(WireInit(io.Fetch_nPC))
     val RegAM_load_en    : Bool      = dontTouch(WireInit(io.RegAM_load_en))
     val RegAM_str_en     : Bool      = dontTouch(WireInit(io.RegAM_str_en))
-    val RegAM_mem_addr   : UInt      = dontTouch(WireInit(io.RegAM_alu(15, 0)))
+    val RegAM_mem_addr   : UInt      = dontTouch(WireInit(io.RegAM_alu.asUInt))
 
     // Delay Registers
     // - inst
@@ -93,7 +93,7 @@ class Tracer extends Module
     // - load_en/str_en/mem_addr
     val RegMW_load_en : Bool = dontTouch(RegInit(0.B))
     val RegMW_str_en  : Bool = dontTouch(RegInit(0.B))
-    val RegMW_mem_addr: UInt = dontTouch(RegInit(0.U(16.W)))
+    val RegMW_mem_addr: UInt = dontTouch(RegInit(0.U(32.W)))
 
     // Intermediate wires
     // - Instruction metadata

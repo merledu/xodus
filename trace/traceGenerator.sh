@@ -3,7 +3,7 @@
 # Generating trace file
 echo "Generating trace..."
 cd ../
-sbt "testOnly Tracer.TracerTopTest -- -DwriteVcd=1" > trace/trace.log
+sbt "testOnly Tracer.TracerTopTest -- -DwriteVcd=1" > ./trace/trace.log
 sbt "exit"
 cd trace
 echo "Trace successfully generated"

@@ -4,8 +4,7 @@ import chisel3._
 import Top._
 import java.io._
 
-class TracerTop extends Module
-{
+class TracerTop extends Module {
     // Initializing modules
     val Tracer: Tracer = Module(new Tracer)
     val Core  : Top    = Module(new Top)
@@ -25,8 +24,7 @@ class TracerTop extends Module
         Core.io.RegFD_inst,    Core.io.RegDA_rs1_addr,    Core.io.RegDA_rs2_addr, Core.io.RegDA_rs1_data, Core.io.RegAM_rs2_data,
         Core.io.RegMW_rd_addr, Core.io.WriteBack_rd_data, Core.io.RegDA_PC,       Core.io.Fetch_nPC,      Core.io.RegAM_load_en,
         Core.io.RegAM_str_en,  Core.io.RegAM_alu,         Core.io.RegMW_wr_en
-    ) foreach
-    {
+    ) foreach {
         x => x._1 := x._2
     }
 
@@ -38,10 +36,10 @@ class TracerTop extends Module
     
     // Writing trace to console  (Temporary)
     printf(
-        "ClkCycle: %d, PC: %x, Inst: %x, Mode: %d, rs1_addr: %d, rs1_rdata: %x, rs2_addr: %d, rs2_rdata: %x, rd_addr: %d, rd_wdata: %x, mem_addr: %d, mem_rdata: %x, mem_wdata: %x\n",
-        clkCycle,                 Tracer.io.rvfi_pc_rdata,  Tracer.io.rvfi_insn,      Tracer.io.rvfi_mode,    Tracer.io.rvfi_rs1_addr,
-        Tracer.io.rvfi_rs1_rdata, Tracer.io.rvfi_rs2_addr,  Tracer.io.rvfi_rs2_rdata, Tracer.io.rvfi_rd_addr, Tracer.io.rvfi_rd_wdata,
-        Tracer.io.rvfi_mem_addr,  Tracer.io.rvfi_mem_rdata, Tracer.io.rvfi_mem_wdata
+        "ClkCycle: %d, pc_rdata: %x, pc_wdata: %x, insn: %x, mode: %d, rs1_addr: %d, rs1_rdata: %x, rs2_addr: %d, rs2_rdata: %x, rd_addr: %d, rd_wdata: %x, mem_addr: %x, mem_rdata: %x, mem_wdata: %x\n",
+        clkCycle,                Tracer.io.rvfi_pc_rdata,  Tracer.io.rvfi_pc_wdata,  Tracer.io.rvfi_insn,      Tracer.io.rvfi_mode,
+        Tracer.io.rvfi_rs1_addr, Tracer.io.rvfi_rs1_rdata, Tracer.io.rvfi_rs2_addr,  Tracer.io.rvfi_rs2_rdata, Tracer.io.rvfi_rd_addr,
+        Tracer.io.rvfi_rd_wdata, Tracer.io.rvfi_mem_addr,  Tracer.io.rvfi_mem_rdata, Tracer.io.rvfi_mem_wdata
     )
 }
 
