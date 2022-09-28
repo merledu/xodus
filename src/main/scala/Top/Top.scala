@@ -8,9 +8,9 @@ import MemoryStage._
 import WriteBackStage._
 import PipelineRegs._
 
-class Top_IO extends Bundle
-{
+class Top_IO extends Bundle {
     // Output ports
+    // - RVFI pins
     val RegFD_inst       : UInt = Output(UInt(32.W))
     val RegDA_rs1_addr   : UInt = Output(UInt(5.W))
     val RegDA_rs2_addr   : UInt = Output(UInt(5.W))
@@ -24,9 +24,12 @@ class Top_IO extends Bundle
     val RegAM_load_en    : Bool = Output(Bool())
     val RegAM_str_en     : Bool = Output(Bool())
     val RegAM_alu        : SInt = Output(SInt(32.W))
+
+    // - Hazard pins
+    val RegDA_stallControl: Bool = Output(Bool())
 }
-class Top extends Module
-{
+
+class Top extends Module {
     // Initializing modules
     val io         : Top_IO      = IO(new Top_IO)
     val Fetch      : Fetch       = Module(new Fetch)
@@ -111,9 +114,10 @@ class Top extends Module
         WriteBack.io.alu, WriteBack.io.mem_data, WriteBack.io.load_en,
 
         // Output ports
-        io.RegFD_inst,    io.RegDA_rs1_addr,    io.RegDA_rs2_addr, io.RegDA_rs1_data, io.RegAM_rs2_data,
-        io.RegMW_rd_addr, io.WriteBack_rd_data, io.RegDA_PC,       io.Fetch_nPC,      io.RegAM_load_en,
-        io.RegAM_str_en,  io.RegAM_alu,         io.RegMW_wr_en
+        io.RegFD_inst,        io.RegDA_rs1_addr,    io.RegDA_rs2_addr, io.RegDA_rs1_data, io.RegAM_rs2_data,
+        io.RegMW_rd_addr,     io.WriteBack_rd_data, io.RegDA_PC,       io.Fetch_nPC,      io.RegAM_load_en,
+        io.RegAM_str_en,      io.RegAM_alu,         io.RegMW_wr_en,
+        io.RegDA_stallControl
     ) zip Seq(
         // Fetch
         StallUnit.io.forward_inst, StallUnit.io.inst, StallUnit.io.stallPC_out, StallUnit.io.forward_PC, StallUnit.io.PC_out,
@@ -177,9 +181,10 @@ class Top extends Module
         RegMW.io.alu_out, RegMW.io.mem_data_out, RegMW.io.load_en_out,
 
         // Output ports
-        RegFD.io.inst_out,    RegDA.io.rs1_addr_out, RegDA.io.rs2_addr_out, RegDA.io.rs1_data_out, RegAM.io.rs2_data_out,
-        RegMW.io.rd_addr_out, WriteBack.io.rd_data,  RegDA.io.PC_out,       Fetch.io.nPC_out,      RegAM.io.load_en_out,
-        RegAM.io.str_en_out,  RegAM.io.alu_out,      RegMW.io.wr_en_out
+        RegFD.io.inst_out,        RegDA.io.rs1_addr_out, RegDA.io.rs2_addr_out, RegDA.io.rs1_data_out, RegAM.io.rs2_data_out,
+        RegMW.io.rd_addr_out,     WriteBack.io.rd_data,  RegDA.io.PC_out,       Fetch.io.nPC_out,      RegAM.io.load_en_out,
+        RegAM.io.str_en_out,      RegAM.io.alu_out,      RegMW.io.wr_en_out,
+        RegDA.io.stallControl_out
     ) foreach
     {
         x => x._1 := x._2

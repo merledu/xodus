@@ -3,8 +3,7 @@ package ExecuteStage
 import chisel3._
 import chisel3.util._
 
-class ControlUnit_IO extends Bundle
-{
+class ControlUnit_IO extends Bundle {
     // Input pins
     val opcode      : UInt = Input(UInt(7.W))
     val func3       : UInt = Input(UInt(3.W))
@@ -46,8 +45,8 @@ class ControlUnit_IO extends Bundle
     val lbu_en                 : Bool = Output(Bool())
     val lhu_en                 : Bool = Output(Bool())
 }
-class ControlUnit extends Module
-{
+
+class ControlUnit extends Module {
     // Initializing IO pins
     val io          : ControlUnit_IO = IO(new ControlUnit_IO)
     val opcode      : UInt           = dontTouch(WireInit(io.opcode))
@@ -170,9 +169,7 @@ class ControlUnit extends Module
         XOR_en,         shiftRightLogical_en, shiftRightArithmetic_en, OR_en,       AND_en,
         subtraction_en, sb_en,                sh_en,                   sw_en,       lb_en,
         lh_en,          lw_en,                lbu_en,                  lhu_en
-    ) foreach
-    {
+    ) foreach {
         x => x._1 := Mux(stallControl, 0.B, x._2)
     }
 }
-
