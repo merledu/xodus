@@ -11,6 +11,7 @@ class TracerTop extends Module {
 
     // Intermediate wires
     val clkCycle: UInt = dontTouch(RegInit(0.U(32.W)))
+    clkCycle := clkCycle + 1.U
 
     // Wiring to Tracer
     Seq(
@@ -32,7 +33,7 @@ class TracerTop extends Module {
     // traceWriter.printf("Clock_Cycle: %d\n", num)
     // traceWriter.close()
     
-    // Writing trace to console
+    // Printing RVFI values to console
     val valid: Bool = (!Tracer.io.stallControl) && (Tracer.io.rvfi_insn =/= 0.U)
     when (valid) {
         printf(
@@ -42,7 +43,4 @@ class TracerTop extends Module {
             Tracer.io.rvfi_rd_wdata, Tracer.io.rvfi_mem_addr,  Tracer.io.rvfi_mem_rdata, Tracer.io.rvfi_mem_wdata
         )
     }
-    
-    clkCycle := clkCycle + 1.U
 }
-
