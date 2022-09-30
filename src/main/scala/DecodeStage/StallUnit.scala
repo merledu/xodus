@@ -2,8 +2,7 @@ package DecodeStage
 
 import chisel3._
 
-class StallUnit_IO extends Bundle
-{
+class StallUnit_IO extends Bundle {
     // Input pins
     val RegFD_inst   : UInt = Input(UInt(32.W))
     val load_en      : Bool = Input(Bool())
@@ -21,8 +20,8 @@ class StallUnit_IO extends Bundle
     val PC_out      : UInt = Output(UInt(32.W))
     val stallPC_out : UInt = Output(UInt(32.W))
 }
-class StallUnit extends Module
-{
+
+class StallUnit extends Module {
     // Initializing IO pins
     val io           : StallUnit_IO = IO(new StallUnit_IO)
     val RegFD_inst   : UInt         = dontTouch(WireInit(io.RegFD_inst))
@@ -41,14 +40,12 @@ class StallUnit extends Module
     // Wiring to output pins
     Seq(
         io.forward_inst, io.forward_PC, io.stallControl
-    ) map ( _ := Mux(loadHazard, 1.B, 0.B) )
+    ) map (_ := Mux(loadHazard, 1.B, 0.B))
     Seq(
         io.inst,    io.PC_out, io.stallPC_out
     ) zip Seq(
         RegFD_inst, PC_in,     stallPC_in
-    ) foreach
-    {
+    ) foreach {
         x => x._1 := x._2
     }
 }
-
