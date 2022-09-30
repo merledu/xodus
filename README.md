@@ -28,6 +28,7 @@ testOnly Top.TopTest -- -DwriteVcd=1
 ## RVFI Log
 
 A log file in the RVFI format can also be generated.
+Place a disassembly file, named `test.s` in the `scripts` directory.
 From the root directory, cd into the `trace` directory and execute `traceGenerator.sh` file.
 
 ```bash

@@ -1,5 +1,8 @@
 #! /usr/bin/zsh
 
+# Generating hex file
+python ../scripts/assemblyParser.py
+
 # Generating trace file
 echo "Generating trace..."
 cd ../
