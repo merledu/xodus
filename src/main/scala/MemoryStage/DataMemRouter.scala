@@ -53,7 +53,11 @@ class DataMemRouter extends Module
     val address : UInt = dontTouch(WireInit(alu_in.asUInt))
     val mem_data: SInt = dontTouch(WireInit(io.memDataIn))
     val offset         = dontTouch(WireInit(alu_in(1, 0)))
-    val rs2Data        = dontTouch(Wireinit(Vecinit(4, 0.S(8.W))))
+    val rs2Data        = dontTouch(Wire(Vec(4, SInt(8.W))))
+
+    for (i <- 0 until rs2Data.length) {
+            rs2Data(i) := 0.S
+    }
 
     // Store wires
     val sb: SInt = dontTouch(WireInit(rs2_data(7, 0).asSInt))
@@ -78,36 +82,35 @@ class DataMemRouter extends Module
     when (str_en) {
             when (sb_en) {
                     when (offset === 1.U) {
-                            rs2Data(1) := rs2_data(7, 0)
+                            rs2Data(1) := rs2_data(7, 0).asSInt
                     }.elsewhen (offset === 2.U) {
-                            rs2Data(2) := rs2_data(7, 0)
+                            rs2Data(2) := rs2_data(7, 0).asSInt
                     }.elsewhen (offset === 3.U) {
-                            rs2Data(3) := rs2_data(7, 0)
+                            rs2Data(3) := rs2_data(7, 0).asSInt
                     }.otherwise {
-                            rs2Data(0) := rs2_data(7, 0)
+                            rs2Data(0) := rs2_data(7, 0).asSInt
                     }
             }.elsewhen (sh_en) {
                     when (offset === 1.U) {
-                            rs2Data(1) := rs2_data(7, 0)
-                            rs2Data(2) := rs2_data(15, 8)
+                            rs2Data(1) := rs2_data(7, 0).asSInt
+                            rs2Data(2) := rs2_data(15, 8).asSInt
                     }.elsewhen (offset === 2.U) {
-                            rs2Data(2) := rs2_data(7, 0)
-                            rs2Data(3) := rs2_data(15, 8)
+                            rs2Data(2) := rs2_data(7, 0).asSInt
+                            rs2Data(3) := rs2_data(15, 8).asSInt
                     }.otherwise {
-                            rs2Data(0) := rs2_data(7, 0)
-                            rs2Data(1) := rs2_data(15, 8)
+                            rs2Data(0) := rs2_data(7, 0).asSInt
+                            rs2Data(1) := rs2_data(15, 8).asSInt
                     }
             }.elsewhen (sw_en) {
                     Seq(
-                            (rs2Data(0), rs2_data(7, 0)),
-                            (rs2Data(1), rs2_data(15, 8)),
-                            (rs2Data(2), rs2_data(23, 16)),
-                            (rs2Data(3), rs2_data(31, 24))
+                            (rs2Data(0), rs2_data(7, 0).asSInt),
+                            (rs2Data(1), rs2_data(15, 8).asSInt),
+                            (rs2Data(2), rs2_data(23, 16).asSInt),
+                            (rs2Data(3), rs2_data(31, 24).asSInt)
                     ) map (x => x._1 := x._2)
             }
-
-            io.rs2DataOut := rs2Data.asSInt
     }
+    io.rs2DataOut := rs2Data.asUInt.asSInt
 
     // Load wires
     val lb : SInt = dontTouch(WireInit(mem_data(7, 0).asSInt))

@@ -64,7 +64,7 @@ class Core extends Module
         Fetch.io.jalr_en,
 
         // RegFD
-        RegFD.io.PC_in, /*RegFD.io.inst_in*/, RegFD.io.PC4_in,
+        RegFD.io.PC_in, /*RegFD.io.inst_in,*/ RegFD.io.PC4_in,
 
         // Decoder
         Decoder.io.inst,

@@ -24,7 +24,7 @@ class Top extends Module {
             (dataMem.io.addr,    Core.io.dataAddr),
             (dataMem.io.storeEn, Core.io.storeEn),
             (dataMem.io.loadEn,  Core.io.loadEn),
-            (dataMem.io.dataIn,  Core.io.rs2DataOut)
+            (dataMem.io.dataIn,  Core.io.rs2DataOut),
 
             (Core.io.memInstIn, instMem.io.inst),
             (Core.io.memDataIn, dataMem.io.dataOut)

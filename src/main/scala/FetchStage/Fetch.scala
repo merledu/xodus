@@ -64,6 +64,7 @@ class Fetch extends Module {
 
     // Wiring to output pins
     io.PC4 := PC4
+    io.addr := inst_num
 
     Seq(
         PC, io.nPC_out
