@@ -62,20 +62,23 @@ class Fetch extends Module {
         jalr_en           -> jalr_PC
     ))))
 
-    // Wiring to output pins
-    io.PC4 := PC4
-    io.addr := inst_num
+    // Wiring pins
+    Seq(
+        (io.PC4,  PC4),
+        (io.addr, inst_num)
+    ).map(x => x._1 := x._2)
 
     Seq(
         PC, io.nPC_out
-    ) map ( x => x := nPC )
+    ).map(x => x := nPC)
 
-    Seq(
-        io.PC_out/*, io.inst_out*/
-    ) zip Seq(
-        (PC_out, stallPC)/*, (inst_out, StallUnit_inst)*/
-    ) foreach {
-        x => x._1 := Mux(forward_inst, x._2._2, x._2._1)
-    }
+    io.PC_out := Mux(forward_inst, stallPC, PC_out)
+
+    //Seq(
+    //    io.PC_out/*, io.inst_out*/
+    //) zip Seq(
+    //    (PC_out, stallPC)/*, (inst_out, StallUnit_inst)*/
+    //) foreach {
+    //    x => x._1 := Mux(forward_inst, x._2._2, x._2._1)
+    //}
 }
-
