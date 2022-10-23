@@ -21,9 +21,10 @@ class Fetch_IO extends Bundle {
 
     // Output pins
     val PC_out  : UInt = Output(UInt(32.W))
-    val inst_out: UInt = Output(UInt(32.W))
+    //val inst_out: UInt = Output(UInt(32.W))
     val PC4     : UInt = Output(UInt(32.W))
     val nPC_out : UInt = Output(UInt(32.W))
+    val addr    : UInt = Output(UInt(16.W))
 }
 class Fetch extends Module {
     // Initializing IO pins
@@ -44,17 +45,17 @@ class Fetch extends Module {
     val PC: UInt = dontTouch(RegInit(0.U(32.W)))
 
     // Instruction memory
-    val inst_mem: Mem[UInt] = Mem(pow(2, 16).toInt, UInt(32.W))
+    //val inst_mem: Mem[UInt] = Mem(pow(2, 16).toInt, UInt(32.W))
 
     // Loading instructions into instruction memory
-    loadMemoryFromFile(inst_mem, "assembly/assembly.hex")
+    //loadMemoryFromFile(inst_mem, "assembly/assembly.hex")
 
     // Intermediate wires
     val PC_out   : UInt = dontTouch(WireInit(Mux(br_en || jal_en || jalr_en, 0.U, PC)))
     val inst_num : UInt = dontTouch(WireInit(PC_out(17, 2)))
     val PC4      : UInt = dontTouch(WireInit(PC_out + 4.U))
     val br_jal_PC: UInt = dontTouch(WireInit(RegFD_PC + imm.asUInt))
-    val inst_out : UInt = dontTouch(WireInit(Mux(br_en || jal_en || jalr_en, 0.U, inst_mem.read(inst_num))))
+    //val inst_out : UInt = dontTouch(WireInit(Mux(br_en || jal_en || jalr_en, 0.U, inst_mem.read(inst_num))))
     val nPC      : UInt = dontTouch(WireInit(MuxCase(PC4, Seq(
         forward_PC        -> StallUnit_PC,
         (br_en || jal_en) -> br_jal_PC,
@@ -63,15 +64,16 @@ class Fetch extends Module {
 
     // Wiring to output pins
     io.PC4 := PC4
+    io.addr := inst_num
 
     Seq(
         PC, io.nPC_out
     ) map ( x => x := nPC )
 
     Seq(
-        io.PC_out, io.inst_out
+        io.PC_out/*, io.inst_out*/
     ) zip Seq(
-        (PC_out, stallPC), (inst_out, StallUnit_inst)
+        (PC_out, stallPC)/*, (inst_out, StallUnit_inst)*/
     ) foreach {
         x => x._1 := Mux(forward_inst, x._2._2, x._2._1)
     }
