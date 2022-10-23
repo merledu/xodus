@@ -2,7 +2,7 @@ from re import search, sub, split
 
 if __name__ == '__main__':
     # Reading dump file
-    with open('../scripts/test.s', 'r', encoding='UTF-8') as f:
+    with open('../scripts/test.elf', 'r', encoding='UTF-8') as f:
         elfLog = f.readlines()
     elfLog = [sub('\n', '', _) for _ in elfLog]
 
