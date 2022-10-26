@@ -1,4 +1,4 @@
-package Top
+package Core
 
 import chisel3._
 import FetchStage._
@@ -10,7 +10,6 @@ import PipelineRegs._
 
 class Core_IO extends Bundle
 {
-    // Output ports
     val RegFD_inst       : UInt = Output(UInt(32.W))
     val RegDA_rs1_addr   : UInt = Output(UInt(5.W))
     val RegDA_rs2_addr   : UInt = Output(UInt(5.W))
@@ -32,6 +31,8 @@ class Core_IO extends Bundle
     val loadEn    : Bool = Output(Bool())
     val storeEn   : Bool = Output(Bool())
     val dataAddr  : UInt = Output(UInt(16.W))
+
+    val RegDA_stallControl: Bool = Output(Bool())
 }
 class Core extends Module
 {
@@ -120,9 +121,9 @@ class Core extends Module
         WriteBack.io.alu, WriteBack.io.mem_data, WriteBack.io.load_en,
 
         // Output ports
-        io.RegFD_inst,    io.RegDA_rs1_addr,    io.RegDA_rs2_addr, io.RegDA_rs1_data, io.RegAM_rs2_data,
-        io.RegMW_rd_addr, io.WriteBack_rd_data, io.RegDA_PC,       io.Fetch_nPC,      io.RegAM_load_en,
-        io.RegAM_str_en,  io.RegAM_alu,         io.RegMW_wr_en
+        io.RegFD_inst,    io.RegDA_rs1_addr,    io.RegDA_rs2_addr, io.RegDA_rs1_data,   io.RegAM_rs2_data,
+        io.RegMW_rd_addr, io.WriteBack_rd_data, io.RegDA_PC,       io.Fetch_nPC,        io.RegAM_load_en,
+        io.RegAM_str_en,  io.RegAM_alu,         io.RegMW_wr_en,    io.RegDA_stallControl
     ) zip Seq(
         // Fetch
         StallUnit.io.forward_inst, StallUnit.io.inst, StallUnit.io.stallPC_out, StallUnit.io.forward_PC, StallUnit.io.PC_out,
@@ -186,9 +187,9 @@ class Core extends Module
         RegMW.io.alu_out, RegMW.io.mem_data_out, RegMW.io.load_en_out,
 
         // Output ports
-        RegFD.io.inst_out,    RegDA.io.rs1_addr_out, RegDA.io.rs2_addr_out, RegDA.io.rs1_data_out, RegAM.io.rs2_data_out,
-        RegMW.io.rd_addr_out, WriteBack.io.rd_data,  RegDA.io.PC_out,       Fetch.io.nPC_out,      RegAM.io.load_en_out,
-        RegAM.io.str_en_out,  RegAM.io.alu_out,      RegMW.io.wr_en_out
+        RegFD.io.inst_out,    RegDA.io.rs1_addr_out, RegDA.io.rs2_addr_out, RegDA.io.rs1_data_out,    RegAM.io.rs2_data_out,
+        RegMW.io.rd_addr_out, WriteBack.io.rd_data,  RegDA.io.PC_out,       Fetch.io.nPC_out,         RegAM.io.load_en_out,
+        RegAM.io.str_en_out,  RegAM.io.alu_out,      RegMW.io.wr_en_out,    RegDA.io.stallControl_out
     ) foreach
     {
         x => x._1 := x._2
@@ -208,7 +209,7 @@ class Core extends Module
             (io.rs2DataOut,    DataMemRouter.io.rs2DataOut),
             (io.loadEn,        DataMemRouter.io.loadEn),
             (io.storeEn,       DataMemRouter.io.storeEn),
-            (io.dataAddr,      DataMemRouter.io.addr)
+            (io.dataAddr,      DataMemRouter.io.addr),
     ) map (x => x._1 := x._2)
 }
 
