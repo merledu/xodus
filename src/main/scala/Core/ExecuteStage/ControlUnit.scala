@@ -3,23 +3,15 @@ package ExecuteStage
 import chisel3._
 import chisel3.util._
 
-class ControlUnit_IO extends Bundle {
-    // Input pins
-    val opcode      : UInt = Input(UInt(7.W))
-    val func3       : UInt = Input(UInt(3.W))
-    val func7       : UInt = Input(UInt(7.W))
-    val imm         : SInt = Input(SInt(32.W))
-    val r_id        : UInt = Input(UInt(7.W))
-    val i_math_id   : UInt = Input(UInt(7.W))
-    val i_load_id   : UInt = Input(UInt(7.W))
-    val s_id        : UInt = Input(UInt(7.W))
-    val u_auipc_id  : UInt = Input(UInt(7.W))
-    val u_lui_id    : UInt = Input(UInt(7.W))
-    val stallControl: Bool = Input(Bool())
-    val jal_en      : Bool = Input(Bool())
-    val jalr_en     : Bool = Input(Bool())
+class ControlUnitIO(PARAMS:Map[String, Int]) extends Bundle {
+    // Input ports
+    val opcode : UInt = Input(UInt(PARAMS("OPCODELEN").W))
+    val func3  : UInt = Input(UInt(PARAMS("F3LEN").W))
+    val func7  : UInt = Input(UInt(PARAMS("F7LEN").W))
+    val imm    : SInt = Input(SInt(PARAMS("XLEN").W))
+    val control: Bool = Input(Vec(3, Bool()))
 
-    // Output pins
+    // Output ports
     val wr_en                  : Bool = Output(Bool())
     val imm_en                 : Bool = Output(Bool())
     val str_en                 : Bool = Output(Bool())
@@ -46,29 +38,15 @@ class ControlUnit_IO extends Bundle {
     val lhu_en                 : Bool = Output(Bool())
 }
 
-class ControlUnit extends Module {
-    // Initializing IO pins
-    val io          : ControlUnit_IO = IO(new ControlUnit_IO)
-    val opcode      : UInt           = dontTouch(WireInit(io.opcode))
-    val func3       : UInt           = dontTouch(WireInit(io.func3))
-    val func7       : UInt           = dontTouch(WireInit(io.func7))
-    val imm         : SInt           = dontTouch(WireInit(io.imm))
-    val r_id        : UInt           = dontTouch(WireInit(io.r_id))
-    val i_math_id   : UInt           = dontTouch(WireInit(io.i_math_id))
-    val i_load_id   : UInt           = dontTouch(WireInit(io.i_load_id))
-    val s_id        : UInt           = dontTouch(WireInit(io.s_id))
-    val u_auipc_id  : UInt           = dontTouch(WireInit(io.u_auipc_id))
-    val u_lui_id    : UInt           = dontTouch(WireInit(io.u_lui_id))
-    val stallControl: Bool           = dontTouch(WireInit(io.stallControl))
-    val jal_en      : Bool           = dontTouch(WireInit(io.jal_en))
-    val jalr_en     : Bool           = dontTouch(WireInit(io.jalr_en))
+class ControlUnit(PARAMS:Map[String, Int], OPCODES:Map[String, Map[String, UInt]]) extends Module {
+    // Initializing IO ports
+    val io: ControlUnitIO = IO(new ControlUnitIO(PARAMS))
 
     // Intermediate wires
     val func7_func3_opcode_id: UInt = dontTouch(WireInit(Cat(func7, func3, opcode)))
     val func3_opcode_id      : UInt = dontTouch(WireInit(Cat(func3, opcode)))
     val imm_func3_opcode_id  : UInt = dontTouch(WireInit(Cat(imm(11, 5), func3, opcode)))
 
-    // Encoded ID wires
     // - R-Type IDs
     val add_id : UInt = dontTouch(WireInit(51.U(17.W)))
     val sub_id : UInt = dontTouch(WireInit(32819.U(17.W)))
@@ -172,4 +150,16 @@ class ControlUnit extends Module {
     ) foreach {
         x => x._1 := Mux(stallControl, 0.B, x._2)
     }
+
+
+    // Debug Section
+    if (DEBUG) {
+        val opcode      : UInt = dontTouch(WireInit(io.opcode))
+        val func3       : UInt = dontTouch(WireInit(io.func3))
+        val func7       : UInt = dontTouch(WireInit(io.func7))
+        val imm         : SInt = dontTouch(WireInit(io.imm))
+        val stallControl: Bool = dontTouch(WireInit(io.control(0)))
+        val jal_en      : Bool = dontTouch(WireInit(io.control(1)))
+        val jalr_en     : Bool = dontTouch(WireInit(io.control(2)))
+    } else None
 }

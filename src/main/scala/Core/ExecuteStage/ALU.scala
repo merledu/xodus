@@ -3,8 +3,7 @@ package ExecuteStage
 import chisel3._
 import chisel3.util._
 
-class ALU_IO extends Bundle
-{
+class ALU_IO extends Bundle {
     // Input pins
     val PC                     : UInt = Input(UInt(32.W))
     val rs1_data               : SInt = Input(SInt(32.W))

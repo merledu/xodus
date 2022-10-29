@@ -1,60 +1,74 @@
 package Top
 
 import chisel3._
-import Memory._
-import Tracer._
-import java.io._
+import ParamsAndConsts._
+import Core._
+import Memories._
+import Temp._
+//import Tracer._
 
-class Top extends Module {
-    // Initializing modules
-    val Tracer: Tracer = Module(new Tracer)
-    val Core           = Module(new Core)
-    val instMem        = Module(new InstMem)
-    val dataMem        = Module(new DataMem)
+class Top(TRACE:Boolean=false) extends Module {
+        // Initializing modules
+        val core   : Core    = Module(new Core(Params.PARAMS, Consts.OPCODES))
+        val instMem: MemoryO = Module(new MemoryO(Params.PARAMS, true))
+        val dataMem: DataMem = Module(new DataMem)
+        //val tracer = if (TRACE) Some(Module(new Tracer(Params.PARAMS, TRACE)))
+        //             else None
 
-    var num: Int = 4
+        // Intermediate wires
+        val clkCycle: UInt = dontTouch(RegInit(0.U(32.W)))
+        clkCycle := clkCycle + 1.U
 
-    // Intermediate wires
-    val clkCycle: UInt = dontTouch(RegInit(0.U(32.W)))
-    clkCycle := clkCycle + 1.U
+        // Wiring the modules
+        Seq(
+                // Instruction Memory
+                instMem.io.addr,
 
-    Seq(
-            (instMem.io.addr, Core.io.instAddr),
+                // Data Memory
+                dataMem.io.addr, dataMem.io.dataIn, dataMem.io.storeEn, dataMem.io.loadEn,
 
-            (dataMem.io.addr,    Core.io.dataAddr),
-            (dataMem.io.storeEn, Core.io.storeEn),
-            (dataMem.io.loadEn,  Core.io.loadEn),
-            (dataMem.io.dataIn,  Core.io.rs2DataOut),
+                // Core
+                core.io.inst, core.io.dataIn,
+        ) zip Seq(
+                // Instruction Memory
+                core.io.instAddr,
 
-            (Core.io.memInstIn, instMem.io.inst),
-            (Core.io.memDataIn, dataMem.io.dataOut)
-    ) map (x => x._1 := x._2)
+                // Data Memory
+                core.io.dataAddr, core.io.dataOut, core.io.storeEn, core.io.loadEn,
 
-    // Wiring to Tracer
-    Seq(
-        Tracer.io.RegFD_inst,    Tracer.io.RegDA_rs1_addr,    Tracer.io.RegDA_rs2_addr, Tracer.io.RegDA_rs1_data, Tracer.io.RegAM_rs2_data,
-        Tracer.io.RegMW_rd_addr, Tracer.io.WriteBack_rd_data, Tracer.io.RegDA_PC,       Tracer.io.Fetch_nPC,      Tracer.io.RegAM_load_en,
-        Tracer.io.RegAM_str_en,  Tracer.io.RegAM_alu,         Tracer.io.RegMW_wr_en
-    ) zip Seq(
-        Core.io.RegFD_inst,    Core.io.RegDA_rs1_addr,    Core.io.RegDA_rs2_addr, Core.io.RegDA_rs1_data, Core.io.RegAM_rs2_data,
-        Core.io.RegMW_rd_addr, Core.io.WriteBack_rd_data, Core.io.RegDA_PC,       Core.io.Fetch_nPC,      Core.io.RegAM_load_en,
-        Core.io.RegAM_str_en,  Core.io.RegAM_alu,         Core.io.RegMW_wr_en
-    ) foreach {
-        x => x._1 := x._2
-    }
+                // Core
+                instMem.io.out, dataMem.io.out
+        ) foreach {
+                x => x._1 := x._2
+        }
 
-    // Writing Trace to file  (TODO: Need to implement file creation directly from CHISEL3)
-    // val traceFile: File = new File("trace/trace.log")
-    // val traceWriter: PrintWriter = new PrintWriter(traceFile)
-    // traceWriter.printf("Clock_Cycle: %d\n", num)
-    // traceWriter.close()
-    
-    // Writing trace to console  (Temporary)
-    printf(
-        "ClkCycle: %d, pc_rdata: %x, pc_wdata: %x, insn: %x, mode: %d, rs1_addr: %d, rs1_rdata: %x, rs2_addr: %d, rs2_rdata: %x, rd_addr: %d, rd_wdata: %x, mem_addr: %x, mem_rdata: %x, mem_wdata: %x\n",
-        clkCycle,                Tracer.io.rvfi_pc_rdata,  Tracer.io.rvfi_pc_wdata,  Tracer.io.rvfi_insn,      Tracer.io.rvfi_mode,
-        Tracer.io.rvfi_rs1_addr, Tracer.io.rvfi_rs1_rdata, Tracer.io.rvfi_rs2_addr,  Tracer.io.rvfi_rs2_rdata, Tracer.io.rvfi_rd_addr,
-        Tracer.io.rvfi_rd_wdata, Tracer.io.rvfi_mem_addr,  Tracer.io.rvfi_mem_rdata, Tracer.io.rvfi_mem_wdata
-    )
+        //if (TRACE) Seq(
+        //        tracer.get.io.RegFD_inst,    tracer.get.io.RegDA_rs1_addr,    tracer.get.io.RegDA_rs2_addr, tracer.get.io.RegDA_rs1_data,    tracer.get.io.RegAM_rs2_data,
+        //        tracer.get.io.RegMW_rd_addr, tracer.get.io.WriteBack_rd_data, tracer.get.io.RegDA_PC,       tracer.get.io.Fetch_nPC,         tracer.get.io.RegAM_load_en,
+        //        tracer.get.io.RegAM_str_en,  tracer.get.io.RegAM_alu,         tracer.get.io.RegMW_wr_en,    tracer.get.io.RegDA_stallControl
+        //) zip Seq(
+        //        core.io.RegFD_inst,    core.io.RegDA_rs1_addr,    core.io.RegDA_rs2_addr, core.io.RegDA_rs1_data,    core.io.RegAM_rs2_data,
+        //        core.io.RegMW_rd_addr, core.io.WriteBack_rd_data, core.io.RegDA_PC,       core.io.Fetch_nPC,         core.io.RegAM_load_en,
+        //        core.io.RegAM_str_en,  core.io.RegAM_alu,         core.io.RegMW_wr_en,    core.io.RegDA_stallControl
+        //) foreach {
+        //        x => x._1.get := x._2
+        //} else None
+
+        //// Writing Trace to file  (TODO: Need to implement file creation directly from CHISEL3)
+        //// var num: Int = 4
+        //// val traceFile: File = new File("trace/trace.log")
+        //// val traceWriter: PrintWriter = new PrintWriter(traceFile)
+        //// traceWriter.printf("Clock_Cycle: %d\n", num)
+        //// traceWriter.close()
+        //
+        //// Printing RVFI values to console
+        //val valid: Bool = (!tracer.get.io.stallControl.get) && (tracer.get.io.rvfi_insn.get =/= 0.U)
+        //when (valid) {
+        //        printf(
+        //                "ClkCycle: %d, pc_rdata: %x, pc_wdata: %x, insn: %x, mode: %d, rs1_addr: %d, rs1_rdata: %x, rs2_addr: %d, rs2_rdata: %x, rd_addr: %d, rd_wdata: %x, mem_addr: %x, mem_rdata: %x, mem_wdata: %x\n",
+        //                clkCycle,                        tracer.get.io.rvfi_pc_rdata.get,  tracer.get.io.rvfi_pc_wdata.get,  tracer.get.io.rvfi_insn.get,      tracer.get.io.rvfi_mode.get,
+        //                tracer.get.io.rvfi_rs1_addr.get, tracer.get.io.rvfi_rs1_rdata.get, tracer.get.io.rvfi_rs2_addr.get,  tracer.get.io.rvfi_rs2_rdata.get, tracer.get.io.rvfi_rd_addr.get,
+        //                tracer.get.io.rvfi_rd_wdata.get, tracer.get.io.rvfi_mem_addr.get,  tracer.get.io.rvfi_mem_rdata.get, tracer.get.io.rvfi_mem_wdata.get
+        //        )
+        //}
 }
-
