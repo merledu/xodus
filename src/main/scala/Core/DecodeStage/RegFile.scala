@@ -1,46 +1,45 @@
 package DecodeStage
 
 import chisel3._
+import chisel3.util._
 
 class RegFileIO(PARAMS:Map[String, Int]) extends Bundle {
     // Input ports
-    val rAddr : UInt = Input(UInt(PARAMS("REGADDRLEN").W))
-    val rdData: SInt = Input(SInt(PARAMS("XLEN").W))
-    val wrEn  : Bool = Input(Bool())
+    val rAddr : Vec[UInt]   = Input(Vec(3, UInt(PARAMS("REGADDRLEN").W)))
+    val rdData: Valid[SInt] = Flipped(Valid(SInt(PARAMS("XLEN").W)))
 
     // Output ports
-    val rsData: SInt = Output(SInt(PARAMS("XLEN").W))
+    val rsData: Vec[SInt] = Output(Vec(2, SInt(PARAMS("XLEN").W)))
 }
 
-class RegFile(PARAMS:Map[String, Int], DEBUG:Boolean=False) extends Module {
+class RegFile(PARAMS:Map[String, Int], DEBUG:Boolean) extends Module {
     // Initializing IO ports
     val io: RegFileIO = IO(new RegFileIO(PARAMS))
 
     // Register File
-    val regFile: Vec[SInt] = Reg(Vec(32, SInt(32.W)))
+    val regFile: Vec[SInt] = RegInit(Vec(32, 0.S(PARAMS("XLEN").W)))
     
     // Data is written when wrEn is high
-    when (io.wrEn && (io.rAddr(0) =/= 0.U)) {
-        regFile(io.rAddr(0)) := io.rdData
+    when (io.rdData.valid && (io.rAddr(0) =/= 0.U)) {
+        regFile(io.rAddr(0)) := io.rdData.bits
     }
 
     // Connections
-    Seq(
-        (io.rsData(0), rAddr(1), regFile(io.rAddr(1))),
-        (io.rsData(1), rAddr(2), regFile(io.rAddr(2)))
-    ).map(x => x._1 := Mux(x._2 === 0.U, 0.S, x._3))
+    for (i <- 0 until io.rsData.length) {
+        io.rsData(i) := Mux(io.rAddr(i + 1) === 0.U, 0.S, regFile(io.rAddr(i + 1)))
+    }
+
 
 
     // Debug Section
     if (DEBUG) {
-        val rdAddr : UInt = dontTouch(WireInit(io.rAddr(0)))
-        val rdData : SInt = dontTouch(WireInit(io.rdData))
-        val rs1Addr: UInt = dontTouch(WireInit(io.rAddr(1)))
-        val rs2Addr: UInt = dontTouch(WireInit(io.rAddr(2)))
-        val wrEn   : Bool = dontTouch(WireInit(io.wrEn))
+        val debug_rdAddr : UInt = dontTouch(WireInit(io.rAddr(0)))
+        val debug_rdData : SInt = dontTouch(WireInit(io.rdData.bits))
+        val debug_rs1Addr: UInt = dontTouch(WireInit(io.rAddr(1)))
+        val debug_rs2Addr: UInt = dontTouch(WireInit(io.rAddr(2)))
+        val debug_wrEn   : Bool = dontTouch(WireInit(io.rdData.valid))
 
-        val rs1Data: SInt = dontTouch(WireInit(regFile(rs1_addr)))
-        val rs2Data: SInt = dontTouch(WireInit(regFile(rs2_addr)))
+        val debug_rs1Data: SInt = dontTouch(WireInit(regFile(debug_rs1Addr)))
+        val debug_rs2Data: SInt = dontTouch(WireInit(regFile(debug_rs2Addr)))
     } else None
 }
-

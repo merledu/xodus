@@ -29,11 +29,11 @@ object Consts {
 
     val FUNC3: Map[String, UInt] = Map()
 
-    val OP: Map[String, Map[String, UInt]] = Map(
-        "R" -> Map(
-            "math" -> Map(
-                "add" -> Cat()
-              )
-        )
-    )
+    //val OP: Map[String, Map[String, UInt]] = Map(
+    //    "R" -> Map(
+    //        "math" -> Map(
+    //            "add" -> Cat()
+    //          )
+    //    )
+    //)
 }

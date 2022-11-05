@@ -15,61 +15,87 @@ class DecoderIO(PARAMS:Map[String, Int]) extends Bundle {
     val imm   : SInt      = Output(SInt(PARAMS("XLEN").W))
 }
 
-class Decoder(PARAMS:Map[String, Int], OPCODES:Map[String, Map[String, UInt]], DEBUG:Boolean=False) extends Module {
+class Decoder(PARAMS:Map[String, Int], OPCODES:Map[String, Map[String, UInt]], DEBUG:Boolean) extends Module {
     // Initializing IO ports
     val io: DecoderIO = IO(new DecoderIO(PARAMS))
 
+    // Wires
+    val uintWires: Map[String, UInt] = Map(
+        "opcode"  -> io.inst(6, 0),
+        "rdAddr"  -> io.inst(11, 7),
+        "func3"   -> io.inst(14, 12),
+        "rs1Addr" -> io.inst(19, 15),
+        "rs2Addr" -> io.inst(24, 20),
+        "func7"   -> io.inst(31, 25),
+    )
+    val enWires  : Map[String, Bool] = Map(
+        "rdAddr"  -> (uintWires("opcode") === OPCODES("R")("math") || uintWires("opcode") === OPCODES("I")("math") || uintWires("opcode") === OPCODES("I")("load") || uintWires("opcode") === OPCODES("I")("fence") || uintWires("opcode") === OPCODES("I")("jalr") || uintWires("opcode") === OPCODES("I")("csr") || uintWires("opcode") === OPCODES("U")("auipc") || uintWires("opcode") === OPCODES("U")("lui") || uintWires("opcode") === OPCODES("J")("J")),
+        "func3"   -> (uintWires("opcode") === OPCODES("R")("math") || uintWires("opcode") === OPCODES("I")("math") || uintWires("opcode") === OPCODES("I")("load") || uintWires("opcode") === OPCODES("I")("fence") || uintWires("opcode") === OPCODES("I")("jalr") || uintWires("opcode") === OPCODES("I")("csr") || uintWires("opcode") === OPCODES("S")("S")     || uintWires("opcode") === OPCODES("B")("B")),
+        "rs1Addr" -> (uintWires("opcode") === OPCODES("R")("math") || uintWires("opcode") === OPCODES("I")("math") || uintWires("opcode") === OPCODES("I")("load") || uintWires("opcode") === OPCODES("I")("fence") || uintWires("opcode") === OPCODES("I")("jalr") || uintWires("opcode") === OPCODES("I")("csr") || uintWires("opcode") === OPCODES("S")("S")     || uintWires("opcode") === OPCODES("B")("B")),
+        "rs2Addr" -> (uintWires("opcode") === OPCODES("R")("math") || uintWires("opcode") === OPCODES("S")("S")    || uintWires("opcode") === OPCODES("B")("B")),
+        "func7"   -> (uintWires("opcode") === OPCODES("R")("math")),
+        "immI"    -> (uintWires("opcode") === OPCODES("I")("math")  || uintWires("opcode") === OPCODES("I")("load") || uintWires("opcode") === OPCODES("I")("fence") || uintWires("opcode") === OPCODES("I")("jalr") || uintWires("opcode") === OPCODES("I")("csr")),
+        "immS"    -> (uintWires("opcode") === OPCODES("S")("S")),
+        "immB"    -> (uintWires("opcode") === OPCODES("B")("B")),
+        "immU"    -> (uintWires("opcode") === OPCODES("U")("auipc") || uintWires("opcode") === OPCODES("U")("lui")),
+        "immJ"    -> (uintWires("opcode") === OPCODES("J")("J"))
+    )
+    val immGen   : Map[String, SInt] = Map(
+        "immI" -> io.inst(31, 20).asSInt,
+        "immS" -> Cat(io.inst(31, 25), io.inst(11, 7)).asSInt,
+        "immB" -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), "b0".U).asSInt,
+        "immU" -> io.inst(31, 12).asSInt,
+        "immJ" -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt
+    )
+    val imm      : SInt = MuxCase(0.S, Seq(
+        enWires("immI") -> immGen("immI"),
+        enWires("immS") -> immGen("immS"),
+        enWires("immB") -> immGen("immB"),
+        enWires("immU") -> immGen("immU"),
+        enWires("immJ") -> immGen("immJ")
+    ))
+
     // Connections
     Seq(
-        (io.opcode, io.inst(6, 0)),
-        (io.imm,    MuxCase(0.S, Seq(
-            opcode === OPCODES("I")("math")  || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") -> io.inst(31, 20).asSInt,
-            opcode === OPCODES("S")("S") -> Cat(io.inst(31, 25), io.inst(11, 7)).asSInt,
-            opcode === OPCODES("B")("B") -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), "b0".U).asSInt,
-            opcode === OPCODES("U")("auipc") || opcode === OPCODES("U")("lui") -> io.inst(31, 12).asSInt,
-            opcode === OPCODES("J")("J") -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt
-        )))
+        (io.opcode, uintWires("opcode")),
+        (io.imm,    imm)
     ).map(x => x._1 := x._2)
 
     Seq(
-        (io.rAddr(0), opcode === OPCODES("R")("math") || opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") || opcode === OPCODES("U")("auipc") || opcode === OPCODES("U")("lui") || opcode === OPCODES("J")("J"), io.inst(11, 7)),
-        (io.func3,    opcode === OPCODES("R")("math") || opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") || opcode === OPCODES("S")("S")     || opcode === OPCODES("B")("B"), io.inst(14, 12)),
-        (io.rAddr(1), opcode === OPCODES("R")("math") || opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") || opcode === OPCODES("S")("S")     || opcode === OPCODES("B")("B"), io.inst(19, 15)),
-        (io.rAddr(2), opcode === OPCODES("R")("math") || opcode === OPCODES("S")("S")    || opcode === OPCODES("B")("B"), io.inst(24, 20)),
-        (io.func7,    opcode === OPCODES("R")("math"), io.inst(31, 25), 0.U)
-    ).map(x => x._1 := Mux(x._2, x._3, 0.U)
+        (io.rAddr(0), enWires("rdAddr"),  uintWires("rdAddr")),
+        (io.func3,    enWires("func3"),   uintWires("func3")),
+        (io.rAddr(1), enWires("rs1Addr"), uintWires("rs1Addr")),
+        (io.rAddr(2), enWires("rs2Addr"), uintWires("rs2Addr")),
+        (io.func7,    enWires("func7"),   uintWires("func7"))
+    ).map(x => x._1 := Mux(x._2, x._3, 0.U))
+
 
 
     // Debug Section
     if (DEBUG) {
-        val opcode : UInt = dontTouch(WireInit(io.inst(6, 0)))
-        val rdAddr : UInt = dontTouch(WireInit(Mux(
-            opcode === OPCODES("R")("math") || opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") || opcode === OPCODES("U")("auipc") || opcode === OPCODES("U")("lui") || opcode === OPCODES("J")("J"),
-            io.inst(11, 7),
-            0.U
-        )))
-        val func3  : UInt = dontTouch(WireInit(Mux(
-            opcode === OPCODES("R")("math") || opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") || opcode === OPCODES("S")("S") || opcode === OPCODES("B")("B"),
-            io.inst(14, 12),
-            0.U
-        )))
-        val rs1Addr: UInt = dontTouch(WireInit(Mux(
-            opcode === OPCODES("R")("math") || opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr") || opcode === OPCODES("S")("S") || opcode === OPCODES("B")("B"),
-            io.inst(19, 15),
-            0.U
-        )))
-        val rs2Addr: UInt = dontTouch(WireInit(Mux(
-            opcode === OPCODES("R")("math") || opcode === OPCODES("S")("S") || opcode === OPCODES("B")("B"),
-            io.inst(24, 20),
-            0.U
-        )))
-        val func7  : UInt = dontTouch(WireInit(Mux(opcode === OPCODES("R")("math"), io.inst(31, 25), 0.U)))
+        val debug_uintWires_opcode : UInt = dontTouch(WireInit(uintWires("opcode")))
+        val debug_uintWires_rdAddr : UInt = dontTouch(WireInit(uintWires("rdAddr")))
+        val debug_uintWires_func3  : UInt = dontTouch(WireInit(uintWires("func3")))
+        val debug_uintWires_rs1Addr: UInt = dontTouch(WireInit(uintWires("rs1Addr")))
+        val debug_uintWires_rs2Addr: UInt = dontTouch(WireInit(uintWires("rs2Addr")))
+        val debug_uintWires_func7  : UInt = dontTouch(WireInit(uintWires("func7")))
 
-        val immI: SInt = dontTouch(WireInit(Mux(opcode === OPCODES("I")("math") || opcode === OPCODES("I")("load") || opcode === OPCODES("I")("fence") || opcode === OPCODES("I")("jalr") || opcode === OPCODES("I")("csr"), io.inst(31, 20).asSInt, 0.S)))
-        val immS: SInt = dontTouch(WireInit(Mux(opcode === OPCODES("S")("S"), Cat(io.inst(31, 25), io.inst(11, 7)).asSInt, 0.S)))
-        val immB: SInt = dontTouch(WireInit(Mux(opcode === OPCODES("B")("B"), Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), "b0".U).asSInt, 0.S)))
-        val immU: SInt = dontTouch(WireInit(Mux(opcode === OPCODES("U")("auipc") || opcode === OPCODES("U")("lui"), io.inst(31, 12).asSInt, 0.S)))
-        val immJ: SInt = dontTouch(WireInit(Mux(opcode === OPCODES("J")("J"), Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt, 0.S)))
-        val imm : SInt = dontTouch(WireInit(immI | immS | immB | immU | immJ))
+        val debug_enWires_rdAddr : Bool = dontTouch(WireInit(enWires("rdAddr")))
+        val debug_enWires_func3  : Bool = dontTouch(WireInit(enWires("func3")))
+        val debug_enWires_rs1Addr: Bool = dontTouch(WireInit(enWires("rs1Addr")))
+        val debug_enWires_rs2Addr: Bool = dontTouch(WireInit(enWires("rs2Addr")))
+        val debug_enWires_func7  : Bool = dontTouch(WireInit(enWires("func7")))
+        val debug_enWires_immI   : Bool = dontTouch(WireInit(enWires("immI")))
+        val debug_enWires_immS   : Bool = dontTouch(WireInit(enWires("immS")))
+        val debug_enWires_immB   : Bool = dontTouch(WireInit(enWires("immB")))
+        val debug_enWires_immU   : Bool = dontTouch(WireInit(enWires("immU")))
+        val debug_enWires_immJ   : Bool = dontTouch(WireInit(enWires("immJ")))
+
+        val debug_immGen_immI: SInt = dontTouch(WireInit(immGen("immI")))
+        val debug_immGen_immS: SInt = dontTouch(WireInit(immGen("immS")))
+        val debug_immGen_immB: SInt = dontTouch(WireInit(immGen("immB")))
+        val debug_immGen_immU: SInt = dontTouch(WireInit(immGen("immU")))
+        val debug_immGen_immJ: SInt = dontTouch(WireInit(immGen("immJ")))
+        val debug_imm        : SInt = dontTouch(WireInit(imm))
     } else None
 }
