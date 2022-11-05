@@ -22,7 +22,7 @@ class TracerTopTest extends FreeSpec/*AnyFreeSpec*/ with ChiselScalatestTester {
                 }
         }
 
-        val progFile = Some("./asm/assembly.hex")
+        val progFile = Some("./burq/asm/assembly.hex")
         val dataFile = None
 
         "Tracer" in {
