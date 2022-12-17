@@ -2,7 +2,7 @@ package PipelineRegs
 
 import chisel3._
 
-class RegFDIO(PARAMS:Map[String, Int]) extends Bundle {
+class RegFD_IO(PARAMS:Map[String, Int]) extends Bundle {
     // Input ports
     val in: Vec[UInt] = Input(Vec(3, UInt(PARAMS("XLEN").W)))
     
@@ -12,7 +12,10 @@ class RegFDIO(PARAMS:Map[String, Int]) extends Bundle {
 
 class RegFD(PARAMS:Map[String, Int]) extends Module {
     // Initializing IO ports
-    val io: RegFDIO = IO(new RegFDIO(PARAMS))
+    val io: RegFD_IO = IO(new RegFD_IO(PARAMS))
+    // in(0) -> inst
+    // in(1) -> pc
+    // in(2) -> npc
 
     // Registers
     val regs: Vec[UInt] = RegInit(Vec(3, 0.U(PARAMS("XLEN").W)))

@@ -3,91 +3,95 @@ package ExecuteStage
 import chisel3._
 import chisel3.util._
 
-class ALU_IO extends Bundle {
+
+class ALUIO(
+  params :Map[String, Int],
+  enNum  :Int
+) extends Bundle {
     // Input pins
-    val PC                     : UInt = Input(UInt(32.W))
-    val rs1_data               : SInt = Input(SInt(32.W))
-    val rs2_data               : SInt = Input(SInt(32.W))
-    val imm                    : SInt = Input(SInt(32.W))
-    val imm_en                 : Bool = Input(Bool())
-    val addition_en            : Bool = Input(Bool())
-    val shiftLeftLogical_en    : Bool = Input(Bool())
-    val lessThan_en            : Bool = Input(Bool())
-    val lessThanU_en           : Bool = Input(Bool())
-    val XOR_en                 : Bool = Input(Bool())
-    val shiftRightLogical_en   : Bool = Input(Bool())
-    val shiftRightArithmetic_en: Bool = Input(Bool())
-    val OR_en                  : Bool = Input(Bool())
-    val AND_en                 : Bool = Input(Bool())
-    val subtraction_en         : Bool = Input(Bool())
-    val jalr_en                : Bool = Input(Bool())
-    val jal_en                 : Bool = Input(Bool())
-    val auipc_en               : Bool = Input(Bool())
-    val lui_en                 : Bool = Input(Bool())
+    val operands: Vec[SInt] = Input(Vec(3, SInt(params("XLEN").W)))
+    val pc      : UInt      = Input(UInt(params("XLEN").W))
+    val en      : Vec[Bool] = Input(Vec(enNum, Bool()))
 
     // Output pins
     val out: SInt = Output(SInt(32.W))
 }
-class ALU extends Module
-{
-    // Initializing IO pins
-    val io                     : ALU_IO = IO(new ALU_IO)
-    val PC                     : UInt   = dontTouch(WireInit(io.PC))
-    val rs1_data               : SInt   = dontTouch(WireInit(io.rs1_data))
-    val rs2_data               : SInt   = dontTouch(WireInit(io.rs2_data))
-    val imm                    : SInt   = dontTouch(WireInit(io.imm))
-    val imm_en                 : Bool   = dontTouch(WireInit(io.imm_en))
-    val addition_en            : Bool   = dontTouch(WireInit(io.addition_en))
-    val shiftLeftLogical_en    : Bool   = dontTouch(WireInit(io.shiftLeftLogical_en))
-    val lessThan_en            : Bool   = dontTouch(WireInit(io.lessThan_en))
-    val lessThanU_en           : Bool   = dontTouch(WireInit(io.lessThanU_en))
-    val XOR_en                 : Bool   = dontTouch(WireInit(io.XOR_en))
-    val shiftRightLogical_en   : Bool   = dontTouch(WireInit(io.shiftLeftLogical_en))
-    val shiftRightArithmetic_en: Bool   = dontTouch(WireInit(io.shiftRightArithmetic_en))
-    val OR_en                  : Bool   = dontTouch(WireInit(io.OR_en))
-    val AND_en                 : Bool   = dontTouch(WireInit(io.AND_en))
-    val subtraction_en         : Bool   = dontTouch(WireInit(io.subtraction_en))
-    val jalr_en                : Bool   = dontTouch(WireInit(io.jalr_en))
-    val jal_en                 : Bool   = dontTouch(WireInit(io.jal_en))
-    val auipc_en               : Bool   = dontTouch(WireInit(io.auipc_en))
-    val lui_en                 : Bool   = dontTouch(WireInit(io.lui_en))
+
+
+class ALU(
+  params :Map[String, Int],
+  opSeq  :Seq[String],
+  debug  :Boolean
+) extends Module {
+  val io: ALU_IO = IO(new ALU_IO(params, opSeq.length))
+
+  // Wires
+  val sintWires: Map[String, SInt] = Map(
+    "imm"     -> io.operands(0),
+    "rs1Data" -> io.operands(1),
+    "rs2Data" -> io.operands(2)
+  )
+
+  val enWires: Map[String, Bool] = (for (i <- 0 until opSeq.length) yield (opSeq(i) -> io.en(i))).toMap
+
+  val operands: Map[String, SInt] = Map(
+    "immU" -> (sintWires("imm") << 12.U),
+    "1"    -> sintWires("rs1Data"),
+    "2"    -> Mux(enWires(opSeq(0)), sintWires("imm"), sintWires("rs2Data")),
+  )
+
+  val op: Map[String, SInt] = Map(
+    opSeq(1)  -> (operands("1") + operands("2")),
+    opSeq(2)  -> (operands("1") - operands("2")),
+    opSeq(3)  -> (operands("1") << operands("2")(4, 0)),
+    opSeq(4)  -> (operands("1") < operands("2")).asSInt,
+    opSeq(5)  -> (operands("1").asUInt < operands("2").asUInt).asSInt,
+    opSeq(6)  -> (operands("1") ^ operands("2")),
+    opSeq(7)  -> (operands("1").asUInt >> operands("2")(4, 0)).asSInt,
+    opSeq(8)  -> (operands("1") >> operands("2")(4, 0)).asSInt,
+    opSeq(9)  -> (operands("1") | operands("2")),
+    opSeq(10) -> (operands("1") & operands("2")),
+    opSeq(11) -> (io.pc + operands("immU").asUInt).asSInt,
+    opSeq(12) -> operands("immU"),
+    opSeq(13) -> (io.pc.asSInt + 4.S)
+  )
+
+  // Connections
+  val opConn: Seq[(Bool, SInt)] = for (i <- 1 until opSeq.length) yield enWires(opSeq(i)) -> op(opSeq(i))
+  io.out := MuxCase(0.S, opConn)
 
     // Intermediate wires
-    val operand1: SInt = dontTouch(WireInit(rs1_data))
-    val operand2: SInt = dontTouch(WireInit(Mux(imm_en, imm, rs2_data)))
+    //val addition            : SInt = dontTouch(WireInit(operand1 + operand2))
+    //val lessThan            : SInt = dontTouch(WireInit((operand1 < operand2).asSInt))
+    //val lessThanU           : SInt = dontTouch(WireInit((operand1.asUInt < operand2.asUInt).asSInt))
+    //val XOR                 : SInt = dontTouch(WireInit(operand1 ^ operand2))
+    //val OR                  : SInt = dontTouch(WireInit(operand1 | operand2))
+    //val AND                 : SInt = dontTouch(WireInit(operand1 & operand2))
+    //val shiftLeftLogical    : SInt = dontTouch(WireInit((operand1 << operand2(4, 0)).asSInt))
+    //val shiftRightLogical   : SInt = dontTouch(WireInit((operand1.asUInt >> operand2(4, 0)).asSInt))
+    //val shiftRightArithmetic: SInt = dontTouch(WireInit((operand1 >> operand2(4, 0)).asSInt))
+    //val subtraction         : SInt = dontTouch(WireInit(operand1 - operand2))
+    //val pc4                 : SInt = dontTouch(WireInit((pc + 4.U).asSInt))
+    //val pc4_en              : Bool = dontTouch(WireInit(jalr_en || jal_en))
+    //val u_imm               : SInt = dontTouch(WireInit(imm << 12.U))
+    //val auipc               : SInt = dontTouch(WireInit((pc + u_imm.asUInt).asSInt))
+    //val lui                 : SInt = dontTouch(WireInit(u_imm))
 
-    // Intermediate wires
-    val addition            : SInt = dontTouch(WireInit(operand1 + operand2))
-    val lessThan            : SInt = dontTouch(WireInit((operand1 < operand2).asSInt))
-    val lessThanU           : SInt = dontTouch(WireInit((operand1.asUInt < operand2.asUInt).asSInt))
-    val XOR                 : SInt = dontTouch(WireInit(operand1 ^ operand2))
-    val OR                  : SInt = dontTouch(WireInit(operand1 | operand2))
-    val AND                 : SInt = dontTouch(WireInit(operand1 & operand2))
-    val shiftLeftLogical    : SInt = dontTouch(WireInit((operand1 << operand2(4, 0)).asSInt))
-    val shiftRightLogical   : SInt = dontTouch(WireInit((operand1.asUInt >> operand2(4, 0)).asSInt))
-    val shiftRightArithmetic: SInt = dontTouch(WireInit((operand1 >> operand2(4, 0)).asSInt))
-    val subtraction         : SInt = dontTouch(WireInit(operand1 - operand2))
-    val PC4                 : SInt = dontTouch(WireInit((PC + 4.U).asSInt))
-    val PC4_en              : Bool = dontTouch(WireInit(jalr_en || jal_en))
-    val u_imm               : SInt = dontTouch(WireInit(imm << 12.U))
-    val auipc               : SInt = dontTouch(WireInit((PC + u_imm.asUInt).asSInt))
-    val lui                 : SInt = dontTouch(WireInit(u_imm))
-
-    // Wiring to output pins
-    io.out := MuxCase(0.S, Seq(
-        addition_en             -> addition,
-        shiftLeftLogical_en     -> shiftLeftLogical,
-        lessThan_en             -> lessThan,
-        lessThanU_en            -> lessThanU,
-        XOR_en                  -> XOR,
-        shiftRightLogical_en    -> shiftRightLogical,
-        shiftRightArithmetic_en -> shiftRightArithmetic,
-        OR_en                   -> OR,
-        AND_en                  -> AND,
-        subtraction_en          -> subtraction,
-        PC4_en                  -> PC4,
-        auipc_en                -> auipc,
-        lui_en                  -> lui
-    ))
+    //// Wiring to output pins
+    //io.out := MuxCase(0.S, Seq(
+    //    addition_en             -> addition,
+    //    shiftLeftLogical_en     -> shiftLeftLogical,
+    //    lessThan_en             -> lessThan,
+    //    lessThanU_en            -> lessThanU,
+    //    XOR_en                  -> XOR,
+    //    shiftRightLogical_en    -> shiftRightLogical,
+    //    shiftRightArithmetic_en -> shiftRightArithmetic,
+    //    OR_en                   -> OR,
+    //    AND_en                  -> AND,
+    //    subtraction_en          -> subtraction,
+    //    pc4_en                  -> pc4,
+    //    auipc_en                -> auipc,
+    //    lui_en                  -> lui
+    //))
 }
 
