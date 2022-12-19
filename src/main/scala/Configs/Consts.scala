@@ -1,4 +1,4 @@
-package ParamsAndConsts
+package Configs
 
 
 object Consts {

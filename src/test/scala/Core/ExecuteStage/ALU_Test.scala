@@ -5,12 +5,12 @@ import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import scala.util.Random
 
-import ParamsAndConsts._
+import Configs._
 
 
 class ALUTest extends AnyFreeSpec with ChiselScalatestTester {
   "ALU" in {
-    test(new ALU(Params.params, ALUConsts.opSeq, false)) {
+    test(new ALU(Params.params, ALUConf.opSeq, false)) {
       alu =>
         val debug: Boolean = false
 
@@ -24,7 +24,7 @@ class ALUTest extends AnyFreeSpec with ChiselScalatestTester {
             pc = Random.nextLong() & 0xFFFFFFFFL
           }
 
-          val en: Seq[Int] = for (i <- 0 until ALUConsts.opSeq.length) yield Random.nextInt(2)
+          val en: Seq[Int] = for (i <- 0 until ALUConf.opSeq.length) yield Random.nextInt(2)
 
           alu.io.operands(0).poke(imm.S)
           alu.io.operands(1).poke(rs1Data.S)
@@ -32,7 +32,7 @@ class ALUTest extends AnyFreeSpec with ChiselScalatestTester {
 
           alu.io.pc.poke(pc.U)
 
-          for (i <- 0 until ALUConsts.opSeq.length) {
+          for (i <- 0 until ALUConf.opSeq.length) {
             alu.io.en(i).poke(en(i))
           }
 

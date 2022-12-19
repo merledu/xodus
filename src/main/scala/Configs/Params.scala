@@ -1,4 +1,4 @@
-package ParamsAndConsts
+package Configs
 
 object Params {
     val params: Map[String, Int] = Map(

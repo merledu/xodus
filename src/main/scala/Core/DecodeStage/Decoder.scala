@@ -34,58 +34,58 @@ class Decoder(
     )
 
   val enWires: Map[String, Bool] = Map(
-    "rdAddr" -> (
-      uintWires("opcode") === opcodes("R")("math").U  ||
-      uintWires("opcode") === opcodes("I")("math").U  ||
-      uintWires("opcode") === opcodes("I")("load").U  ||
-      uintWires("opcode") === opcodes("I")("fence").U ||
-      uintWires("opcode") === opcodes("I")("jalr").U  ||
-      uintWires("opcode") === opcodes("I")("csr").U   ||
-      uintWires("opcode") === opcodes("U")("auipc").U ||
-      uintWires("opcode") === opcodes("U")("lui").U   ||
-      uintWires("opcode") === opcodes("J")("jal").U
+    "rdAddr" -> Map(
+      "R_math" -> uintWires("opcode") === opcodes("R")("math").U,
+      "I_math" -> uintWires("opcode") === opcodes("I")("math").U,
+      "load"   -> uintWires("opcode") === opcodes("I")("load").U,
+      "fence"  -> uintWires("opcode") === opcodes("I")("fence").U,
+      "jalr"   -> uintWires("opcode") === opcodes("I")("jalr").U,
+      "csr"    -> uintWires("opcode") === opcodes("I")("csr").U,
+      "auipc"  -> uintWires("opcode") === opcodes("U")("auipc").U,
+      "lui"    -> uintWires("opcode") === opcodes("U")("lui").U,
+      "jal"    -> uintWires("opcode") === opcodes("J")("jal").U
       ),
-    "func3" -> (
-      uintWires("opcode") === opcodes("R")("math").U  ||
-      uintWires("opcode") === opcodes("I")("math").U  ||
-      uintWires("opcode") === opcodes("I")("load").U  ||
-      uintWires("opcode") === opcodes("I")("fence").U ||
-      uintWires("opcode") === opcodes("I")("jalr").U  ||
-      uintWires("opcode") === opcodes("I")("csr").U   ||
-      uintWires("opcode") === opcodes("S")("store").U  ||
-      uintWires("opcode") === opcodes("B")("branch").U
+    "func3" -> Map(
+      "R_math" -> uintWires("opcode") === opcodes("R")("math").U,
+      "I_math" -> uintWires("opcode") === opcodes("I")("math").U,
+      "load"   -> uintWires("opcode") === opcodes("I")("load").U,
+      "fence"  -> uintWires("opcode") === opcodes("I")("fence").U,
+      "jalr"   -> uintWires("opcode") === opcodes("I")("jalr").U,
+      "csr"    -> uintWires("opcode") === opcodes("I")("csr").U,
+      "store"  -> uintWires("opcode") === opcodes("S")("store").U,
+      "branch" -> uintWires("opcode") === opcodes("B")("branch").U
       ),
-    "rs1Addr" -> (
-      uintWires("opcode") === opcodes("R")("math").U  ||
-      uintWires("opcode") === opcodes("I")("math").U  ||
-      uintWires("opcode") === opcodes("I")("load").U  ||
-      uintWires("opcode") === opcodes("I")("fence").U ||
-      uintWires("opcode") === opcodes("I")("jalr").U  ||
-      uintWires("opcode") === opcodes("I")("csr").U   ||
-      uintWires("opcode") === opcodes("S")("store").U  ||
-      uintWires("opcode") === opcodes("B")("branch").U
+    "rs1Addr" -> Map(
+      "R_math" -> uintWires("opcode") === opcodes("R")("math").U,
+      "I_math" -> uintWires("opcode") === opcodes("I")("math").U,
+      "load"   -> uintWires("opcode") === opcodes("I")("load").U,
+      "fence"  -> uintWires("opcode") === opcodes("I")("fence").U,
+      "jalr"   -> uintWires("opcode") === opcodes("I")("jalr").U,
+      "csr"    -> uintWires("opcode") === opcodes("I")("csr").U,
+      "store"  -> uintWires("opcode") === opcodes("S")("store").U,
+      "branch" -> uintWires("opcode") === opcodes("B")("branch").U
       ),
-    "rs2Addr" -> (
-      uintWires("opcode") === opcodes("R")("math").U ||
-      uintWires("opcode") === opcodes("S")("store").U ||
-      uintWires("opcode") === opcodes("B")("branch").U
+    "rs2Addr" -> Map(
+      "R_math" -> uintWires("opcode") === opcodes("R")("math").U,
+      "store"  -> uintWires("opcode") === opcodes("S")("store").U,
+      "branch" -> uintWires("opcode") === opcodes("B")("branch").U
       ),
-    "func7" -> (uintWires("opcode") === opcodes("R")("math").U),
-    "immI" -> (
-      uintWires("opcode") === opcodes("I")("math").U  ||
-      uintWires("opcode") === opcodes("I")("load").U  ||
-      uintWires("opcode") === opcodes("I")("fence").U ||
-      uintWires("opcode") === opcodes("I")("jalr").U  ||
-      uintWires("opcode") === opcodes("I")("csr").U
+    "func7" -> Map("R_math" -> uintWires("opcode") === opcodes("R")("math").U),
+    "immI" -> Map(
+      "I_math" -> uintWires("opcode") === opcodes("I")("math").U,
+      "load"   -> uintWires("opcode") === opcodes("I")("load").U,
+      "fence"  -> uintWires("opcode") === opcodes("I")("fence").U,
+      "jalr"   -> uintWires("opcode") === opcodes("I")("jalr").U,
+      "csr"    -> uintWires("opcode") === opcodes("I")("csr").U
       ),
     "immS" -> (uintWires("opcode") === opcodes("S")("store").U),
     "immB" -> (uintWires("opcode") === opcodes("B")("branch").U),
-    "immU" -> (
-      uintWires("opcode") === opcodes("U")("auipc").U ||
-      uintWires("opcode") === opcodes("U")("lui").U
+    "immU" -> Map(
+      "auipc" -> uintWires("opcode") === opcodes("U")("auipc").U,
+      "lui"   -> uintWires("opcode") === opcodes("U")("lui").U
       ),
-    "immJ" -> (uintWires("opcode") === opcodes("J")("jal").U)
-    )
+    "immJ" -> Map("jal" -> uintWires("opcode") === opcodes("J")("jal").U)
+    ).map(x => x(0) -> x(1).values.reduce((x, y) => x || y))
 
   val immGen: Map[String, SInt] = Map(
     "immI" -> io.inst(31, 20).asSInt,

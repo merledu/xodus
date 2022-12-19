@@ -6,7 +6,7 @@ import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import scala.util.Random
 
-import ParamsAndConsts._
+import Configs._
 
 
 class DecoderTest extends AnyFreeSpec with ChiselScalatestTester {

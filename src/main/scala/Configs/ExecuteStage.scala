@@ -6,7 +6,7 @@ object ALUConf {
     "imm",  "add",   "sub", "sll", "slt",
     "sltu", "xor",   "srl", "sra", "or",
     "and",  "auipc", "lui", "jal"
-  )
+    )
 }
 
 

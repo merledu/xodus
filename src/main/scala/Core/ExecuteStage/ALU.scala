@@ -23,7 +23,7 @@ class ALU(
   opSeq  :Seq[String],
   debug  :Boolean
 ) extends Module {
-  val io: ALU_IO = IO(new ALU_IO(params, opSeq.length))
+  val io: ALUIO = IO(new ALUIO(params, opSeq.length))
 
   // Wires
   val sintWires: Map[String, SInt] = Map(
