@@ -1,6 +1,45 @@
 package Configs
 
 
+object RV32I {
+  val opcodes: Map[String, Map[String, Int]] = Map(
+    "R" -> Map("math" -> 0x33),
+    "I" -> Map(
+      "math"  -> 0x13,
+      "load"  -> 0x03,
+      "jalr"  -> 0x67,
+      "fence" -> 0x0F,
+      "csr"   -> 0x73
+      ),
+    "S" -> Map("store" -> 0x23),
+    "B" -> Map("branch" -> 0x63),
+    "U" -> Map(
+      "auipc" -> 0x17,
+      "lui"   -> 0x37
+      ),
+    "J" -> Map("jal" -> 0x6F)
+    )
+
+  val components: Map[String, Seq[Int]] = Map(
+    "func3" -> Seq(
+      0x0, 0x1, 0x2, 0x3, 0x4,
+      0x5, 0x6, 0x7
+      ),
+    "func7" -> Seq(0x00, 0x20),
+    "imm" -> Seq(0x000, 0x001),
+    "imm11_5" -> Seq(0x00, 0x20)
+    )
+}
+
+
+object RV64I {
+  val opcodes: Map[String, Map[String, Int]] = RV32I.opcodes.map(x => )
+  val opcodes: Map[String, Map[String, Int]] = Map(
+    "R" -> Map("mathw" -> 0x3B),
+    "I" -> Map("mathw" -> 0x1B)
+  ).map(x => x._2)
+}
+
 object Consts {
   val opcodes: Map[String, Map[String, Int]] = Map(
     "R" -> Map(

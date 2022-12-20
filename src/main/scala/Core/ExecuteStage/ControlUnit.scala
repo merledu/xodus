@@ -27,7 +27,8 @@ class ControlUnit(
   ctrlSeq :Seq[String],
   debug   :Boolean
 ) extends Module {
-  val io: ControlUnitIO = IO(new ControlUnitIO(params, ctrlSeq.length))
+  val ctrlNum: Int = ctrlSeq.length - 2
+  val io: ControlUnitIO = IO(new ControlUnitIO(params, ctrlNum))
 
   // Wires
   val boolWires: Map[String, Bool] = Map(
@@ -49,7 +50,7 @@ class ControlUnit(
       "load"  -> (io.opcode === opcodes("I")("load").U),
       "store" -> (io.opcode === opcodes("I")("store").U)
       ),
-    ctrlSeq(1) -> (idWires("f7_f3_opcode") === opID("R")("math")("sub").U),
+    ctrlSeq(1) -> Map("sub" -> (idWires("f7_f3_opcode") === opID("R")("math")("sub").U)),
     ctrlSeq(2) -> Map(
       "sll"   -> (idWires("f7_f3_opcode") === opID("R")("math")("sll").U),
       "slli"  -> (idWires("imm_f3_opcode") === opID("I")("math")("slli").U),
@@ -73,6 +74,45 @@ class ControlUnit(
     ctrlSeq(7) -> Map(
       "sra" -> (idWires("f7_f3_opcode") === opID("R")("math")("sra").U),
       "srai" -> (idWires("imm_f3_opcode") === opID("I")("math")("srai").U)
+      ),
+    ctrlSeq(8) -> Map(
+      "or"  -> (idWires("f7_f3_opcode") === opID("R")("math")("or").U),
+      "ori" -> (idWires("f3_opcode") === opID("I")("math")("ori").U)
+      ),
+    ctrlSeq(9) -> Map(
+      "and"  -> (idWires("f7_f3_opcode") === opID("R")("math")("and").U),
+      "andi" -> (idWires("f3_opcode") === opID("I")("math")("andi").U)
+      ),
+    ctrlSeq(10) -> Map(
+      "mathI" -> (io.opcode === opcodes("I")("math").U),
+      "load" -> (io.opcode === opcodes("I")("load").U)
+      "jalr" -> (io.opcode === opcodes("I")("jalr").U)
+      "immS" -> (io.opcode === opcodes("S")("").U)
+      ),
+    ctrlSeq(11) -> Map("auipc" -> (io.opcode === opcodes("U")("auipc").U)),
+    ctrlSeq(12) -> Map("lui" -> (io.opcode === opcodes("U")("lui").U)),
+    ctrlSeq(13) -> Map("load" -> (io.opcode === opcodes("I")("load").U)),
+    ctrlSeq(14) -> Map("lb" -> (idWires("f3_opcode") === opID("I")("load")("lb").U)),
+    ctrlSeq(15) -> Map("lh" -> (idWires("f3_opcode") === opID("I")("load")("lh").U)),
+    ctrlSeq(16) -> Map("lw" -> (idWires("f3_opcode") === opID("I")("load")("lw").U)),
+    ctrlSeq(18) -> Map("lbu" -> (idWires("f3_opcode") === opID("I")("load")("lbu").U)),
+    ctrlSeq(19) -> Map("lhu" -> (idWires("f3_opcode") === opID("I")("load")("lhu").U)),
+    ctrlSeq(20) -> Map("lwu" -> (idWires("f3_opcode") === opID("I")("load")("lwu").U)),
+    ctrlSeq(21) -> Map("store" -> (io.opcode === opcodes("S")("store").U)),
+    ctrlSeq(22) -> Map("sb" -> (idWires("f3_opcode") === opID("S")("store")("sb").U)),
+    ctrlSeq(23) -> Map("sh" -> (idWires("f3_opcode") === opID("S")("store")("sh").U)),
+    ctrlSeq(24) -> Map("sw" -> (idWires("f3_opcode") === opID("S")("store")("sw").U)),
+    ctrlSeq(26) -> Map(
+      "wrRmath" -> (io.opcode === opcodes("R")("math").U),
+      "wrImath" -> (io.opcode === opcodes("I")("math").U),
+      "wrLoad"  -> (io.opcode === opcodes("I")("load").U),
+      "wrJalr"  -> boolWires("jalr"),
+      "wrAuipc" -> (io.opcode === opcodes("U")("auipc").U),
+      "wrLui"   -> (io.opcode === opcodes("U")("lui").U),
+      "wrJal"   -> boolWires("jal")
       )
-    ).map(x => x(0) -> x(1).values.reduce((x, y) => x || y))
+    ).map(x => x._1 -> x._2.values.reduce((x, y) => x || y))
+
+  // Connections
+  //for (i <- 0 until )
 }
