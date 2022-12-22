@@ -10,7 +10,7 @@ class DecoderIO(params : Map[String, Int]) extends Bundle {
   
   // Output pins
   val opcode: UInt      = Output(UInt(params("opcodeLen").W))
-  val rAddr : Vec[UInt] = Output(Vec(3, UInt(params("regAddrLen").W)))
+  val rAddr : Vec[UInt] = Output(Vec(params("numRegAddr"), UInt(params("regAddrLen").W)))
   val func3 : UInt      = Output(UInt(params("f3Len").W))
   val func7 : UInt      = Output(UInt(params("f7Len").W))
   val imm   : SInt      = Output(SInt(params("XLEN").W))
@@ -38,17 +38,17 @@ class Decoder(
     "rdAddr" -> Map(
       "mathR" -> (uintWires("opcode") === opcodes("R")("math").U),
       "mathI" -> (uintWires("opcode") === opcodes("I")("math").U),
-      "load"   -> (uintWires("opcode") === opcodes("I")("load").U),
-      "fence"  -> (uintWires("opcode") === opcodes("I")("fence").U),
-      "jalr"   -> (uintWires("opcode") === opcodes("I")("jalr").U),
-      "csr"    -> (uintWires("opcode") === opcodes("I")("csr").U),
-      "auipc"  -> (uintWires("opcode") === opcodes("U")("auipc").U),
-      "lui"    -> (uintWires("opcode") === opcodes("U")("lui").U),
-      "jal"    -> (uintWires("opcode") === opcodes("J")("jal").U)
+      "load"  -> (uintWires("opcode") === opcodes("I")("load").U),
+      "fence" -> (uintWires("opcode") === opcodes("I")("fence").U),
+      "jalr"  -> (uintWires("opcode") === opcodes("I")("jalr").U),
+      "csr"   -> (uintWires("opcode") === opcodes("I")("csr").U),
+      "auipc" -> (uintWires("opcode") === opcodes("U")("auipc").U),
+      "lui"   -> (uintWires("opcode") === opcodes("U")("lui").U),
+      "jal"   -> (uintWires("opcode") === opcodes("J")("jal").U)
       ),
     "func3" -> Map(
-      "mathR" -> (uintWires("opcode") === opcodes("R")("math").U),
-      "mathI" -> (uintWires("opcode") === opcodes("I")("math").U),
+      "mathR"  -> (uintWires("opcode") === opcodes("R")("math").U),
+      "mathI"  -> (uintWires("opcode") === opcodes("I")("math").U),
       "load"   -> (uintWires("opcode") === opcodes("I")("load").U),
       "fence"  -> (uintWires("opcode") === opcodes("I")("fence").U),
       "jalr"   -> (uintWires("opcode") === opcodes("I")("jalr").U),
@@ -57,8 +57,8 @@ class Decoder(
       "branch" -> (uintWires("opcode") === opcodes("B")("branch").U)
       ),
     "rs1Addr" -> Map(
-      "mathR" -> (uintWires("opcode") === opcodes("R")("math").U),
-      "mathI" -> (uintWires("opcode") === opcodes("I")("math").U),
+      "mathR"  -> (uintWires("opcode") === opcodes("R")("math").U),
+      "mathI"  -> (uintWires("opcode") === opcodes("I")("math").U),
       "load"   -> (uintWires("opcode") === opcodes("I")("load").U),
       "fence"  -> (uintWires("opcode") === opcodes("I")("fence").U),
       "jalr"   -> (uintWires("opcode") === opcodes("I")("jalr").U),
@@ -96,6 +96,7 @@ class Decoder(
     immSeq(4) -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt
     )
 
+  // TODO: Remove commented imm block if code works without it
   //val imm: SInt = MuxCase(0.S, Seq(
   //  enWires("immI") -> immGen("immI"),
   //  enWires("immS") -> immGen("immS"),
