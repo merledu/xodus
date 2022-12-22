@@ -32,61 +32,67 @@ class Decoder(
     "rs1Addr" -> io.inst(19, 15),
     "rs2Addr" -> io.inst(24, 20),
     "func7"   -> io.inst(31, 25),
-    )
+  )
 
   val enWires: Map[String, Bool] = Map(
     "rdAddr" -> Map(
-      "mathR" -> (uintWires("opcode") === opcodes("R")("math").U),
-      "mathI" -> (uintWires("opcode") === opcodes("I")("math").U),
-      "load"  -> (uintWires("opcode") === opcodes("I")("load").U),
-      "fence" -> (uintWires("opcode") === opcodes("I")("fence").U),
-      "jalr"  -> (uintWires("opcode") === opcodes("I")("jalr").U),
-      "csr"   -> (uintWires("opcode") === opcodes("I")("csr").U),
-      "auipc" -> (uintWires("opcode") === opcodes("U")("auipc").U),
-      "lui"   -> (uintWires("opcode") === opcodes("U")("lui").U),
-      "jal"   -> (uintWires("opcode") === opcodes("J")("jal").U)
-      ),
+      "mathR" -> (opcodes("R")("math")),
+      "mathI" -> (opcodes("I")("math")),
+      "load"  -> (opcodes("I")("load")),
+      "fence" -> (opcodes("I")("fence")),
+      "jalr"  -> (opcodes("I")("jalr")),
+      "csr"   -> (opcodes("I")("csr")),
+      "auipc" -> (opcodes("U")("auipc")),
+      "lui"   -> (opcodes("U")("lui")),
+      "jal"   -> (opcodes("J")("jal"))
+    ),
     "func3" -> Map(
-      "mathR"  -> (uintWires("opcode") === opcodes("R")("math").U),
-      "mathI"  -> (uintWires("opcode") === opcodes("I")("math").U),
-      "load"   -> (uintWires("opcode") === opcodes("I")("load").U),
-      "fence"  -> (uintWires("opcode") === opcodes("I")("fence").U),
-      "jalr"   -> (uintWires("opcode") === opcodes("I")("jalr").U),
-      "csr"    -> (uintWires("opcode") === opcodes("I")("csr").U),
-      "store"  -> (uintWires("opcode") === opcodes("S")("store").U),
-      "branch" -> (uintWires("opcode") === opcodes("B")("branch").U)
-      ),
+      "mathR"  -> (opcodes("R")("math")),
+      "mathI"  -> (opcodes("I")("math")),
+      "load"   -> (opcodes("I")("load")),
+      "fence"  -> (opcodes("I")("fence")),
+      "jalr"   -> (opcodes("I")("jalr")),
+      "csr"    -> (opcodes("I")("csr")),
+      "store"  -> (opcodes("S")("store")),
+      "branch" -> (opcodes("B")("branch"))
+    ),
     "rs1Addr" -> Map(
-      "mathR"  -> (uintWires("opcode") === opcodes("R")("math").U),
-      "mathI"  -> (uintWires("opcode") === opcodes("I")("math").U),
-      "load"   -> (uintWires("opcode") === opcodes("I")("load").U),
-      "fence"  -> (uintWires("opcode") === opcodes("I")("fence").U),
-      "jalr"   -> (uintWires("opcode") === opcodes("I")("jalr").U),
-      "csr"    -> (uintWires("opcode") === opcodes("I")("csr").U),
-      "store"  -> (uintWires("opcode") === opcodes("S")("store").U),
-      "branch" -> (uintWires("opcode") === opcodes("B")("branch").U)
-      ),
+      "mathR"  -> (opcodes("R")("math")),
+      "mathI"  -> (opcodes("I")("math")),
+      "load"   -> (opcodes("I")("load")),
+      "fence"  -> (opcodes("I")("fence")),
+      "jalr"   -> (opcodes("I")("jalr")),
+      "csr"    -> (opcodes("I")("csr")),
+      "store"  -> (opcodes("S")("store")),
+      "branch" -> (opcodes("B")("branch"))
+    ),
     "rs2Addr" -> Map(
-      "mathR" -> (uintWires("opcode") === opcodes("R")("math").U),
-      "store"  -> (uintWires("opcode") === opcodes("S")("store").U),
-      "branch" -> (uintWires("opcode") === opcodes("B")("branch").U)
-      ),
-    "func7" -> Map("mathR" -> (uintWires("opcode") === opcodes("R")("math").U)),
+      "mathR"  -> (opcodes("R")("math")),
+      "store"  -> (opcodes("S")("store")),
+      "branch" -> (opcodes("B")("branch"))
+    ),
+    "func7" -> Map("mathR" -> (opcodes("R")("math"))),
     immSeq(0) -> Map(
-      "mathI" -> (uintWires("opcode") === opcodes("I")("math").U),
-      "load"  -> (uintWires("opcode") === opcodes("I")("load").U),
-      "fence" -> (uintWires("opcode") === opcodes("I")("fence").U),
-      "jalr"  -> (uintWires("opcode") === opcodes("I")("jalr").U),
-      "csr"   -> (uintWires("opcode") === opcodes("I")("csr").U)
-      ),
-    immSeq(1) -> Map("store" -> (uintWires("opcode") === opcodes("S")("store").U)),
-    immSeq(2) -> Map("branch" -> (uintWires("opcode") === opcodes("B")("branch").U)),
+      "mathI" -> (opcodes("I")("math")),
+      "load"  -> (opcodes("I")("load")),
+      "fence" -> (opcodes("I")("fence")),
+      "jalr"  -> (opcodes("I")("jalr")),
+      "csr"   -> (opcodes("I")("csr"))
+    ),
+    immSeq(1) -> Map("store" -> (opcodes("S")("store"))),
+    immSeq(2) -> Map("branch" -> (opcodes("B")("branch"))),
     immSeq(3) -> Map(
-      "auipc" -> (uintWires("opcode") === opcodes("U")("auipc").U),
-      "lui"   -> (uintWires("opcode") === opcodes("U")("lui").U)
-      ),
-    immSeq(4) -> Map("jal" -> (uintWires("opcode") === opcodes("J")("jal").U))
-    ).map(x => x._1 -> x._2.values.reduce((x, y) => x || y))
+      "auipc" -> (opcodes("U")("auipc")),
+      "lui"   -> (opcodes("U")("lui"))
+    ),
+    immSeq(4) -> Map("jal" -> (opcodes("J")("jal")))
+  ).map(
+    x => x._1 -> x._2.map(
+      y => y._1 -> (y._2.U === uintWires("opcode"))
+    ).values.reduce(
+      (x, y) => x || y
+    )
+  )
 
   val immGen: Map[String, SInt] = Map(
     immSeq(0) -> io.inst(31, 20).asSInt,
@@ -94,9 +100,9 @@ class Decoder(
     immSeq(2) -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), "b0".U).asSInt,
     immSeq(3) -> io.inst(31, 12).asSInt,
     immSeq(4) -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt
-    )
+  )
 
-  // TODO: Remove commented imm block if code works without it
+  // TODO: Remove commented imm block if code works without it after debugging
   //val imm: SInt = MuxCase(0.S, Seq(
   //  enWires("immI") -> immGen("immI"),
   //  enWires("immS") -> immGen("immS"),
@@ -105,13 +111,17 @@ class Decoder(
   //  enWires("immJ") -> immGen("immJ")
   //  ))
 
-  val imm: SInt = MuxCase(0.S, for (item <- immSeq) yield enWires(item) -> immGen(item))
+  val imm: SInt = MuxCase(
+    0.S,
+    for (immType <- immSeq)
+      yield enWires(immType) -> immGen(immType)
+  )
 
   // Connections
   Seq(
     (io.opcode, uintWires("opcode")),
     (io.imm,    imm)
-    ).map(x => x._1 := x._2)
+  ).map(x => x._1 := x._2)
 
   Seq(
     (io.rAddr(0), enWires("rdAddr"),  uintWires("rdAddr")),
@@ -119,7 +129,7 @@ class Decoder(
     (io.rAddr(1), enWires("rs1Addr"), uintWires("rs1Addr")),
     (io.rAddr(2), enWires("rs2Addr"), uintWires("rs2Addr")),
     (io.func7,    enWires("func7"),   uintWires("func7"))
-    ).map(x => x._1 := Mux(x._2, x._3, 0.U))
+  ).map(x => x._1 := Mux(x._2, x._3, 0.U))
 
 
 
