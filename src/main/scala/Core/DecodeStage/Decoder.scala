@@ -10,7 +10,7 @@ class DecoderIO(params : Map[String, Int]) extends Bundle {
   
   // Output pins
   val opcode: UInt      = Output(UInt(params("opcodeLen").W))
-  val rAddr : Vec[UInt] = Output(Vec(params("numRegAddr"), UInt(params("regAddrLen").W)))
+  val rAddr : Vec[UInt] = Output(Vec(3, UInt(params("regAddrLen").W)))
   val func3 : UInt      = Output(UInt(params("f3Len").W))
   val func7 : UInt      = Output(UInt(params("f7Len").W))
   val imm   : SInt      = Output(SInt(params("XLEN").W))
@@ -124,12 +124,12 @@ class Decoder(
   ).map(x => x._1 := x._2)
 
   Seq(
-    (io.rAddr(0), enWires("rdAddr"),  uintWires("rdAddr")),
-    (io.func3,    enWires("func3"),   uintWires("func3")),
-    (io.rAddr(1), enWires("rs1Addr"), uintWires("rs1Addr")),
-    (io.rAddr(2), enWires("rs2Addr"), uintWires("rs2Addr")),
-    (io.func7,    enWires("func7"),   uintWires("func7"))
-  ).map(x => x._1 := Mux(x._2, x._3, 0.U))
+    (io.rAddr(0), "rdAddr"),
+    (io.func3,    "func3"),
+    (io.rAddr(1), "rs1Addr"),
+    (io.rAddr(2), "rs2Addr"),
+    (io.func7,    "func7")
+  ).map(x => x._1 := Mux(enWires(x._2), uintWires(x._2), 0.U))
 
 
 
