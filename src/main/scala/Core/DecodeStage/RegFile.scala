@@ -28,7 +28,7 @@ class RegFile(
   )
 
   // Register File
-  val regFile: Vec[SInt] = Reg(Vec(32, SInt(params("XLEN").W)))
+  val regFile: Vec[SInt] = Reg(Vec(params("XLEN"), SInt(params("XLEN").W)))
   
   // Data is written when valid bit is high
   when (io.rdData.valid && addrWires("rdAddr").orR) {
@@ -37,7 +37,11 @@ class RegFile(
 
   // Connections
   for (i <- 0 until io.rsData.length) {
-    io.rsData(i) := Mux(addrWires(s"rs${i + 1}Addr").orR, regFile(addrWires(s"rs${i + 1}Addr")), 0.S)
+    io.rsData(i) := Mux(
+      addrWires(s"rs${i + 1}Addr").orR,
+      regFile(addrWires(s"rs${i + 1}Addr")),
+      0.S
+    )
   }
 
 

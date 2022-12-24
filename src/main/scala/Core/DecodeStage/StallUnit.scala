@@ -31,8 +31,9 @@ class StallUnit(
   )
 
   // Connections
-  io.stallEn := enWires("load") && Seq(uintWires("rs1Addr"), uintWires("rs2Addr")).map(
-    x => x === uintWires("rdAddr")
+  io.stallEn := enWires("load") && (
+    for (i <- 1 to 2)
+      yield uintWires(s"rs${i}Addr") === uintWires("rdAddr")
   ).reduce(
     (x, y) => x || y
   )
