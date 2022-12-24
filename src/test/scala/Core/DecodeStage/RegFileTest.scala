@@ -10,7 +10,10 @@ import Configs._
 
 class RegFileTest extends AnyFreeSpec with ChiselScalatestTester {
   "Register File" in {
-    test(new RegFile(Params.params("rv32i"), false)) {
+    test(new RegFile(
+      params = Params.params("rv32i"),
+      debug  = false
+    )) {
       regfile =>
         val debug: Boolean = false
 

@@ -10,7 +10,10 @@ import Configs._
 
 class StallUnitTest extends AnyFreeSpec with ChiselScalatestTester {
   "Stall Unit" in {
-    test(new StallUnit(Params.params("rv32i"), false)) {
+    test(new StallUnit(
+      params = Params.params("rv32i"),
+      debug  = false
+    )) {
       stallUnit =>
         val debug: Boolean = false
 
