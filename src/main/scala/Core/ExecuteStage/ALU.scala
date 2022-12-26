@@ -8,22 +8,22 @@ class ALUIO(
   params :Map[String, Int],
   enNum  :Int
 ) extends Bundle {
-    // Input pins
-    val operands: Vec[SInt] = Input(Vec(3, SInt(params("XLEN").W)))
-    val pc      : UInt      = Input(UInt(params("XLEN").W))
-    val en      : Vec[Bool] = Input(Vec(enNum, Bool()))
+  // Input pins
+  val operands: Vec[SInt] = Input(Vec(3, SInt(params("XLEN").W)))
+  val pc      : UInt      = Input(UInt(params("XLEN").W))
+  val en      : Vec[Bool] = Input(Vec(enNum, Bool()))
 
-    // Output pins
-    val out: SInt = Output(SInt(32.W))
+  // Output pins
+  val out: SInt = Output(SInt(32.W))
 }
 
 
 class ALU(
-  params :Map[String, Int],
-  opSeq  :Seq[String],
-  debug  :Boolean
+  params  :Map[String, Int],
+  confAlu :Seq[String],
+  debug   :Boolean
 ) extends Module {
-  val enNum: Int = opSeq.length
+  val enNum: Int = confAlu.length
   val io: ALUIO = IO(new ALUIO(
     params = params,
     enNum  = enNum
@@ -38,35 +38,42 @@ class ALU(
 
   val enWires: Map[String, Bool] = (
     for (i <- 0 until enNum)
-      yield (opSeq(i) -> io.en(i))
+      yield confAlu(i) -> io.en(i)
   ).toMap
 
   val operands: Map[String, SInt] = Map(
     "immU" -> (sintWires("imm") << 12.U),
     "1"    -> sintWires("rs1Data"),
-    "2"    -> Mux(enWires(opSeq(10)), sintWires("imm"), sintWires("rs2Data")),
+    "2"    -> Mux(
+      enWires(confAlu(enNum - 2)),
+      sintWires("imm"),
+      sintWires("rs2Data")
+    )
   )
 
   val op: Map[String, SInt] = Map(
-    opSeq(0)  -> (operands("1") + operands("2")),
-    opSeq(1)  -> (operands("1") - operands("2")),
-    opSeq(2)  -> (operands("1") << operands("2")(4, 0)),
-    opSeq(3)  -> (operands("1") < operands("2")).asSInt,
-    opSeq(4)  -> (operands("1").asUInt < operands("2").asUInt).asSInt,
-    opSeq(5)  -> (operands("1") ^ operands("2")),
-    opSeq(6)  -> (operands("1").asUInt >> operands("2")(4, 0)).asSInt,
-    opSeq(7)  -> (operands("1") >> operands("2")(4, 0)).asSInt,
-    opSeq(8)  -> (operands("1") | operands("2")),
-    opSeq(9)  -> (operands("1") & operands("2")),
-    opSeq(10) -> (io.pc + operands("immU").asUInt).asSInt,
-    opSeq(11) -> operands("immU"),
-    opSeq(12) -> (io.pc.asSInt + 4.S)
+    confAlu(0)  -> (operands("1") + operands("2")),
+    confAlu(1)  -> (operands("1") - operands("2")),
+    confAlu(2)  -> (operands("1") << operands("2")(4, 0)),
+    confAlu(3)  -> (operands("1") < operands("2")).asSInt,
+    confAlu(4)  -> (operands("1").asUInt < operands("2").asUInt).asSInt,
+    confAlu(5)  -> (operands("1") ^ operands("2")),
+    confAlu(6)  -> (operands("1").asUInt >> operands("2")(4, 0)).asSInt,
+    confAlu(7)  -> (operands("1") >> operands("2")(4, 0)).asSInt,
+    confAlu(8)  -> (operands("1") | operands("2")),
+    confAlu(9)  -> (operands("1") & operands("2")),
+    confAlu(10) -> (io.pc + operands("immU").asUInt).asSInt,
+    confAlu(11) -> operands("immU"),
+    confAlu(13) -> (io.pc.asSInt + 4.S)
   )
 
   // Connections
-  val opConn: Seq[(Bool, SInt)] =
-    for (i <- 1 until enNum)
-      yield enWires(opSeq(i)) -> op(opSeq(i))
+  val opConn: Seq[(Bool, SInt)] = (
+    for (i <- 0 until enNum - 2)
+      yield enWires(confAlu(i)) -> op(confAlu(i))
+  ) ++ Seq(
+    enWires(confAlu(enNum - 1)) -> op(confAlu(enNum - 1))
+  )
   io.out := MuxCase(0.S, opConn)
 
     // Intermediate wires
