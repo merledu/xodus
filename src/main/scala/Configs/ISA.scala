@@ -99,6 +99,22 @@ object RV32I {
       )
     )
   )
+
+  val conf: Map[String, Seq[String]] = Map(
+    "imm" -> Seq(
+      "immI", "immS", "immB", "immU", "immJ"
+    ),
+    "alu" -> Seq(
+      "add",   "sub", "sll", "slt", "sltu",
+      "xor",   "srl", "sra", "or",  "and",
+      "auipc", "lui", "imm", "jump"
+    ),
+    "dataMem" -> Seq(
+      "load", "lb",  "lh",    "lw", "lbu",
+      "lhu",  "lwu", "store", "sb", "sh",
+      "sw"
+    )
+  )
 }
 
 
@@ -148,6 +164,21 @@ object RV64I {
     x => x._1 -> (
       if (opID64.contains(x._1)) {
         x._2 ++ opID64(x._1)
+      } else {
+        x._2
+      }
+    )
+  )
+
+  val conf64: Map[String, Seq[String]] = Map(
+    "dataMem" -> Seq(
+      "ld", "sd"
+    )
+  )
+  val conf: Map[String, Seq[String]] = RV32I.conf.map(
+    x => x._1 -> (
+      if (conf64.contains((x._1))) {
+        (x._2 ++ conf64(x._1))
       } else {
         x._2
       }

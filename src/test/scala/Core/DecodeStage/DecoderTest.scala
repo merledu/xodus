@@ -14,7 +14,7 @@ class DecoderTest extends AnyFreeSpec with ChiselScalatestTester {
     test(new Decoder(
       params  = Params.params("rv32i"),
       opcodes = RV32I.opcodes,
-      immSeq  = DecoderConf.immSeq,
+      confImm = RV32I.conf("imm"),
       debug   = false
     )) {
       decoder =>

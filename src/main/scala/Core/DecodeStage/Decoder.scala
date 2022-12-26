@@ -19,7 +19,7 @@ class DecoderIO(params : Map[String, Int]) extends Bundle {
 class Decoder(
   params  :Map[String, Int],
   opcodes :Map[String, Map[String, Int]],
-  immSeq  :Seq[String],
+  confImm :Seq[String],
   debug   :Boolean
 ) extends Module {
   val io: DecoderIO = IO(new DecoderIO(params))
@@ -36,56 +36,56 @@ class Decoder(
 
   val enWires: Map[String, Bool] = Map(
     "rdAddr" -> Map(
-      "mathR" -> (opcodes("R")("math")),
-      "mathI" -> (opcodes("I")("math")),
-      "load"  -> (opcodes("I")("load")),
-      "fence" -> (opcodes("I")("fence")),
-      "jalr"  -> (opcodes("I")("jalr")),
-      "csr"   -> (opcodes("I")("csr")),
-      "auipc" -> (opcodes("U")("auipc")),
-      "lui"   -> (opcodes("U")("lui")),
-      "jal"   -> (opcodes("J")("jal"))
+      "mathR" -> opcodes("R")("math"),
+      "mathI" -> opcodes("I")("math"),
+      "load"  -> opcodes("I")("load"),
+      "fence" -> opcodes("I")("fence"),
+      "jalr"  -> opcodes("I")("jalr"),
+      "csr"   -> opcodes("I")("csr"),
+      "auipc" -> opcodes("U")("auipc"),
+      "lui"   -> opcodes("U")("lui"),
+      "jal"   -> opcodes("J")("jal")
     ),
     "func3" -> Map(
-      "mathR"  -> (opcodes("R")("math")),
-      "mathI"  -> (opcodes("I")("math")),
-      "load"   -> (opcodes("I")("load")),
-      "fence"  -> (opcodes("I")("fence")),
-      "jalr"   -> (opcodes("I")("jalr")),
-      "csr"    -> (opcodes("I")("csr")),
-      "store"  -> (opcodes("S")("store")),
-      "branch" -> (opcodes("B")("branch"))
+      "mathR"  -> opcodes("R")("math"),
+      "mathI"  -> opcodes("I")("math"),
+      "load"   -> opcodes("I")("load"),
+      "fence"  -> opcodes("I")("fence"),
+      "jalr"   -> opcodes("I")("jalr"),
+      "csr"    -> opcodes("I")("csr"),
+      "store"  -> opcodes("S")("store"),
+      "branch" -> opcodes("B")("branch")
     ),
     "rs1Addr" -> Map(
-      "mathR"  -> (opcodes("R")("math")),
-      "mathI"  -> (opcodes("I")("math")),
-      "load"   -> (opcodes("I")("load")),
-      "fence"  -> (opcodes("I")("fence")),
-      "jalr"   -> (opcodes("I")("jalr")),
-      "csr"    -> (opcodes("I")("csr")),
-      "store"  -> (opcodes("S")("store")),
-      "branch" -> (opcodes("B")("branch"))
+      "mathR"  -> opcodes("R")("math"),
+      "mathI"  -> opcodes("I")("math"),
+      "load"   -> opcodes("I")("load"),
+      "fence"  -> opcodes("I")("fence"),
+      "jalr"   -> opcodes("I")("jalr"),
+      "csr"    -> opcodes("I")("csr"),
+      "store"  -> opcodes("S")("store"),
+      "branch" -> opcodes("B")("branch")
     ),
     "rs2Addr" -> Map(
-      "mathR"  -> (opcodes("R")("math")),
-      "store"  -> (opcodes("S")("store")),
-      "branch" -> (opcodes("B")("branch"))
+      "mathR"  -> opcodes("R")("math"),
+      "store"  -> opcodes("S")("store"),
+      "branch" -> opcodes("B")("branch")
     ),
-    "func7" -> Map("mathR" -> (opcodes("R")("math"))),
-    immSeq(0) -> Map(
-      "mathI" -> (opcodes("I")("math")),
-      "load"  -> (opcodes("I")("load")),
-      "fence" -> (opcodes("I")("fence")),
-      "jalr"  -> (opcodes("I")("jalr")),
-      "csr"   -> (opcodes("I")("csr"))
+    "func7" -> Map("mathR" -> opcodes("R")("math")),
+    confImm(0) -> Map(
+      "mathI" -> opcodes("I")("math"),
+      "load"  -> opcodes("I")("load"),
+      "fence" -> opcodes("I")("fence"),
+      "jalr"  -> opcodes("I")("jalr"),
+      "csr"   -> opcodes("I")("csr")
     ),
-    immSeq(1) -> Map("store" -> (opcodes("S")("store"))),
-    immSeq(2) -> Map("branch" -> (opcodes("B")("branch"))),
-    immSeq(3) -> Map(
-      "auipc" -> (opcodes("U")("auipc")),
-      "lui"   -> (opcodes("U")("lui"))
+    confImm(1) -> Map("store" -> opcodes("S")("store")),
+    confImm(2) -> Map("branch" -> opcodes("B")("branch")),
+    confImm(3) -> Map(
+      "auipc" -> opcodes("U")("auipc"),
+      "lui"   -> opcodes("U")("lui")
     ),
-    immSeq(4) -> Map("jal" -> (opcodes("J")("jal")))
+    confImm(4) -> Map("jal" -> opcodes("J")("jal"))
   ).map(
     x => x._1 -> x._2.map(
       y => y._1 -> (y._2.U === uintWires("opcode"))
@@ -95,11 +95,11 @@ class Decoder(
   )
 
   val immGen: Map[String, SInt] = Map(
-    immSeq(0) -> io.inst(31, 20).asSInt,
-    immSeq(1) -> Cat(io.inst(31, 25), io.inst(11, 7)).asSInt,
-    immSeq(2) -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), "b0".U).asSInt,
-    immSeq(3) -> io.inst(31, 12).asSInt,
-    immSeq(4) -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt
+    confImm(0) -> io.inst(31, 20).asSInt,
+    confImm(1) -> Cat(io.inst(31, 25), io.inst(11, 7)).asSInt,
+    confImm(2) -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), "b0".U).asSInt,
+    confImm(3) -> io.inst(31, 12).asSInt,
+    confImm(4) -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), "b0".U).asSInt
   )
 
   // TODO: Remove commented imm block if code works without it after debugging
@@ -111,16 +111,14 @@ class Decoder(
   //  enWires("immJ") -> immGen("immJ")
   //  ))
 
-  val imm: SInt = MuxCase(
-    0.S,
-    for (immType <- immSeq)
-      yield enWires(immType) -> immGen(immType)
-  )
-
   // Connections
   Seq(
     (io.opcode, uintWires("opcode")),
-    (io.imm,    imm)
+    (io.imm,    MuxCase(
+      0.S,
+      for (immType <- confImm)
+        yield enWires(immType) -> immGen(immType)
+    ))
   ).map(x => x._1 := x._2)
 
   Seq(

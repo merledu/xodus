@@ -14,7 +14,7 @@ class ControlUnitTest extends AnyFreeSpec with ChiselScalatestTester {
       params  = Params.params("rv32i"),
       opcodes = RV32I.opcodes,
       opID    = RV32I.opID,
-      ctrlSeq = ControlUnitConf.rv32i("ctrlSeq"),
+      conf    = RV32I.conf,
       debug   = false
     )) {
       controlunit =>
@@ -22,7 +22,9 @@ class ControlUnitTest extends AnyFreeSpec with ChiselScalatestTester {
         controlunit.io.func3.poke(0x3)
         controlunit.io.func7.poke(0x00)
         controlunit.io.imm.poke(Random.nextInt().S)
-        controlunit.io.stallEn.poke(Random.nextBoolean().B)
+        for (i <- 0 until 2) {
+          controlunit.io.boolVec(i).poke(Random.nextBoolean().B)
+        }
 
         controlunit.clock.step(1)
     }
