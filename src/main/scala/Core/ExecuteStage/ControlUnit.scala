@@ -103,17 +103,16 @@ class ControlUnit(
           )
         ),
         "dataMem" -> Map(
-          0  -> Map("load"  -> (io.opcode, opcodes("I"))),
-          1  -> Map("lb"    -> (idWires("f3_opcode"), opID("I")("load"))),
-          2  -> Map("lh"    -> (idWires("f3_opcode"), opID("I")("load"))),
-          3  -> Map("lw"    -> (idWires("f3_opcode"), opID("I")("load"))),
-          4  -> Map("lbu"   -> (idWires("f3_opcode"), opID("I")("load"))),
-          5  -> Map("lhu"   -> (idWires("f3_opcode"), opID("I")("load"))),
-          6  -> Map("lwu"   -> (idWires("f3_opcode"), opID("I")("load"))),
-          7  -> Map("store" -> (io.opcode, opcodes("S"))),
-          8  -> Map("sb"    -> (idWires("f3_opcode"), opID("S")("store"))),
-          9  -> Map("sh"    -> (idWires("f3_opcode"), opID("S")("store"))),
-          10 -> Map("sw"    -> (idWires("f3_opcode"), opID("S")("store")))
+          0 -> Map("load"  -> (io.opcode, opcodes("I"))),
+          1 -> Map("lb"    -> (idWires("f3_opcode"), opID("I")("load"))),
+          2 -> Map("lh"    -> (idWires("f3_opcode"), opID("I")("load"))),
+          3 -> Map("lw"    -> (idWires("f3_opcode"), opID("I")("load"))),
+          4 -> Map("lbu"   -> (idWires("f3_opcode"), opID("I")("load"))),
+          5 -> Map("lhu"   -> (idWires("f3_opcode"), opID("I")("load"))),
+          6 -> Map("store" -> (io.opcode, opcodes("S"))),
+          7 -> Map("sb"    -> (idWires("f3_opcode"), opID("S")("store"))),
+          8 -> Map("sh"    -> (idWires("f3_opcode"), opID("S")("store"))),
+          9 -> Map("sw"    -> (idWires("f3_opcode"), opID("S")("store")))
         )
       )
       (k2, v2) <- v1

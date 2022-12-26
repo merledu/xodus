@@ -110,9 +110,8 @@ object RV32I {
       "auipc", "lui", "imm", "jump"
     ),
     "dataMem" -> Seq(
-      "load", "lb",  "lh",    "lw", "lbu",
-      "lhu",  "lwu", "store", "sb", "sh",
-      "sw"
+      "load", "lb",    "lh", "lw", "lbu",
+      "lhu",  "store", "sb", "sh", "sw"
     )
   )
 }
@@ -172,7 +171,7 @@ object RV64I {
 
   val conf64: Map[String, Seq[String]] = Map(
     "dataMem" -> Seq(
-      "ld", "sd"
+      "lwu", "ld", "sd"
     )
   )
   val conf: Map[String, Seq[String]] = RV32I.conf.map(
