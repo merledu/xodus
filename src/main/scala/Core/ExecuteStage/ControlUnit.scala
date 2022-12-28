@@ -9,11 +9,11 @@ class ControlUnitIO(
   ctrlNum :Int
 ) extends Bundle {
   // Input pins
-  val opcode : UInt      = Input(UInt(params("opcodeLen").W))
-  val func3  : UInt      = Input(UInt(params("f3Len").W))
-  val func7  : UInt      = Input(UInt(params("f7Len").W))
-  val imm    : SInt      = Input(SInt(params("XLEN").W))
-  val boolVec: Vec[Bool] = Input(Vec(2, Bool()))
+  val opcode: UInt      = Input(UInt(params("opcodeLen").W))
+  val func3 : UInt      = Input(UInt(params("f3Len").W))
+  val func7 : UInt      = Input(UInt(params("f7Len").W))
+  val imm   : SInt      = Input(SInt(params("XLEN").W))
+  val enVec : Vec[Bool] = Input(Vec(2, Bool()))
 
   // Output pins
   val en: Vec[Bool] = Output(Vec(ctrlNum, Bool()))
@@ -37,8 +37,8 @@ class ControlUnit(
 
   // Wires
   val boolWires: Map[String, Bool] = Map(
-    "stallEn" -> io.boolVec(0),
-    "jump"    -> io.boolVec(1)
+    "stallEn" -> io.enVec(0),
+    "jump"    -> io.enVec(1)
   )
 
   val idWires: Map[String, UInt] = Map(
