@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 
-class DecoderIO(params : Map[String, Int]) extends Bundle {
+class DecoderIO(params :Map[String, Int]) extends Bundle {
   // Input pins
   val inst: UInt = Input(UInt(params("XLEN").W))
   

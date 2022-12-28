@@ -23,7 +23,7 @@ class ControlUnitTest extends AnyFreeSpec with ChiselScalatestTester {
         controlunit.io.func7.poke(0x00)
         controlunit.io.imm.poke(Random.nextInt().S)
         for (i <- 0 until 2) {
-          controlunit.io.boolVec(i).poke(Random.nextBoolean().B)
+          controlunit.io.enVec(i).poke(Random.nextBoolean().B)
         }
 
         controlunit.clock.step(1)

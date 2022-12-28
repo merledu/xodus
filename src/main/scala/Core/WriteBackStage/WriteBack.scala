@@ -4,26 +4,33 @@ import chisel3._
 import chisel3.util._
 
 
-class WriteBackIO extends Bundle {
-    // Input pins
-    val alu     : SInt = Input(SInt(32.W))
-    val mem_data: SInt = Input(SInt(32.W))
-    val load_en : Bool = Input(Bool())
+class WriteBackIO(params :Map[String, Int]) extends Bundle {
+  // Input pins
+  val wbData: Vec[SInt] = Input(Vec(2, SInt(params("XLEN").W)))
+  val loadEn: Bool      = Input(Bool())
 
-    // Output pins
-    val rd_data: SInt = Output(SInt(32.W))
+  // Output pins
+  val rdData: SInt = Output(SInt(params("XLEN").W))
 }
-class WriteBack extends Module
-{
-    // Initializing IO pins
-    val io      : WriteBack_IO = IO(new WriteBack_IO)
-    val alu     : SInt         = dontTouch(WireInit(io.alu))
-    val mem_data: SInt         = dontTouch(WireInit(io.mem_data))
-    val load_en : Bool         = dontTouch(WireInit(io.load_en))
 
-    // Intermediate wires
-    val rd_data: SInt = dontTouch(WireInit(Mux(load_en, mem_data, alu)))
 
-    // Wiring to output pins
-    io.rd_data := rd_data
+class WriteBack(
+  params :Map[String, Int],
+  debug  :Boolean
+) extends Module {
+  // Initializing IO pins
+  val io: WriteBackIO = IO(new WriteBackIO(params))
+
+  // Wires
+  val wbWires: Map[String, SInt] = Map(
+    "alu" -> io.wbData(0),
+    "mem" -> io.wbData(1)
+  )
+
+  // Connections
+  io.rdData := Mux(
+    io.loadEn,
+    wbWires("mem"),
+    wbWires("alu")
+  )
 }
