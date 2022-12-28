@@ -11,8 +11,8 @@ class MemReqIO(
   val data = if (dataMem) {
     Some(Input(UInt(params("rv32i")("XLEN").W)))
   } else None
-  val store = if (dataMem) {
-    Some(Input(Bool()))
+  val en = if (dataMem) {
+    Some(Input(Vec(2, Bool())))
   } else None
 
   println(data.getClass)

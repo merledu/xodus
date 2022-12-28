@@ -12,10 +12,10 @@ class ControlUnitIO(
   val func3 : UInt      = Input(UInt(params("f3Len").W))
   val func7 : UInt      = Input(UInt(params("f7Len").W))
   val imm   : SInt      = Input(SInt(params("XLEN").W))
-  val enVec : Vec[Bool] = Input(Vec(2, Bool()))
+  val en    : Vec[Bool] = Input(Vec(2, Bool()))
 
   // Output pins
-  val en: Vec[Bool] = Output(Vec(ctrlNum, Bool()))
+  val out: Vec[Bool] = Output(Vec(ctrlNum, Bool()))
 }
 
 
@@ -36,8 +36,8 @@ class ControlUnit(
 
   // Wires
   val boolWires: Map[String, Bool] = Map(
-    "stallEn" -> io.enVec(0),
-    "jump"    -> io.enVec(1)
+    "stallEn" -> io.en(0),
+    "jump"    -> io.en(1)
   )
 
   val idWires: Map[String, UInt] = Map(
@@ -148,14 +148,14 @@ class ControlUnit(
   (
     (
       for (i <- 0 until aluNum - 1)
-        yield (io.en(i), enWires(conf("alu")(i)))
+        yield (io.out(i), enWires(conf("alu")(i)))
     ) ++ (
       for (i <- 0 until dataMemNum)
-        yield (io.en(i + aluNum), enWires(conf("dataMem")(i)))
+        yield (io.out(i + aluNum), enWires(conf("dataMem")(i)))
     ) ++ Seq(
-      (io.en(aluNum - 1), boolWires("jump"))
+      (io.out(aluNum - 1), boolWires("jump"))
     ) ++ Seq(
-      (io.en(ctrlNum), wrEn)
+      (io.out(ctrlNum), wrEn)
     )
   ).map(
     x => x._1 := Mux(boolWires("stallEn"), 0.B, x._2)
