@@ -1,7 +1,6 @@
 package DecodeStage
 
-import chisel3._
-import chisel3.util._
+import chisel3._, chisel3.util._
 
 
 class DecoderIO(params :Map[String, Int]) extends Bundle {
