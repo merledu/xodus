@@ -1,4 +1,4 @@
-package DecodeStage
+package decode_stage
 
 import chisel3._
 import chisel3.util._
@@ -6,7 +6,7 @@ import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import scala.util.Random
 
-import Configs._
+import configs._
 
 
 class DecoderTest extends AnyFreeSpec with ChiselScalatestTester {

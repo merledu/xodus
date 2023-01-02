@@ -1,4 +1,4 @@
-//package Memories
+//package Memory
 //
 //import chisel3._
 //import chisel3.util.experimental.loadMemoryFromFile

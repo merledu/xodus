@@ -1,4 +1,4 @@
-package Configs
+package configs
 
 
 object RV32I {
@@ -62,8 +62,7 @@ object RV32I {
         "lh"  -> ((components("func3")(1) << 7) | opcodes("I")("load")),
         "lw"  -> ((components("func3")(2) << 7) | opcodes("I")("load")),
         "lbu" -> ((components("func3")(4) << 7) | opcodes("I")("load")),
-        "lhu" -> ((components("func3")(5) << 7) | opcodes("I")("load")),
-        "lwu" -> ((components("func3")(6) << 7) | opcodes("I")("load"))
+        "lhu" -> ((components("func3")(5) << 7) | opcodes("I")("load"))
       ),
       "jalr" -> Map("jalr" -> ((components("func3")(0) << 7) | opcodes("I")("jalr"))),
       "fence" -> Map(
@@ -109,7 +108,7 @@ object RV32I {
       "xor",   "srl", "sra", "or",  "and",
       "auipc", "lui", "imm", "jump"
     ),
-    "dataMem" -> Seq(
+    "dmem" -> Seq(
       "load", "lb",    "lh", "lw", "lbu",
       "lhu",  "store", "sb", "sh", "sw"
     )
@@ -153,6 +152,7 @@ object RV64I {
       ),
       "load" -> Map(
         "ld"  -> ((components("func3")(3) << 7) | opcodes("I")("load")),
+        "lwu" -> ((components("func3")(6) << 7) | opcodes("I")("load"))
       )
     ),
     "S" -> Map(

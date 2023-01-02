@@ -1,36 +1,37 @@
-package DecodeStage
+package decode_stage
 
-import chisel3._, chisel3.util._
+import chisel3._, chisel3.util._, configs._
 
 
-class DecoderIO(params :Map[String, Int]) extends Bundle {
+class DecoderIO extends Bundle with Configs {
   // Input pins
-  val inst: UInt = Input(UInt(params("XLEN").W))
+  val inst: UInt = Input(UInt(XLEN.W))
   
   // Output pins
-  val opcode: UInt      = Output(UInt(params("opcodeLen").W))
-  val rAddr : Vec[UInt] = Output(Vec(3, UInt(params("regAddrLen").W)))
-  val func3 : UInt      = Output(UInt(params("f3Len").W))
-  val func7 : UInt      = Output(UInt(params("f7Len").W))
-  val imm   : SInt      = Output(SInt(params("XLEN").W))
+  val opcode: UInt      = Output(UInt(OPCODE_LEN.W))
+  val rAddr : Vec[UInt] = Output(Vec(3, UInt(REG_ADDR_LEN.W)))
+  val func3 : UInt      = Output(UInt(F3_LEN.W))
+  val func7 : UInt      = Output(UInt(F7_LEN.W))
+  val imm   : SInt      = Output(SInt(XLEN.W))
 }
 
 class Decoder(
-  params  :Map[String, Int],
   opcodes :Map[String, Map[String, Int]],
   confImm :Seq[String],
   debug   :Boolean
 ) extends Module {
-  val io: DecoderIO = IO(new DecoderIO(params))
+  val io: DecoderIO = IO(new DecoderIO)
 
   // Wires
   val uintWires: Map[String, UInt] = Map(
-    "opcode"  -> io.inst(6, 0),
-    "rdAddr"  -> io.inst(11, 7),
-    "func3"   -> io.inst(14, 12),
-    "rs1Addr" -> io.inst(19, 15),
-    "rs2Addr" -> io.inst(24, 20),
-    "func7"   -> io.inst(31, 25),
+    "opcode"  -> (6, 0),
+    "rdAddr"  -> (11, 7),
+    "func3"   -> (14, 12),
+    "rs1Addr" -> (19, 15),
+    "rs2Addr" -> (24, 20),
+    "func7"   -> (31, 25)
+  ).map(
+    x => x._1 -> io.inst(x._2._1, x._2._2)
   )
 
   val enWires: Map[String, Bool] = Map(

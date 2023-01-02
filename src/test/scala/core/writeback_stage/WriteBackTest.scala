@@ -1,11 +1,11 @@
-package WriteBackStage
+package writeback_stage
 
 import chisel3._
 import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import scala.util.Random
 
-import Configs._
+import configs._
 
 
 class WriteBackTest extends AnyFreeSpec with ChiselScalatestTester {

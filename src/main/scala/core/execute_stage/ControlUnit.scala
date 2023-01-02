@@ -1,4 +1,4 @@
-package ExecuteStage
+package execute_stage
 
 import chisel3._, chisel3.util._
 

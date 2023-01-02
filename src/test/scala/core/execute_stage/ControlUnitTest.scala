@@ -1,11 +1,11 @@
-package ExecuteStage
+package execute_stage
 
 import chisel3._
 import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import scala.util.Random
 
-import Configs._
+import configs._
 
 
 class ControlUnitTest extends AnyFreeSpec with ChiselScalatestTester {

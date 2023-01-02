@@ -1,18 +1,15 @@
-package Memories
+package memory
 
 import chisel3._
 
 
 class MemReqIO(
   params  :Map[String, Map[String, Int]],
-  dataMem :Boolean
+  dmem :Boolean
 ) extends Bundle {
   val addr: UInt = Input(UInt(params("sram")("depth").W))
   val data = if (dataMem) {
     Some(Input(UInt(params("rv32i")("XLEN").W)))
-  } else None
-  val en = if (dataMem) {
-    Some(Input(Vec(2, Bool())))
   } else None
 
   println(data.getClass)
