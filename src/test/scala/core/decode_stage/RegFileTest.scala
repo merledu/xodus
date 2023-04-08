@@ -1,20 +1,17 @@
-package decode_stage
+package xodus.decode_stage
 
-import chisel3._
-import chiseltest._
-import org.scalatest.freespec.AnyFreeSpec
-import scala.util.Random
+import chisel3._,
+       chiseltest._,
+       org.scalatest.freespec.AnyFreeSpec,
+       scala.util.Random
 
-import configs._
+import xodus.configs._
 
 
 class RegFileTest extends AnyFreeSpec with ChiselScalatestTester {
   "Register File" in {
     test(new RegFile()) {
       regfile =>
-        val debug: Boolean = false
-
-        // TODO: Add expects to output pins for testing
         for (i <- 0 until 100) {
           val rdAddr : Int = Random.nextInt(32)
           val rs1Addr: Int = Random.nextInt(32)
