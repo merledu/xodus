@@ -29,7 +29,7 @@ class Decoder extends Module with Configs{
     "func7"   -> (31, 25)
   ).map(
     x => x._1 -> io.inst(x._2._1, x._2._2)
-  )
+  )  // Pattern: Map("opcode" -> io.inst(6, 0))
 
   val enWires: Map[String, Bool] = Map(
     "rdAddr" -> Map(
@@ -93,11 +93,11 @@ class Decoder extends Module with Configs{
     )
   ).map(
     x => x._1 -> x._2.map(
-      y => y._1 -> (opcodes(y._2._1)(y._2._2).U === uintWires("opcode"))
+      y => y._1 -> (uintWires("opcode") === opcodes(y._2._1)(y._2._2).U)
     ).values.reduce(
       (x, y) => x || y
     )
-  )
+  )  // Pattern: Map("rdAddr" -> (io.inst(6, 0) === 0x33))
 
   val immGen: Map[String, SInt] = Map(
     immConf(0) -> io.inst(31, 20).asSInt,
@@ -122,7 +122,7 @@ class Decoder extends Module with Configs{
     (io.imm,    MuxCase(
       0.S,
       for (immType <- immConf)
-        yield enWires(immType) -> immGen(immType)
+        yield enWires(immType) -> immGen(immType)  // Pattern: IndexedSeq((io.inst(6, 0) === 0x33) -> io.inst(31, 20).asSInt)
     ))
   ).map(x => x._1 := x._2)
 
@@ -136,6 +136,7 @@ class Decoder extends Module with Configs{
 
 
 
+  // TODO: Add Debug when completed re-implementing
   // Debug Section
   //if (debug) {
   //  val debug_uintWires_opcode : UInt = dontTouch(WireInit(uintWires("opcode")))
