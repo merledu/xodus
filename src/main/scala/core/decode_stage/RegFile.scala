@@ -1,11 +1,11 @@
-package decode_stage
+package xodus.decode_stage
 
 import chisel3._, chisel3.util._, configs._
 
 
 class RegFileIO extends Bundle with Configs {
   // Input ports
-  val rAddr : Vec[UInt]   = Input(Vec(3, UInt(regAddrLen.W)))
+  val rAddr : Vec[UInt]   = Input(Vec(3, UInt(regAddrWidth.W)))
   val rdData: Valid[SInt] = Flipped(Valid(SInt(xlen.W)))
 
   // Output ports

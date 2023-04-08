@@ -342,3 +342,8 @@ hs_err_pid*
 # Project files
 !assembly/assembly.hex
 trace/*.csv
+
+# Miscellenous files
+.bloop
+.metals
+metals.sbt
