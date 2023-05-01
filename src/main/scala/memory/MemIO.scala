@@ -1,21 +1,16 @@
-//package memory
-//
-//import chisel3._
-//
-//
-//class MemReqIO(
-//  params  :Map[String, Map[String, Int]],
-//  dmem :Boolean
-//) extends Bundle {
-//  val addr: UInt = Input(UInt(params("sram")("depth").W))
-//  val data = if (dataMem) {
-//    Some(Input(UInt(params("rv32i")("XLEN").W)))
-//  } else None
-//
-//  println(data.getClass)
-//}
-//
-//
-//class MemRespIO(params :Map[String, Int]) extends Bundle {
-//  val data: UInt = Input(UInt(params("XLEN").W))
-//}
+package xodus.memory
+
+import chisel3._
+import xodus.configs.Configs
+
+
+class MemReqIO extends Bundle with Configs {
+  val addr: UInt      = Input(UInt(MemDepth.W))
+  val en  : Vec[Bool] = Input(Vec(2, Bool()))
+  val data: UInt      = Input(UInt(XLEN.W))
+}
+
+
+class MemRespIO extends Bundle with Configs {
+  val data: UInt = Input(UInt(XLEN.W))
+}

@@ -2,11 +2,31 @@ package xodus.configs
 
 
 trait Configs {
-  val variant: String = "32"
-  val ext    : String = "i"
+  val conf: ConfigMaps = new ConfigMaps
 
-  val Debug: Boolean = false
+  val variant   : String = "32"
+  val extensions: String = "i"
 
-  val XLEN        : Int = ConfigMaps.variables(ConfigMaps.extensions.indexOf(ext))("XLEN")(variant)
-  val RegAddrWidth: Int = ConfigMaps.variables(ConfigMaps.extensions.indexOf(ext))("RegAddrWidth")(variant)
+  val Debug: Boolean = true
+
+  val XLEN        : Int = conf.params("XLEN")(variant)
+  val RegAddrWidth: Int = conf.params("RegAddrWidth")(variant)
+  val OpcodeWidth : Int = conf.params("OpcodeWidth")(variant)
+  val Funct3Width : Int = conf.params("Funct3Width")(variant)
+  val Funct7Width : Int = conf.params("Funct7Width")(variant)
+  val MemDepth    : Int = conf.params("MemDepth")(variant)
+
+  val opcodes: Map[String, Map[String, String]] = (
+    for (ext <- extensions)
+      yield conf.opcodeMap(ext.toString)
+  ).reduce(
+    (x, y) => x ++ y
+  )
+
+  val insts: Map[String, Map[String, String]] = (
+    for (ext <- extensions)
+      yield conf.instMap(ext.toString)
+  ).reduce(
+    (x, y) => x ++ y
+  )
 }
