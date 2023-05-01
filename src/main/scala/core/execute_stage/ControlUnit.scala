@@ -1,7 +1,9 @@
 package xodus.core.execute_stage
 
-import chisel3._, chisel3.util._
-import xodus.configs.Configs, xodus.core.decode_stage.DecoderIO
+import chisel3._,
+       chisel3.util._
+import xodus.configs.Configs,
+       xodus.core.decode_stage.{DecoderIO, RegFileIO}
 
 
 class ControlUnitIO extends Bundle with Configs {
@@ -9,41 +11,44 @@ class ControlUnitIO extends Bundle with Configs {
   val opcode: UInt = Flipped(new DecoderIO().opcode)
   val funct3: UInt = Flipped(new DecoderIO().funct3)
   val funct7: UInt = Flipped(new DecoderIO().funct7)
+  val imm   : SInt = Flipped(new DecoderIO().imm)
 
   // Output ports
-  val aluEn: Vec[Bool] = Output(Vec(10, Bool()))
+  val en: Vec[Bool] = Output(Vec(13, Bool()))
 }
 
 
 class ControlUnit extends Module with Configs {
   val io: ControlUnitIO = IO(new ControlUnitIO)
 
+  val aluEn: Seq[String] = Seq(
+    "+",     "signed <", "unsigned <", "&",    "|",
+    "^",     "<<",       ">>",         ">>>",  "lui",
+    "auipc", "-",        "imm"
+  )
+
   // Wire Maps
-  val enWires: Map[String, Bool] = Map(  // Other
-    "imm" -> opcodes("I").values.map(
-      x => io.opcode === x.U
-    ).reduce(
-      (x, y) => x || y
-    )
-  ) ++ Map(  // funct3 + opcode
-    "+"          -> "addi",
-    "signed <"   -> "slti",
-    "unsigned <" -> "sltiu",
-    "&"          -> "andi",
-    "|"          -> "ori",
-    "^"          -> "xori",
-    "<<"         -> "slli",
-    ">>"         -> "srli",
-    ">>>"        -> "srai"
-  ).map(
-    x => x._1 -> (
-      Cat(io.funct3, io.opcode) === Cat(insts(x._2)("funct3").U, insts(x._2)("opcode").U)
+  val uintWires: Map[String, UInt] = Map(
+    "funct3_opcode"        -> Cat(io.funct3, io.opcode),
+    "funct7_funct3_opcode" -> Cat(io.funct7, io.funct3, io.opcode),
+    "imm31_25_funct3_opcode" -> Cat(io.imm(31, 25), io.funct3, io.opcode)
+  )
+
+  val enWires: Map[String, Map[String, Bool]] = Map(
+    "aluEn" -> Seq((
+      Seq("addi", "load", "store").map(
+        x => x -> Cat(insts(x)("funct3"), insts(x)("opcode"))
+      ) ++ Seq(
+        "add" -> Cat(, insts("add")("funct3"), insts("add")("opcode"))
+      )).map(
+        x => x._2 === uintWires("")
+      )
     )
   )
 
   // Interconnections
-  for (i <- 0 until io.aluEn.length) {
-    io.aluEn(i) := enWires.values.toSeq(i)
+  for (i <- 0 until io.en.length) {
+    io.en(i) := enWires.values.toSeq(i)
   }
 
 

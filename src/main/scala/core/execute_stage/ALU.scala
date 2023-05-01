@@ -1,14 +1,16 @@
 package xodus.core.execute_stage
 
-import chisel3._, chisel3.util._
-import xodus.configs.Configs, xodus.core.pipeline_regs.RegDE_IO
+import chisel3._,
+       chisel3.util._
+import xodus.configs.Configs,
+       xodus.core.pipeline_regs.RegDE_IO
 
 
 class ALU_IO extends Bundle with Configs {
   // Input ports
   val in: Vec[SInt] = Flipped(new RegDE_IO().dataOut)
-  val en: Vec[Bool] = Flipped(new ControlUnitIO().aluEn)
-  //val pc      : UInt      = Input(UInt(XLEN.W))
+  val pc: UInt      = Flipped(new RegDE_IO().pcOut)
+  val en: Vec[Bool] = Input(Vec(12, Bool()))
 
   // Output ports
   val out: SInt = Output(SInt(32.W))
@@ -18,10 +20,7 @@ class ALU_IO extends Bundle with Configs {
 class ALU extends Module with Configs {
   val io: ALU_IO = IO(new ALU_IO)
 
-  val en: Seq[String] = Seq(
-    "imm", "+", "signed <", "unsigned <", "&",
-    "|",   "^", "<<",       ">>",         ">>>"
-  )
+  val en: Seq[String] = new ControlUnit().aluEn
 
   // Wire Maps
   val sintWires: Map[String, SInt] = (
@@ -39,28 +38,26 @@ class ALU extends Module with Configs {
     Mux(boolWires("imm"), sintWires("imm"), sintWires("rs2"))
   )
 
-  val op: Map[String, SInt] = Map(
-    "+"          -> (inputs(0) + inputs(1)),
-    "signed <"   -> (inputs(0) < inputs(1)).asSInt,
-    "unsigned <" -> (inputs(0).asUInt < inputs(1).asUInt).asSInt,
-    "&"          -> (inputs(0) & inputs(1)).asSInt,
-    "|"          -> (inputs(0) | inputs(1)).asSInt,
-    "^"          -> (inputs(0) ^ inputs(1)).asSInt,
-    "<<"         -> (inputs(0) << inputs(1)(4, 0)).asSInt,
-    ">>"         -> (inputs(0).asUInt >> inputs(1)(4, 0)).asSInt,
-    ">>>"        -> (inputs(0) >> inputs(1)(4, 0))
-  )
+  val op: Map[String, SInt] = Seq(
+    inputs(0) + inputs(1),
+    (inputs(0) < inputs(1)).asSInt,
+    (inputs(0).asUInt < inputs(1).asUInt).asSInt,
+    (inputs(0) & inputs(1)).asSInt,
+    (inputs(0) | inputs(1)).asSInt,
+    (inputs(0) ^ inputs(1)).asSInt,
+    (inputs(0) << inputs(1)(4, 0)).asSInt,
+    (inputs(0).asUInt >> inputs(1)(4, 0)).asSInt,
+    (inputs(0) >> inputs(1)(4, 0)),
+    inputs(1),
+    inputs(0) - inputs(1),
+  ).zipWithIndex.map(
+    x => en(x._2) -> x._1
+  ).toMap
 
   // Interconnections
-  io.out := MuxCase(op("+"), Seq(
-    "signed <",
-    "unsigned <",
-    "&",
-    "|",
-    "^"
-  ).map(
+  io.out := MuxCase(op("+"), op.keys.slice(1, op.size).map(
     x => boolWires(x) -> op(x)
-  ))
+  ).toSeq)
 
 
 

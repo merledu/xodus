@@ -1,6 +1,7 @@
 package xodus.core.decode_stage
 
-import chisel3._, chisel3.util._
+import chisel3._,
+       chisel3.util._
 import xodus.configs.Configs
 
 
@@ -49,12 +50,12 @@ class Decoder extends RawModule with Configs {
 
   // Interconnections
   Seq(
-    (io.opcode, "opcode"),
-    (io.rAddr(0), "rd"),
-    (io.funct3, "funct3"),
-    (io.funct7, "funct7"),
+    "opcode" -> io.opcode,
+    "rd"     -> io.rAddr(0),
+    "funct3" -> io.funct3,
+    "funct7" -> io.funct7
   ).map(
-    x => x._1 := uintWires(x._2)
+    x => x._2 := uintWires(x._1)
   )
 
   for (i <- 1 to 2) {

@@ -1,7 +1,9 @@
 package xodus.core.pipeline_regs
 
-import chisel3._, chisel3.util._
-import xodus.configs.Configs, xodus.core.execute_stage.ALU_IO
+import chisel3._,
+       chisel3.util._
+import xodus.configs.Configs,
+       xodus.core.execute_stage.ALU_IO
 
 class RegEM_IO extends Bundle with Configs {
   // Input ports
@@ -15,7 +17,7 @@ class RegEM_IO extends Bundle with Configs {
 class RegEM extends Module with Configs {
   val io: RegEM_IO = IO(new RegEM_IO)
 
-  // Interconnections
+  // Pipeline
   genPipeline(Seq(
     io.aluIn -> io.aluOut
   )).map {

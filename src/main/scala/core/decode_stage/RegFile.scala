@@ -1,6 +1,7 @@
 package xodus.core.decode_stage
 
-import chisel3._, chisel3.util._
+import chisel3._,
+       chisel3.util._
 import xodus.configs._
 
 

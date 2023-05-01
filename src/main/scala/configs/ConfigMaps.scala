@@ -50,18 +50,86 @@ class ConfigMaps {
     "J" -> Map("jal" -> "b1101111")
   )
 
-  val iInstMap: Map[String, Map[String, String]] = Map(
-    "addi"  -> "b000",
-    "slti"  -> "b010",
-    "sltiu" -> "b011",
-    "andi"  -> "b111",
-    "ori"   -> "b110",
-    "xori"  -> "b100",
-    "slli"  -> "b001"
+  val iInstMap: Map[String, Map[String, String]] = ((
+    Map(
+      "addi"  -> "b000",
+      "slti"  -> "b010",
+      "sltiu" -> "b011",
+      "andi"  -> "b111",
+      "ori"   -> "b110",
+      "xori"  -> "b100",
+    ).map(
+      x => x._1 -> (x._2, "iArith")
+    ) ++ Map(
+      "lb"  -> "b000",
+      "lh"  -> "b001",
+      "lw"  -> "b010",
+      "lbu" -> "b100",
+      "lhu" -> "b101"
+    ).map(
+      x => x._1 -> (x._2, "load")
+    ) ++ Map(
+      "jalr" -> ("b000", "jalr")
+    )).map(
+      x => x._1 -> (x._2, "I")
+    ) ++ Map(
+      "sb" -> "b000",
+      "sh" -> "b001",
+      "sw" -> "b010"
+    ).map(
+      x => x._1 -> ((x._2, "store"), "S")
+    ) ++ Map(
+      "beq"  -> "b000",
+      "bne"  -> "b001",
+      "blt"  -> "b100",
+      "bge"  -> "b101",
+      "bltu" -> "b110",
+      "bgeu" -> "b111"
+    ).map(
+      x => x._1 -> ((x._2, "branch"), "B")
+    )
   ).map(
     x => x._1 -> Map(
-      "opcode" -> iOpcodeMap("I")("iArith"),
-      "funct3" -> x._2
+      "opcode" -> iOpcodeMap(x._2._2)(x._2._1._2),
+      "funct3" -> x._2._1._1
+    )
+  ) ++ Map(
+    "slli"  -> ("b001", "b0000000"),
+    "srli"  -> ("b101", "b0000000"),
+    "srai"  -> ("b101", "b0100000")
+  ).map(
+    x => x._1 -> Map(
+      "opcode"   -> iOpcodeMap("I")("iArith"),
+      "funct3"   -> x._2._1,
+      "imm31_25" -> x._2._2
+    )
+  ) ++ (
+    Seq(
+      "lui", "auipc"
+    ).map(
+      x => x -> "U"
+    ) ++ Seq(
+      "jal" -> "J"
+    )).map(
+    x => x._1 -> Map(
+      "opcode" -> iOpcodeMap(x._2)(x._1)
+    )
+  ).toMap ++ Map(
+    "add"  -> ("b000", "b0000000"),
+    "sub"  -> ("b000", "b0100000"),
+    "sll"  -> ("b001", "b0000000"),
+    "slt"  -> ("b010", "b0000000"),
+    "sltu" -> ("b011", "b0000000"),
+    "xor"  -> ("b100", "b0000000"),
+    "srl"  -> ("b101", "b0000000"),
+    "sra"  -> ("b101", "b0100000"),
+    "or"   -> ("b110", "b0000000"),
+    "and"  -> ("b111", "b0000000")
+  ).map(
+    x => x._1 -> Map(
+      "opcode" -> iOpcodeMap("R")("iArith"),
+      "funct3" -> x._2._1,
+      "funct7" -> x._2._2
     )
   )
 
