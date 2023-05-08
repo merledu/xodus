@@ -2,9 +2,9 @@ package xodus.configs
 
 
 class ConfigMaps {
-  val variants: Seq[String] = Seq("32", "64")
+  val variants = Seq("32", "64")
 
-  val params: Map[String, Map[String, Int]] = Map(
+  val params = Map(
     // I Extension
     "XLEN"         -> Seq(32, 64),
     "RegAddrWidth" -> Seq(5, 6),
@@ -34,7 +34,7 @@ class ConfigMaps {
   )
 
   // I Extension
-  val iOpcodeMap: Map[String, Map[String, String]] = Map(
+  val iOpcodeMap = Map(
     "R" -> Map("iArith" -> "b0110011"),
     "I" -> Map(
       "jalr"   -> "b1100111",
@@ -50,7 +50,7 @@ class ConfigMaps {
     "J" -> Map("jal" -> "b1101111")
   )
 
-  val iInstMap: Map[String, Map[String, String]] = ((
+  val iInstMap = ((
     Map(
       "addi"  -> "b000",
       "slti"  -> "b010",
@@ -133,12 +133,26 @@ class ConfigMaps {
     )
   )
 
+  val iAluEn = Seq(
+    "+",     "s<", "u<", "&",   "|",
+    "^",     "<<", ">>", ">>>", "lui",
+    "auipc", "-",  "imm"
+  )
+
+  val iCuEnMap = Map(
+    "aluEn" -> iAluEn
+  )
+
   // Accumulated Maps
-  val opcodeMap: Map[String, Map[String, Map[String, String]]] = Map(
+  val opcodeMap = Map(
     "i" -> iOpcodeMap
   )
 
-  val instMap: Map[String, Map[String, Map[String, String]]] = Map(
+  val instMap = Map(
     "i" -> iInstMap
+  )
+
+  val cuEnMap = Map(
+    "i" -> iCuEnMap
   )
 }

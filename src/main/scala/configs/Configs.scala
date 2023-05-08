@@ -2,31 +2,44 @@ package xodus.configs
 
 
 trait Configs {
-  val conf: ConfigMaps = new ConfigMaps
+  val conf = new ConfigMaps
 
-  val variant   : String = "32"
-  val extensions: String = "i"
+  val variant    = "32"
+  val extensions = "i"
 
-  val Debug: Boolean = true
+  val Debug = true
 
-  val XLEN        : Int = conf.params("XLEN")(variant)
-  val RegAddrWidth: Int = conf.params("RegAddrWidth")(variant)
-  val OpcodeWidth : Int = conf.params("OpcodeWidth")(variant)
-  val Funct3Width : Int = conf.params("Funct3Width")(variant)
-  val Funct7Width : Int = conf.params("Funct7Width")(variant)
-  val MemDepth    : Int = conf.params("MemDepth")(variant)
+  val XLEN         = conf.params("XLEN")(variant)
+  val RegAddrWidth = conf.params("RegAddrWidth")(variant)
+  val OpcodeWidth  = conf.params("OpcodeWidth")(variant)
+  val Funct3Width  = conf.params("Funct3Width")(variant)
+  val Funct7Width  = conf.params("Funct7Width")(variant)
+  val MemDepth     = conf.params("MemDepth")(variant)
 
-  val opcodes: Map[String, Map[String, String]] = (
-    for (ext <- extensions)
-      yield conf.opcodeMap(ext.toString)
-  ).reduce(
-    (x, y) => x ++ y
+  val isaMaps = Map(
+    "opcodes" -> conf.opcodeMap,
+    "insts"   -> conf.instMap
   )
 
-  val insts: Map[String, Map[String, String]] = (
-    for (ext <- extensions)
-      yield conf.instMap(ext.toString)
-  ).reduce(
-    (x, y) => x ++ y
+  val archMaps = Map(
+    "cuEn" -> conf.cuEnMap
+  )
+
+  val isa = isaMaps.map(
+    x => x._1 -> (
+      for (ext <- extensions)
+        yield x._2(ext.toString)
+    ).reduce(
+      (y, z) => y ++ z
+    )
+  )
+
+  val arch = archMaps.map(
+    x => x._1 -> (
+      for (ext <- extensions)
+        yield x._2(ext.toString)
+    ).reduce(
+      (y, z) => y ++ z
+    )
   )
 }

@@ -7,22 +7,22 @@ import xodus.configs.Configs
 
 class DecoderIO extends Bundle with Configs {
   // Input ports
-  val inst: UInt = Input(UInt(XLEN.W))
+  val inst = Input(UInt(XLEN.W))
   
   // Output ports
-  val opcode: UInt      = Output(UInt(OpcodeWidth.W))
-  val rAddr : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
-  val funct3: UInt      = Output(UInt(Funct3Width.W))
-  val funct7: UInt      = Output(UInt(Funct7Width.W))
-  val imm   : SInt      = Output(SInt(XLEN.W))
+  val opcode = Output(UInt(OpcodeWidth.W))
+  val rAddr  = Output(Vec(3, UInt(RegAddrWidth.W)))
+  val funct3 = Output(UInt(Funct3Width.W))
+  val funct7 = Output(UInt(Funct7Width.W))
+  val imm    = Output(SInt(XLEN.W))
 }
 
 
 class Decoder extends RawModule with Configs {
-  val io: DecoderIO = IO(new DecoderIO)
+  val io = IO(new DecoderIO)
 
   // Wire Maps
-  val uintWires: Map[String, UInt] = Map(
+  val uintWires = Map(
     "opcode" -> (6, 0),
     "rd"     -> (11, 7),
     "funct3" -> (14, 12),
@@ -34,18 +34,25 @@ class Decoder extends RawModule with Configs {
   )
 
   // Immediate Generation
-  // Default: I immediate
-  io.imm := MuxCase(io.inst(31, 20).asSInt, Seq(
-    opcodes("S") -> Cat(io.inst(31, 25), io.inst(11, 7)),
-    opcodes("B") -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), 0.U(1.W)),
-    opcodes("U") -> Cat(io.inst(31, 12), 0.U(12.W)),
-    opcodes("J") -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
+  val imm = Map(
+    "I" -> io.inst(31, 20),
+    "S" -> Cat(io.inst(31, 25), io.inst(11, 7)),
+    "B" -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), 0.U(1.W)),
+    "U" -> Cat(io.inst(31, 12), 0.U(12.W)),
+    "J" -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
   ).map(
-    x => x._1.values.map(
+    x => x._1 -> x._2.asSInt
+  )
+
+  // Default: I immediate
+  io.imm := MuxCase(imm("I"), Seq(
+    "S", "B", "U", "J"
+  ).map(
+    x => isa("opcodes")(x).values.map(
       y => uintWires("opcode") === y.U
     ).reduce(
       (a, b) => a || b
-    ) -> x._2.asSInt
+    ) -> imm(x)
   ))
 
   // Interconnections
@@ -66,11 +73,16 @@ class Decoder extends RawModule with Configs {
 
   // Debug
   if (Debug) {
-    val debug_opcode: UInt = dontTouch(WireInit(uintWires("opcode")))
-    val debug_rd    : UInt = dontTouch(WireInit(uintWires("rd")))
-    val debug_funct3: UInt = dontTouch(WireInit(uintWires("funct3")))
-    val debug_rs1   : UInt = dontTouch(WireInit(uintWires("rs1")))
-    val debug_rs2   : UInt = dontTouch(WireInit(uintWires("rs2")))
-    val debug_funct7: UInt = dontTouch(WireInit(uintWires("funct7")))
+    val debug_opcode = dontTouch(WireInit(uintWires("opcode")))
+    val debug_rd     = dontTouch(WireInit(uintWires("rd")))
+    val debug_funct3 = dontTouch(WireInit(uintWires("funct3")))
+    val debug_rs1    = dontTouch(WireInit(uintWires("rs1")))
+    val debug_rs2    = dontTouch(WireInit(uintWires("rs2")))
+    val debug_funct7 = dontTouch(WireInit(uintWires("funct7")))
+    val debug_I_imm  = dontTouch(WireInit(imm("I")))
+    val debug_S_imm  = dontTouch(WireInit(imm("S")))
+    val debug_B_imm  = dontTouch(WireInit(imm("B")))
+    val debug_U_imm  = dontTouch(WireInit(imm("U")))
+    val debug_J_imm  = dontTouch(WireInit(imm("J")))
   }
 }
