@@ -25,7 +25,11 @@ class Core extends Module {
 
   //val regMW: RegMW_IO = Module(new RegMW).io
 
-  // Fetch Stage
+
+  /***************
+   * Fetch Stage *
+   ***************/
+
   Seq(
     pc.pc   -> regFD.pcIn,
     pc.addr -> regFD.addrIn
@@ -33,19 +37,23 @@ class Core extends Module {
     x => x._2 := x._1
   )
 
-  // Decode Stage
+
+  /****************
+   * Decode Stage *
+   ****************/
+
   Seq(regFile.rAddr, regDE.rAddrIn).map(
     x => decoder.rAddr <> x
   )
   Seq(
-    0.S            -> regFile.write.bits,
-    0.B            -> regFile.write.valid,
-    0x01900293.U   -> decoder.inst,
-    decoder.opcode -> regDE.opcodeIn,
-    decoder.funct3 -> regDE.funct3In,
-    decoder.funct7 -> regDE.funct7In,
-    decoder.imm    -> regDE.dataIn(2),
-    regFD.pcOut    -> regDE.pcIn
+    0.S                 -> regFile.write.bits,
+    0.B                 -> regFile.write.valid,
+    0x01900293.U        -> decoder.inst,
+    decoder.opcode      -> regDE.opcodeIn,
+    decoder.funct3      -> regDE.funct3In,
+    decoder.funct7_imm7 -> regDE.funct7_imm7In,
+    decoder.imm         -> regDE.dataIn(2),
+    regFD.pcOut         -> regDE.pcIn
   ).map(
     x => x._2 := x._1
   )
@@ -53,7 +61,11 @@ class Core extends Module {
     regDE.dataIn(i) := regFile.read(i)
   }
 
-  // Execute Stage
+
+  /*****************
+   * Execute Stage *
+   *****************/
+
   //Seq(
   //  regDE.opcodeOut  -> cu.opcode,
   //  regDE.funct3Out  -> cu.funct3,
@@ -73,14 +85,22 @@ class Core extends Module {
   //  alu.en(i) := cu.en(0)
   //}
 
-  // Memory Stage
+
+  /****************
+   * Memory Stage *
+   ****************/
+
   //Seq(
   //  regEM.aluOut -> regMW.aluIn
   //).map(
   //  x => x._2 := x._1
   //)
 
-  // Write-Back Stage
+
+  /********************
+   * Write Back Stage *
+   ********************/
+
   //Seq(
   //  regMW.aluOut -> regFile.write.bits
   //).map(

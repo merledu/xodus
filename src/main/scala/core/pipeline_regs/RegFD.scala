@@ -8,17 +8,17 @@ import xodus.configs.Configs,
 
 class RegFD_IO extends Bundle with Configs {
   // Input ports
-  val pcIn  : UInt = Flipped(new PC_IO().pc)
-  val addrIn: UInt = Flipped(new PC_IO().addr)
+  val pcIn   = Flipped(new PC_IO().pc)
+  val addrIn = Flipped(new PC_IO().addr)
   
   // Output ports
-  val pcOut  : UInt = Flipped(pcIn)
-  val addrOut: UInt = Flipped(addrIn)
+  val pcOut   = Flipped(pcIn)
+  val addrOut = Flipped(addrIn)
 }
 
 
 class RegFD extends Module with Configs {
-  val io: RegFD_IO = IO(new RegFD_IO)
+  val io = IO(new RegFD_IO)
 
   // Pipeline
   genPipeline(Seq(

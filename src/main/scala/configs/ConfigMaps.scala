@@ -2,38 +2,17 @@ package xodus.configs
 
 
 class ConfigMaps {
-  val variants = Seq("32", "64")
-
   val params = Map(
-    // I Extension
-    "XLEN"         -> Seq(32, 64),
-    "RegAddrWidth" -> Seq(5, 6),
-    "OpcodeWidth"  -> Seq(7, 0),
-    "Funct3Width"  -> Seq(3, 0),
-    "Funct7Width"  -> Seq(7, 0),
-
-    // M Extension
-    // A Extension
-
-    // F Extension
-    "FLEN"     -> Seq(32, 64),
-    "ExpWidth" -> Seq(8, 11),
-    "SigWidth" -> Seq(23, 52),
+    "XLEN"         -> 32,
+    "RegAddrWidth" -> 5,
+    "OpcodeWidth"  -> 7,
+    "Funct3Width"  -> 3,
+    "Funct7Width"  -> 7,
 
     // Other
-    "MemDepth" -> (
-      for (i <- 0 until 2)
-        yield 32
-    )
-  ).map(
-    x => x._1 -> (
-      variants zip x._2
-    ).map(
-      y => y._1 -> y._2
-    ).toMap
+    "MemDepth" -> 32
   )
 
-  // I Extension
   val iOpcodeMap = Map(
     "R" -> Map("iArith" -> "b0110011"),
     "I" -> Map(
@@ -51,7 +30,7 @@ class ConfigMaps {
   )
 
   val iInstMap = ((
-    Map(
+    Map(  // 0 - 5
       "addi"  -> "b000",
       "slti"  -> "b010",
       "sltiu" -> "b011",
@@ -60,7 +39,7 @@ class ConfigMaps {
       "xori"  -> "b100",
     ).map(
       x => x._1 -> (x._2, "iArith")
-    ) ++ Map(
+    ) ++ Map(  // 6 - 10
       "lb"  -> "b000",
       "lh"  -> "b001",
       "lw"  -> "b010",
@@ -68,17 +47,17 @@ class ConfigMaps {
       "lhu" -> "b101"
     ).map(
       x => x._1 -> (x._2, "load")
-    ) ++ Map(
+    ) ++ Map(  // 11
       "jalr" -> ("b000", "jalr")
     )).map(
       x => x._1 -> (x._2, "I")
-    ) ++ Map(
+    ) ++ Map(  // 12 - 14
       "sb" -> "b000",
       "sh" -> "b001",
       "sw" -> "b010"
     ).map(
       x => x._1 -> ((x._2, "store"), "S")
-    ) ++ Map(
+    ) ++ Map(  // 15 - 20
       "beq"  -> "b000",
       "bne"  -> "b001",
       "blt"  -> "b100",
@@ -90,31 +69,31 @@ class ConfigMaps {
     )
   ).map(
     x => x._1 -> Map(
-      "opcode" -> iOpcodeMap(x._2._2)(x._2._1._2),
-      "funct3" -> x._2._1._1
+      "funct3" -> x._2._1._1,
+      "opcode" -> iOpcodeMap(x._2._2)(x._2._1._2)
     )
-  ) ++ Map(
+  ) ++ Map(  // 21 - 23
     "slli"  -> ("b001", "b0000000"),
     "srli"  -> ("b101", "b0000000"),
     "srai"  -> ("b101", "b0100000")
   ).map(
     x => x._1 -> Map(
-      "opcode"   -> iOpcodeMap("I")("iArith"),
+      "imm31_25" -> x._2._2,
       "funct3"   -> x._2._1,
-      "imm31_25" -> x._2._2
+      "opcode"   -> iOpcodeMap("I")("iArith")
     )
   ) ++ (
-    Seq(
+    Seq(  // 24 - 25
       "lui", "auipc"
     ).map(
       x => x -> "U"
-    ) ++ Seq(
+    ) ++ Seq(  // 26
       "jal" -> "J"
     )).map(
     x => x._1 -> Map(
       "opcode" -> iOpcodeMap(x._2)(x._1)
     )
-  ).toMap ++ Map(
+  ).toMap ++ Map(  // 27 - 36
     "add"  -> ("b000", "b0000000"),
     "sub"  -> ("b000", "b0100000"),
     "sll"  -> ("b001", "b0000000"),
@@ -127,32 +106,17 @@ class ConfigMaps {
     "and"  -> ("b111", "b0000000")
   ).map(
     x => x._1 -> Map(
-      "opcode" -> iOpcodeMap("R")("iArith"),
+      "funct7" -> x._2._2,
       "funct3" -> x._2._1,
-      "funct7" -> x._2._2
+      "opcode" -> iOpcodeMap("R")("iArith")
     )
   )
 
   val iAluEn = Seq(
-    "+",     "s<", "u<", "&",   "|",
-    "^",     "<<", ">>", ">>>", "lui",
-    "auipc", "-",  "imm"
+    "+", "s<", "u<", "&",   "|",
+    "^", "<<", ">>", ">>>", "lui",
+    "-", "imm"
   )
 
-  val iCuEnMap = Map(
-    "aluEn" -> iAluEn
-  )
-
-  // Accumulated Maps
-  val opcodeMap = Map(
-    "i" -> iOpcodeMap
-  )
-
-  val instMap = Map(
-    "i" -> iInstMap
-  )
-
-  val cuEnMap = Map(
-    "i" -> iCuEnMap
-  )
+  val iCuEn = iAluEn
 }

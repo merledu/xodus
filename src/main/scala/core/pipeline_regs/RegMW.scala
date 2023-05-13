@@ -6,14 +6,14 @@ import xodus.configs.Configs
 
 class RegMW_IO extends Bundle with Configs {
   // Input ports
-  val aluIn: SInt = Flipped(new RegEM_IO().aluOut)
+  val aluIn = Flipped(new RegEM_IO().aluOut)
   // Output ports
-  val aluOut: SInt = Flipped(aluIn)
+  val aluOut = Flipped(aluIn)
 }
 
 
 class RegMW extends Module with Configs {
-  val io: RegMW_IO = IO(new RegMW_IO)
+  val io = IO(new RegMW_IO)
 
   // Pipeline
   genPipeline(Seq(

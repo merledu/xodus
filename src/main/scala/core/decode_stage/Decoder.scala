@@ -10,25 +10,25 @@ class DecoderIO extends Bundle with Configs {
   val inst = Input(UInt(XLEN.W))
   
   // Output ports
-  val opcode = Output(UInt(OpcodeWidth.W))
-  val rAddr  = Output(Vec(3, UInt(RegAddrWidth.W)))
-  val funct3 = Output(UInt(Funct3Width.W))
-  val funct7 = Output(UInt(Funct7Width.W))
-  val imm    = Output(SInt(XLEN.W))
+  val opcode      = Output(UInt(OpcodeWidth.W))
+  val rAddr       = Output(Vec(3, UInt(RegAddrWidth.W)))
+  val funct3      = Output(UInt(Funct3Width.W))
+  val funct7_imm7 = Output(UInt(Funct7Width.W))
+  val imm         = Output(SInt(XLEN.W))
 }
 
 
 class Decoder extends RawModule with Configs {
   val io = IO(new DecoderIO)
 
-  // Wire Maps
+  // Wires
   val uintWires = Map(
-    "opcode" -> (6, 0),
-    "rd"     -> (11, 7),
-    "funct3" -> (14, 12),
-    "rs1"    -> (19, 15),
-    "rs2"    -> (24, 20),
-    "funct7" -> (31, 25)
+    "opcode"            -> (6, 0),
+    "rd"                -> (11, 7),
+    "funct3"            -> (14, 12),
+    "rs1"               -> (19, 15),
+    "rs2"               -> (24, 20),
+    "funct7/imm(11, 5)" -> (31, 25)
   ).map(
     x => x._1 -> io.inst(x._2._1, x._2._2)
   )
@@ -44,6 +44,10 @@ class Decoder extends RawModule with Configs {
     x => x._1 -> x._2.asSInt
   )
 
+  /********************
+   * Interconnections *
+   ********************/
+
   // Default: I immediate
   io.imm := MuxCase(imm("I"), Seq(
     "S", "B", "U", "J"
@@ -55,12 +59,11 @@ class Decoder extends RawModule with Configs {
     ) -> imm(x)
   ))
 
-  // Interconnections
   Seq(
-    "opcode" -> io.opcode,
-    "rd"     -> io.rAddr(0),
-    "funct3" -> io.funct3,
-    "funct7" -> io.funct7
+    "opcode"            -> io.opcode,
+    "rd"                -> io.rAddr(0),
+    "funct3"            -> io.funct3,
+    "funct7/imm(11, 5)" -> io.funct7
   ).map(
     x => x._2 := uintWires(x._1)
   )
@@ -73,16 +76,16 @@ class Decoder extends RawModule with Configs {
 
   // Debug
   if (Debug) {
-    val debug_opcode = dontTouch(WireInit(uintWires("opcode")))
-    val debug_rd     = dontTouch(WireInit(uintWires("rd")))
-    val debug_funct3 = dontTouch(WireInit(uintWires("funct3")))
-    val debug_rs1    = dontTouch(WireInit(uintWires("rs1")))
-    val debug_rs2    = dontTouch(WireInit(uintWires("rs2")))
-    val debug_funct7 = dontTouch(WireInit(uintWires("funct7")))
-    val debug_I_imm  = dontTouch(WireInit(imm("I")))
-    val debug_S_imm  = dontTouch(WireInit(imm("S")))
-    val debug_B_imm  = dontTouch(WireInit(imm("B")))
-    val debug_U_imm  = dontTouch(WireInit(imm("U")))
-    val debug_J_imm  = dontTouch(WireInit(imm("J")))
+    val debug_opcode      = dontTouch(WireInit(uintWires("opcode")))
+    val debug_rd          = dontTouch(WireInit(uintWires("rd")))
+    val debug_funct3      = dontTouch(WireInit(uintWires("funct3")))
+    val debug_rs1         = dontTouch(WireInit(uintWires("rs1")))
+    val debug_rs2         = dontTouch(WireInit(uintWires("rs2")))
+    val debug_funct7_imm7 = dontTouch(WireInit(uintWires("funct7/imm(11, 5)")))
+    val debug_I_imm       = dontTouch(WireInit(imm("I")))
+    val debug_S_imm       = dontTouch(WireInit(imm("S")))
+    val debug_B_imm       = dontTouch(WireInit(imm("B")))
+    val debug_U_imm       = dontTouch(WireInit(imm("U")))
+    val debug_J_imm       = dontTouch(WireInit(imm("J")))
   }
 }

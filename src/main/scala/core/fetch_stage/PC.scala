@@ -9,22 +9,26 @@ class PC_IO extends Bundle with Configs {
   // Input ports
   
   // Output ports
-  val addr: UInt = Output(UInt(MemDepth.W))
-  val pc  : UInt = Output(UInt(XLEN.W))
+  val addr = Output(UInt(MemDepth.W))
+  val pc   = Output(UInt(XLEN.W))
 }
 
 
 class PC extends Module with Configs {
-  val io: PC_IO = IO(new PC_IO)
+  val io = IO(new PC_IO)
 
   // Program Counter
-  val pc: UInt = RegInit(0.U(XLEN.W))
+  val pc = RegInit(0.U(XLEN.W))
 
-  // Interconnections
+
+  /********************
+   * Interconnections *
+   ********************/
+
   Seq(
     pc(MemDepth - 1, 2) -> io.addr,
     pc                  -> io.pc,
-    pc + 4.U            -> pc
+    (pc + 4.U)          -> pc
   ).map(
     x => x._2 := x._1
   )

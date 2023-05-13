@@ -18,7 +18,7 @@ class RegFileIO extends Bundle with Configs {
 class RegFile extends Module with Configs {
   val io = IO(new RegFileIO)
 
-  // Wire Maps
+  // Wires
   val addrWires = (
     for (i <- 1 to 2)
       yield s"rs${i}" -> io.rAddr(i)
@@ -29,12 +29,18 @@ class RegFile extends Module with Configs {
   // Register File
   val regFile = Reg(Vec(XLEN, SInt(XLEN.W)))
  
-  // Data is written when valid bit is high
+
+  /********************
+   * Interconnections *
+   ********************/
+
+  // Data is written to Register File
+  // when valid bit is high and rd is not 0
   when (io.write.valid && addrWires("rd").orR) {
     regFile(addrWires("rd")) := io.write.bits
   }
 
-  // Reading from registers
+  // Reading from Register File
   for (i <- 0 until io.read.length) {
     io.read(i) := Mux(
       addrWires(s"rs${i + 1}").orR,
