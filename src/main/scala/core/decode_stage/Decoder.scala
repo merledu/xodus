@@ -63,7 +63,7 @@ class Decoder extends RawModule with Configs {
     "opcode"            -> io.opcode,
     "rd"                -> io.rAddr(0),
     "funct3"            -> io.funct3,
-    "funct7/imm(11, 5)" -> io.funct7
+    "funct7/imm(11, 5)" -> io.funct7_imm7
   ).map(
     x => x._2 := uintWires(x._1)
   )
