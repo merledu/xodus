@@ -1,11 +1,14 @@
 package xodus.core
 
-import chisel3._, chiseltest._, org.scalatest.freespec.AnyFreeSpec
+import chisel3._,
+       chiseltest._,
+       chiseltest.simulator.VerilatorBackendAnnotation,
+       org.scalatest.freespec.AnyFreeSpec
 
 
 class CoreTest extends AnyFreeSpec with ChiselScalatestTester {
   "Core" in {
-    test(new Core) {
+    test(new Core).withAnnotations(Seq(VerilatorBackendAnnotation)) {
       core =>
         core.clock.step(3)
     }

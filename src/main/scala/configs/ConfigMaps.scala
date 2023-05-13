@@ -72,28 +72,13 @@ class ConfigMaps {
       "funct3" -> x._2._1._1,
       "opcode" -> iOpcodeMap(x._2._2)(x._2._1._2)
     )
-  ) ++ Map(  // 21 - 23
-    "slli"  -> ("b001", "b0000000"),
-    "srli"  -> ("b101", "b0000000"),
-    "srai"  -> ("b101", "b0100000")
+  ) ++ (Map(  // 21 - 23
+    "slli" -> ("b001", "b0000000"),
+    "srli" -> ("b101", "b0000000"),
+    "srai" -> ("b101", "b0100000")
   ).map(
-    x => x._1 -> Map(
-      "imm31_25" -> x._2._2,
-      "funct3"   -> x._2._1,
-      "opcode"   -> iOpcodeMap("I")("iArith")
-    )
-  ) ++ (
-    Seq(  // 24 - 25
-      "lui", "auipc"
-    ).map(
-      x => x -> "U"
-    ) ++ Seq(  // 26
-      "jal" -> "J"
-    )).map(
-    x => x._1 -> Map(
-      "opcode" -> iOpcodeMap(x._2)(x._1)
-    )
-  ).toMap ++ Map(  // 27 - 36
+    x => x._1 -> (x._2, "I")
+  ) ++ Map(  // 24 - 33
     "add"  -> ("b000", "b0000000"),
     "sub"  -> ("b000", "b0100000"),
     "sll"  -> ("b001", "b0000000"),
@@ -105,17 +90,30 @@ class ConfigMaps {
     "or"   -> ("b110", "b0000000"),
     "and"  -> ("b111", "b0000000")
   ).map(
+    x => x._1 -> (x._2, "R")
+  )).map(
     x => x._1 -> Map(
-      "funct7" -> x._2._2,
-      "funct3" -> x._2._1,
-      "opcode" -> iOpcodeMap("R")("iArith")
+      "funct7/imm(11, 5)" -> x._2._1._2,
+      "funct3" -> x._2._1._1,
+      "opcode" -> iOpcodeMap(x._2._2)("iArith")
     )
-  )
+  ) ++ (
+    Seq(  // 34 - 35
+      "lui", "auipc"
+    ).map(
+      x => x -> "U"
+    ) ++ Seq(  // 36
+      "jal" -> "J"
+    )).map(
+    x => x._1 -> Map(
+      "opcode" -> iOpcodeMap(x._2)(x._1)
+    )
+  ).toMap
 
   val iAluEn = Seq(
-    "+", "s<", "u<", "&",   "|",
-    "^", "<<", ">>", ">>>", "lui",
-    "-", "imm"
+    "s+", "s<", "u<",  "&",   "|",
+    "^",  "<<", ">>",  ">>>", "lui",
+    "u+", "-",  "imm", "auipc"
   )
 
   val iCuEn = iAluEn

@@ -20,43 +20,48 @@ class ALU_IO extends Bundle with Configs {
 class ALU extends Module with Configs {
   val io = IO(new ALU_IO)
 
-  // Wire Maps
+  // Wires
   val sintWires = (
     for (i <- 0 to 1)
       yield s"rs${i + 1}" -> io.in(i)
   ).toMap ++ Map("imm" -> io.in(2))
 
-  val boolWires = (
+  val enWires = (
     for (i <- 0 until io.en.length)
       yield arch("aluEn")(i) -> io.en(i)
   ).toMap
 
-  val inputs = Seq(
+  val sInputs = Seq(
     sintWires("rs1"),
-    Mux(boolWires("imm"), sintWires("imm"), sintWires("rs2"))
+    Mux(enWires("imm"), sintWires("imm"), sintWires("rs2"))
+  )
+
+  val uInputs = Seq(
+    io.pc,
+    Mux(enWires("auipc"), sintWires("imm").asUInt, 4.U)
   )
 
   val op = Seq(
-    inputs(0) + inputs(1),                         // +
-    (inputs(0) < inputs(1)).asSInt,                // s<
-    (inputs(0).asUInt < inputs(1).asUInt).asSInt,  // u<
-    (inputs(0) & inputs(1)).asSInt,                // &
-    (inputs(0) | inputs(1)).asSInt,                // |
-    (inputs(0) ^ inputs(1)).asSInt,                // ^
-    (inputs(0) << inputs(1)(4, 0)).asSInt,         // <<
-    (inputs(0).asUInt >> inputs(1)(4, 0)).asSInt,  // >>
-    (inputs(0) >> inputs(1)(4, 0)),                // >>>
-    inputs(1),                                     // lui
-    (io.pc + inputs(1).asUInt).asSInt,             // auipc
-    inputs(0) - inputs(1)                          // -
+    sInputs(0) + sInputs(1),                         // s+
+    (sInputs(0) < sInputs(1)).asSInt,                // s<
+    (sInputs(0).asUInt < sInputs(1).asUInt).asSInt,  // u<
+    (sInputs(0) & sInputs(1)).asSInt,                // &
+    (sInputs(0) | sInputs(1)).asSInt,                // |
+    (sInputs(0) ^ sInputs(1)).asSInt,                // ^
+    (sInputs(0) << sInputs(1)(4, 0)).asSInt,         // <<
+    (sInputs(0).asUInt >> sInputs(1)(4, 0)).asSInt,  // >>
+    (sInputs(0) >> sInputs(1)(4, 0)),                // >>>
+    sInputs(1),                                      // lui
+    (uInputs(0) + uInputs(1)).asSInt,                // u+
+    sInputs(0) - sInputs(1)                          // -
   ).view.zipWithIndex.map(
     x => arch("aluEn")(x._2) -> x._1
   ).toMap
 
   // Output Selection
-  // Default: +
-  io.out := MuxCase(op("+"), op.keys.view.slice(1, op.size).map(
-    x => boolWires(x) -> op(x)
+  // Default: s+
+  io.out := MuxCase(op("s+"), op.keys.view.slice(1, op.size).map(
+    x => enWires(x) -> op(x)
   ).toSeq)
 
 
@@ -65,21 +70,25 @@ class ALU extends Module with Configs {
     val debug_rs1                       = dontTouch(WireInit(sintWires("rs1")))
     val debug_rs2                       = dontTouch(WireInit(sintWires("rs2")))
     val debug_imm                       = dontTouch(WireInit(sintWires("imm")))
-    val debug_input1                    = dontTouch(WireInit(inputs(0)))
-    val debug_input2                    = dontTouch(WireInit(inputs(1)))
-    val debug_addition_en               = dontTouch(WireInit(boolWires("+")))
-    val debug_signed_less_than_en       = dontTouch(WireInit(boolWires("s<")))
-    val debug_unsigned_less_than_en     = dontTouch(WireInit(boolWires("u<")))
-    val debug_and_en                    = dontTouch(WireInit(boolWires("&")))
-    val debug_or_en                     = dontTouch(WireInit(boolWires("|")))
-    val debug_xor_en                    = dontTouch(WireInit(boolWires("^")))
-    val debug_shift_left_logical_en     = dontTouch(WireInit(boolWires("<<")))
-    val debug_shift_right_logical_en    = dontTouch(WireInit(boolWires(">>")))
-    val debug_shift_right_arithmetic_en = dontTouch(WireInit(boolWires(">>>")))
-    val debug_lui_en                    = dontTouch(WireInit(boolWires("lui")))
-    val debug_auipc_en                  = dontTouch(WireInit(boolWires("auipc")))
-    val debug_subtraction_en            = dontTouch(WireInit(boolWires("-")))
-    val debug_addition                  = dontTouch(WireInit(op("+")))
+    val debug_sInput1                   = dontTouch(WireInit(sInputs(0)))
+    val debug_sInput2                   = dontTouch(WireInit(sInputs(1)))
+    val debug_uInput1                   = dontTouch(WireInit(uInputs(0)))
+    val debug_uInput2                   = dontTouch(WireInit(uInputs(1)))
+    val debug_signed_addition_en        = dontTouch(WireInit(enWires("s+")))
+    val debug_signed_less_than_en       = dontTouch(WireInit(enWires("s<")))
+    val debug_unsigned_less_than_en     = dontTouch(WireInit(enWires("u<")))
+    val debug_and_en                    = dontTouch(WireInit(enWires("&")))
+    val debug_or_en                     = dontTouch(WireInit(enWires("|")))
+    val debug_xor_en                    = dontTouch(WireInit(enWires("^")))
+    val debug_shift_left_logical_en     = dontTouch(WireInit(enWires("<<")))
+    val debug_shift_right_logical_en    = dontTouch(WireInit(enWires(">>")))
+    val debug_shift_right_arithmetic_en = dontTouch(WireInit(enWires(">>>")))
+    val debug_lui_en                    = dontTouch(WireInit(enWires("lui")))
+    val debug_unsigned_addition_en      = dontTouch(WireInit(enWires("u+")))
+    val debug_subtraction_en            = dontTouch(WireInit(enWires("-")))
+    val debug_imm_en                    = dontTouch(WireInit(enWires("imm")))
+    val debug_auipc_en                  = dontTouch(WireInit(enWires("auipc")))
+    val debug_signed_addition           = dontTouch(WireInit(op("s+")))
     val debug_signed_less_than          = dontTouch(WireInit(op("s<")))
     val debug_unsigned_less_than        = dontTouch(WireInit(op("u<")))
     val debug_and                       = dontTouch(WireInit(op("&")))
@@ -89,7 +98,7 @@ class ALU extends Module with Configs {
     val debug_shift_right_logical       = dontTouch(WireInit(op(">>")))
     val debug_shift_right_arithmetic    = dontTouch(WireInit(op(">>>")))
     val debug_lui                       = dontTouch(WireInit(op("lui")))
-    val debug_auipc                     = dontTouch(WireInit(op("auipc")))
+    val debug_unsigned_addition         = dontTouch(WireInit(op("u+")))
     val debug_subtraction               = dontTouch(WireInit(op("-")))
   }
 }
