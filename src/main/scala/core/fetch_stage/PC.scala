@@ -9,16 +9,22 @@ class PC_IO extends Bundle with Configs {
   // Input ports
   
   // Output ports
-  val addr = Output(UInt(MemDepth.W))
-  val pc   = Output(UInt(XLEN.W))
+  val addr: UInt = Output(UInt(MemDepth.W))
+  val pc  : UInt = Output(UInt(XLEN.W))
 }
 
 
 class PC extends Module with Configs {
-  val io = IO(new PC_IO)
+  val io: PC_IO = IO(new PC_IO)
 
   // Program Counter
-  val pc = RegInit(0.U(XLEN.W))
+  val pc: UInt = RegInit(0.U(XLEN.W))
+
+  // Wires
+  val uintWires: Map[String, UInt] = Map(
+    "addr" -> pc(MemDepth - 1, 2),
+    "npc"  -> (pc + 4.U)
+  )
 
 
   /********************
@@ -26,9 +32,9 @@ class PC extends Module with Configs {
    ********************/
 
   Seq(
-    pc(MemDepth - 1, 2) -> io.addr,
-    pc                  -> io.pc,
-    (pc + 4.U)          -> pc
+    uintWires("addr") -> io.addr,
+    pc                -> io.pc,
+    uintWires("npc")  -> pc
   ).map(
     x => x._2 := x._1
   )
@@ -37,6 +43,8 @@ class PC extends Module with Configs {
 
   // Debug
   if (Debug) {
-    val debug_pc: UInt = dontTouch(WireInit(pc))
+    val debug_pc  : UInt = dontTouch(WireInit(pc))
+    val debug_addr: UInt = dontTouch(WireInit(uintWires("addr")))
+    val debug_npc : UInt = dontTouch(WireInit(uintWires("npc")))
   }
 }

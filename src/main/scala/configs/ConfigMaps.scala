@@ -2,7 +2,7 @@ package xodus.configs
 
 
 class ConfigMaps {
-  val params = Map(
+  val params: Map[String, Int] = Map(
     "XLEN"         -> 32,
     "RegAddrWidth" -> 5,
     "OpcodeWidth"  -> 7,
@@ -10,10 +10,10 @@ class ConfigMaps {
     "Funct7Width"  -> 7,
 
     // Other
-    "MemDepth" -> 32
+    "MemDepth" -> 16
   )
 
-  val iOpcodeMap = Map(
+  val iOpcodeMap: Map[String, Map[String, String]] = Map(
     "R" -> Map("iArith" -> "b0110011"),
     "I" -> Map(
       "jalr"   -> "b1100111",
@@ -29,7 +29,7 @@ class ConfigMaps {
     "J" -> Map("jal" -> "b1101111")
   )
 
-  val iInstMap = ((
+  val iInstMap: Map[String, Map[String, String]] = ((
     Map(  // 0 - 5
       "addi"  -> "b000",
       "slti"  -> "b010",
@@ -110,11 +110,11 @@ class ConfigMaps {
     )
   ).toMap
 
-  val iAluEn = Seq(
+  val iAluEn: Seq[String] = Seq(
     "s+", "s<", "u<",  "&",   "|",
     "^",  "<<", ">>",  ">>>", "lui",
     "u+", "-",  "imm", "auipc"
   )
 
-  val iCuEn = iAluEn
+  val iCuEn: Seq[String] = iAluEn
 }

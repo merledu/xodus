@@ -1,16 +1,11 @@
-//package memory_stage
-//
-//import chisel3._, chisel3.util._
-//
-//import Memory.{MemReqIO, MemRespIO}
-//
-//
-//class DMemRouterIO(
-//  params   :Map[String, Int],
-//  paramMap :Map[String, Map[String, Int]],
-//  enNum    :Int
-//) extends Bundle {
-//  // Input pins
+package memory_stage
+
+import chisel3._,
+       chisel3.util._
+
+
+//class DMemRouterIO() extends Bundle {
+//  // Input ports
 //  val mem: Vec[SInt] = Input(Vec(2, SInt(params("XLEN").W)))
 //  val en : Vec[Bool] = Input(Vec(enNum, Bool()))
 //

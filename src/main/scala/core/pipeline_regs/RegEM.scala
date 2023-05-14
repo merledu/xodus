@@ -8,15 +8,15 @@ import xodus.configs.Configs,
 
 class RegEM_IO extends Bundle with Configs {
   // Input ports
-  val aluIn = Flipped(new ALU_IO().out)
+  val aluIn: SInt = Flipped(new ALU_IO().out)
 
   // Output ports
-  val aluOut = Flipped(aluIn)
+  val aluOut: SInt = Flipped(aluIn)
 }
 
 
 class RegEM extends Module with Configs {
-  val io = IO(new RegEM_IO)
+  val io: RegEM_IO = IO(new RegEM_IO)
 
   // Pipeline
   genPipeline(Seq(

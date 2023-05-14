@@ -4,24 +4,34 @@ import chisel3._
 import xodus.core.fetch_stage._,
        xodus.core.decode_stage._,
        xodus.core.pipeline_regs._,
-       xodus.core.execute_stage._
+       xodus.core.execute_stage._,
+       xodus.memory.MemoryIO
+
+
+class CoreIO extends Bundle {
+  val iMem: MemoryIO = Flipped(new MemoryIO)
+  //val dMem: MemoryIO = Flipped(new MemoryIO)
+}
 
 
 class Core extends Module {
+  val io: CoreIO = IO(new CoreIO)
+
   // Modules
-  val pc = Module(new PC).io
+  val pc      : PC_IO         = Module(new PC).io
+  val iMemJunc: InstMemJuncIO = Module(new InstMemJunc).io
 
-  val regFD = Module(new RegFD).io
+  val regFD: RegFD_IO = Module(new RegFD).io
 
-  val decoder = Module(new Decoder).io
-  val regFile = Module(new RegFile).io
+  val decoder: DecoderIO = Module(new Decoder).io
+  val regFile: RegFileIO = Module(new RegFile).io
 
-  val regDE = Module(new RegDE).io
+  val regDE: RegDE_IO = Module(new RegDE).io
 
-  val cu  = Module(new ControlUnit).io
-  val alu = Module(new ALU).io
+  val cu : ControlUnitIO = Module(new ControlUnit).io
+  val alu: ALU_IO        = Module(new ALU).io
 
-  val regEM = Module(new RegEM).io
+  val regEM: RegEM_IO = Module(new RegEM).io
 
   //val regMW: RegMW_IO = Module(new RegMW).io
 
@@ -30,9 +40,14 @@ class Core extends Module {
    * Fetch Stage *
    ***************/
 
+  io.iMem.req.en <> iMemJunc.en
   Seq(
-    pc.pc   -> regFD.pcIn,
-    pc.addr -> regFD.addrIn
+    pc.pc            -> regFD.pcIn,
+    pc.addr          -> iMemJunc.addrIn,
+    iMemJunc.addrOut -> io.iMem.req.addr,
+    0.U              -> io.iMem.req.data,
+    io.iMem.rsp.data -> iMemJunc.instIn,
+    iMemJunc.instOut -> regFD.instIn
   ).map(
     x => x._2 := x._1
   )
@@ -48,7 +63,7 @@ class Core extends Module {
   Seq(
     0.S                 -> regFile.write.bits,
     0.B                 -> regFile.write.valid,
-    0x01900293.U        -> decoder.inst,
+    regFD.instOut       -> decoder.inst,
     decoder.opcode      -> regDE.opcodeIn,
     decoder.funct3      -> regDE.funct3In,
     decoder.funct7_imm7 -> regDE.funct7_imm7In,
@@ -109,11 +124,15 @@ class Core extends Module {
 
 
   // Debug
-  val debug_PC_pc         = dontTouch(WireInit(pc.pc))
-  val debug_PC_addr       = dontTouch(WireInit(pc.addr))
+  val debug_PC_pc              : UInt = dontTouch(WireInit(pc.pc))
+  val debug_PC_addr            : UInt = dontTouch(WireInit(pc.addr))
+  val debug_InstMemJunc_addrOut: UInt = dontTouch(WireInit(iMemJunc.addrOut))
+  val debug_InstMemJunc_instOut: UInt = dontTouch(WireInit(iMemJunc.instOut))
+  val debug_InstMemJunc_en0    : Bool = dontTouch(WireInit(iMemJunc.en(0)))
+  val debug_InstMemJunc_en1    : Bool = dontTouch(WireInit(iMemJunc.en(1)))
+  val debug_iMem_rsp_data      : UInt = dontTouch(WireInit(io.iMem.rsp.data))
 
   val debug_RegFD_pcOut   = dontTouch(WireInit(regFD.pcOut))
-  val debug_RegFD_addrOut = dontTouch(WireInit(regFD.addrOut))
 
   val debug_Decoder_opcode      = dontTouch(WireInit(decoder.opcode))
   val debug_Decoder_rd          = dontTouch(WireInit(decoder.rAddr(0)))

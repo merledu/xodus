@@ -7,22 +7,22 @@ import xodus.configs.Configs
 
 class DecoderIO extends Bundle with Configs {
   // Input ports
-  val inst = Input(UInt(XLEN.W))
+  val inst: UInt = Input(UInt(XLEN.W))
   
   // Output ports
-  val opcode      = Output(UInt(OpcodeWidth.W))
-  val rAddr       = Output(Vec(3, UInt(RegAddrWidth.W)))
-  val funct3      = Output(UInt(Funct3Width.W))
-  val funct7_imm7 = Output(UInt(Funct7Width.W))
-  val imm         = Output(SInt(XLEN.W))
+  val opcode     : UInt      = Output(UInt(OpcodeWidth.W))
+  val rAddr      : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
+  val funct3     : UInt      = Output(UInt(Funct3Width.W))
+  val funct7_imm7: UInt      = Output(UInt(Funct7Width.W))
+  val imm        : SInt      = Output(SInt(XLEN.W))
 }
 
 
 class Decoder extends RawModule with Configs {
-  val io = IO(new DecoderIO)
+  val io: DecoderIO = IO(new DecoderIO)
 
   // Wires
-  val uintWires = Map(
+  val uintWires: Map[String, UInt] = Map(
     "opcode"            -> (6, 0),
     "rd"                -> (11, 7),
     "funct3"            -> (14, 12),
@@ -34,7 +34,7 @@ class Decoder extends RawModule with Configs {
   )
 
   // Immediate Generation
-  val imm = Map(
+  val imm: Map[String, SInt] = Map(
     "I" -> io.inst(31, 20),
     "S" -> Cat(io.inst(31, 25), io.inst(11, 7)),
     "B" -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), 0.U(1.W)),
@@ -76,16 +76,16 @@ class Decoder extends RawModule with Configs {
 
   // Debug
   if (Debug) {
-    val debug_opcode      = dontTouch(WireInit(uintWires("opcode")))
-    val debug_rd          = dontTouch(WireInit(uintWires("rd")))
-    val debug_funct3      = dontTouch(WireInit(uintWires("funct3")))
-    val debug_rs1         = dontTouch(WireInit(uintWires("rs1")))
-    val debug_rs2         = dontTouch(WireInit(uintWires("rs2")))
-    val debug_funct7_imm7 = dontTouch(WireInit(uintWires("funct7/imm(11, 5)")))
-    val debug_I_imm       = dontTouch(WireInit(imm("I")))
-    val debug_S_imm       = dontTouch(WireInit(imm("S")))
-    val debug_B_imm       = dontTouch(WireInit(imm("B")))
-    val debug_U_imm       = dontTouch(WireInit(imm("U")))
-    val debug_J_imm       = dontTouch(WireInit(imm("J")))
+    val debug_opcode     : UInt = dontTouch(WireInit(uintWires("opcode")))
+    val debug_rd         : UInt = dontTouch(WireInit(uintWires("rd")))
+    val debug_funct3     : UInt = dontTouch(WireInit(uintWires("funct3")))
+    val debug_rs1        : UInt = dontTouch(WireInit(uintWires("rs1")))
+    val debug_rs2        : UInt = dontTouch(WireInit(uintWires("rs2")))
+    val debug_funct7_imm7: UInt = dontTouch(WireInit(uintWires("funct7/imm(11, 5)")))
+    val debug_I_imm      : SInt = dontTouch(WireInit(imm("I")))
+    val debug_S_imm      : SInt = dontTouch(WireInit(imm("S")))
+    val debug_B_imm      : SInt = dontTouch(WireInit(imm("B")))
+    val debug_U_imm      : SInt = dontTouch(WireInit(imm("U")))
+    val debug_J_imm      : SInt = dontTouch(WireInit(imm("J")))
   }
 }

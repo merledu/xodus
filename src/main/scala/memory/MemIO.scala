@@ -12,5 +12,5 @@ class MemReqIO extends Bundle with Configs {
 
 
 class MemRespIO extends Bundle with Configs {
-  val data: UInt = Input(UInt(XLEN.W))
+  val data: UInt = Output(UInt(XLEN.W))
 }

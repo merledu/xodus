@@ -8,26 +8,26 @@ import xodus.configs.Configs,
 
 class ControlUnitIO extends Bundle with Configs {
   // Input ports
-  val opcode      = Flipped(new DecoderIO().opcode)
-  val funct3      = Flipped(new DecoderIO().funct3)
-  val funct7_imm7 = Flipped(new DecoderIO().funct7_imm7)
+  val opcode     : UInt = Flipped(new DecoderIO().opcode)
+  val funct3     : UInt = Flipped(new DecoderIO().funct3)
+  val funct7_imm7: UInt = Flipped(new DecoderIO().funct7_imm7)
 
   // Output ports
-  val en = Output(Vec(arch("cuEn").length, Bool()))
+  val en: Vec[Bool] = Output(Vec(arch("cuEn").length, Bool()))
 }
 
 
-class ControlUnit extends Module with Configs {
-  val io = IO(new ControlUnitIO)
+class ControlUnit extends RawModule with Configs {
+  val io: ControlUnitIO = IO(new ControlUnitIO)
 
   // Wires
-  val idWires = Map(
+  val idWires: Map[String, UInt] = Map(
     "opcode"                          -> io.opcode,
     "funct3_opcode"                   -> Cat(io.funct3, io.opcode),
     "funct7/imm(11, 5)_funct3_opcode" -> Cat(io.funct7_imm7, io.funct3, io.opcode),
   )
 
-  val instEn = Seq(
+  val instEn: Map[String, Bool] = Seq(
     "funct3_opcode"                   -> (0, 21),
     "funct7/imm(11, 5)_funct3_opcode" -> (21, 34),
     "opcode"                          -> (34, isa("insts").size)
@@ -43,7 +43,7 @@ class ControlUnit extends Module with Configs {
     (x, y) => x ++ y
   )
 
-  val enWires = (Seq(
+  val enWires: Map[String, Bool] = (Seq(
     Seq(  // s+
       "addi", "lb", "lh", "lw", "lbu",
       "lhu",  "sb", "sh", "sw", "add"
@@ -86,8 +86,6 @@ class ControlUnit extends Module with Configs {
     x => arch("cuEn")(x._2) -> x._1
   ).toMap
 
-  println(enWires.values.toSeq)
-
 
   /********************
    * Interconnections *
@@ -101,57 +99,57 @@ class ControlUnit extends Module with Configs {
 
   // Debug
   if (Debug) {
-    val debug_addi_en                   = dontTouch(WireInit(instEn("addi")))
-    val debug_slti_en                   = dontTouch(WireInit(instEn("slti")))
-    val debug_sltiu_en                  = dontTouch(WireInit(instEn("sltiu")))
-    val debug_andi_en                   = dontTouch(WireInit(instEn("andi")))
-    val debug_ori_en                    = dontTouch(WireInit(instEn("ori")))
-    val debug_xori_en                   = dontTouch(WireInit(instEn("xori")))
-    val debug_lb_en                     = dontTouch(WireInit(instEn("lb")))
-    val debug_lh_en                     = dontTouch(WireInit(instEn("lh")))
-    val debug_lw_en                     = dontTouch(WireInit(instEn("lw")))
-    val debug_lbu_en                    = dontTouch(WireInit(instEn("lbu")))
-    val debug_lhu_en                    = dontTouch(WireInit(instEn("lhu")))
-    val debug_jalr_en                   = dontTouch(WireInit(instEn("jalr")))
-    val debug_sb_en                     = dontTouch(WireInit(instEn("sb")))
-    val debug_sh_en                     = dontTouch(WireInit(instEn("sh")))
-    val debug_sw_en                     = dontTouch(WireInit(instEn("sw")))
-    val debug_beq_en                    = dontTouch(WireInit(instEn("beq")))
-    val debug_bne_en                    = dontTouch(WireInit(instEn("bne")))
-    val debug_blt_en                    = dontTouch(WireInit(instEn("blt")))
-    val debug_bge_en                    = dontTouch(WireInit(instEn("bge")))
-    val debug_bltu_en                   = dontTouch(WireInit(instEn("bltu")))
-    val debug_bgeu_en                   = dontTouch(WireInit(instEn("bgeu")))
-    val debug_slli_en                   = dontTouch(WireInit(instEn("slli")))
-    val debug_srli_en                   = dontTouch(WireInit(instEn("srli")))
-    val debug_srai_en                   = dontTouch(WireInit(instEn("srai")))
-    val debug_add_en                    = dontTouch(WireInit(instEn("add")))
-    val debug_sub_en                    = dontTouch(WireInit(instEn("sub")))
-    val debug_sll_en                    = dontTouch(WireInit(instEn("sll")))
-    val debug_slt_en                    = dontTouch(WireInit(instEn("slt")))
-    val debug_sltu_en                   = dontTouch(WireInit(instEn("sltu")))
-    val debug_xor_en                    = dontTouch(WireInit(instEn("xor")))
-    val debug_srl_en                    = dontTouch(WireInit(instEn("srl")))
-    val debug_sra_en                    = dontTouch(WireInit(instEn("sra")))
-    val debug_or_en                     = dontTouch(WireInit(instEn("or")))
-    val debug_and_en                    = dontTouch(WireInit(instEn("and")))
-    val debug_lui_en                    = dontTouch(WireInit(instEn("lui")))
-    val debug_auipc_en                  = dontTouch(WireInit(instEn("auipc")))
-    val debug_jal_en                    = dontTouch(WireInit(instEn("jal")))
-    val debug_signed_addition_en        = dontTouch(WireInit(enWires("s+")))
-    val debug_signed_less_than_en       = dontTouch(WireInit(enWires("s<")))
-    val debug_unsigned_less_than_en     = dontTouch(WireInit(enWires("u<")))
-    val debug_and_op_en                 = dontTouch(WireInit(enWires("&")))
-    val debug_or_op_en                  = dontTouch(WireInit(enWires("|")))
-    val debug_xor_op_en                 = dontTouch(WireInit(enWires("^")))
-    val debug_shift_left_logical_en     = dontTouch(WireInit(enWires("<<")))
-    val debug_shift_right_logical_en    = dontTouch(WireInit(enWires(">>")))
-    val debug_shift_right_arithmetic_en = dontTouch(WireInit(enWires(">>>")))
-    val debug_lui_op_en                 = dontTouch(WireInit(enWires("lui")))
-    val debug_unsigned_addition_en      = dontTouch(WireInit(enWires("u+")))
-    val debug_subtraction_en            = dontTouch(WireInit(enWires("-")))
-    val debug_imm_en                    = dontTouch(WireInit(enWires("imm")))
-    val debug_auipc_op_en               = dontTouch(WireInit(enWires("auipc")))
+    val debug_addi_en                  : Bool = dontTouch(WireInit(instEn("addi")))
+    val debug_slti_en                  : Bool = dontTouch(WireInit(instEn("slti")))
+    val debug_sltiu_en                 : Bool = dontTouch(WireInit(instEn("sltiu")))
+    val debug_andi_en                  : Bool = dontTouch(WireInit(instEn("andi")))
+    val debug_ori_en                   : Bool = dontTouch(WireInit(instEn("ori")))
+    val debug_xori_en                  : Bool = dontTouch(WireInit(instEn("xori")))
+    val debug_lb_en                    : Bool = dontTouch(WireInit(instEn("lb")))
+    val debug_lh_en                    : Bool = dontTouch(WireInit(instEn("lh")))
+    val debug_lw_en                    : Bool = dontTouch(WireInit(instEn("lw")))
+    val debug_lbu_en                   : Bool = dontTouch(WireInit(instEn("lbu")))
+    val debug_lhu_en                   : Bool = dontTouch(WireInit(instEn("lhu")))
+    val debug_jalr_en                  : Bool = dontTouch(WireInit(instEn("jalr")))
+    val debug_sb_en                    : Bool = dontTouch(WireInit(instEn("sb")))
+    val debug_sh_en                    : Bool = dontTouch(WireInit(instEn("sh")))
+    val debug_sw_en                    : Bool = dontTouch(WireInit(instEn("sw")))
+    val debug_beq_en                   : Bool = dontTouch(WireInit(instEn("beq")))
+    val debug_bne_en                   : Bool = dontTouch(WireInit(instEn("bne")))
+    val debug_blt_en                   : Bool = dontTouch(WireInit(instEn("blt")))
+    val debug_bge_en                   : Bool = dontTouch(WireInit(instEn("bge")))
+    val debug_bltu_en                  : Bool = dontTouch(WireInit(instEn("bltu")))
+    val debug_bgeu_en                  : Bool = dontTouch(WireInit(instEn("bgeu")))
+    val debug_slli_en                  : Bool = dontTouch(WireInit(instEn("slli")))
+    val debug_srli_en                  : Bool = dontTouch(WireInit(instEn("srli")))
+    val debug_srai_en                  : Bool = dontTouch(WireInit(instEn("srai")))
+    val debug_add_en                   : Bool = dontTouch(WireInit(instEn("add")))
+    val debug_sub_en                   : Bool = dontTouch(WireInit(instEn("sub")))
+    val debug_sll_en                   : Bool = dontTouch(WireInit(instEn("sll")))
+    val debug_slt_en                   : Bool = dontTouch(WireInit(instEn("slt")))
+    val debug_sltu_en                  : Bool = dontTouch(WireInit(instEn("sltu")))
+    val debug_xor_en                   : Bool = dontTouch(WireInit(instEn("xor")))
+    val debug_srl_en                   : Bool = dontTouch(WireInit(instEn("srl")))
+    val debug_sra_en                   : Bool = dontTouch(WireInit(instEn("sra")))
+    val debug_or_en                    : Bool = dontTouch(WireInit(instEn("or")))
+    val debug_and_en                   : Bool = dontTouch(WireInit(instEn("and")))
+    val debug_lui_en                   : Bool = dontTouch(WireInit(instEn("lui")))
+    val debug_auipc_en                 : Bool = dontTouch(WireInit(instEn("auipc")))
+    val debug_jal_en                   : Bool = dontTouch(WireInit(instEn("jal")))
+    val debug_signed_addition_en       : Bool = dontTouch(WireInit(enWires("s+")))
+    val debug_signed_less_than_en      : Bool = dontTouch(WireInit(enWires("s<")))
+    val debug_unsigned_less_than_en    : Bool = dontTouch(WireInit(enWires("u<")))
+    val debug_and_op_en                : Bool = dontTouch(WireInit(enWires("&")))
+    val debug_or_op_en                 : Bool = dontTouch(WireInit(enWires("|")))
+    val debug_xor_op_en                : Bool = dontTouch(WireInit(enWires("^")))
+    val debug_shift_left_logical_en    : Bool = dontTouch(WireInit(enWires("<<")))
+    val debug_shift_right_logical_en   : Bool = dontTouch(WireInit(enWires(">>")))
+    val debug_shift_right_arithmetic_en: Bool = dontTouch(WireInit(enWires(">>>")))
+    val debug_lui_op_en                : Bool = dontTouch(WireInit(enWires("lui")))
+    val debug_unsigned_addition_en     : Bool = dontTouch(WireInit(enWires("u+")))
+    val debug_subtraction_en           : Bool = dontTouch(WireInit(enWires("-")))
+    val debug_imm_en                   : Bool = dontTouch(WireInit(enWires("imm")))
+    val debug_auipc_op_en              : Bool = dontTouch(WireInit(enWires("auipc")))
 
     val debug_en = dontTouch(WireInit(io.en))
   }

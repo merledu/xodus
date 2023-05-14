@@ -1,12 +1,14 @@
-//package Top
-//
-//import chiseltest._
-//import org.scalatest.freespec.AnyFreeSpec
-//
-//class TopTest extends AnyFreeSpec with ChiselScalatestTester {
-//        "XODUS32_5S" in {
-//                test(new Top()) {
-//                        xodus => xodus.clock.step(500)
-//        }
-//    }
-//}
+package xodus.top
+
+import chisel3._,
+       chiseltest._,
+       org.scalatest.freespec.AnyFreeSpec
+
+
+class TopTest extends AnyFreeSpec with ChiselScalatestTester {
+  "XODUS" in {
+    test(new Top()).withAnnotations(Seq(VerilatorBackendAnnotation)) {
+      xodus => xodus.clock.step(500)
+    }
+  }
+}

@@ -2,23 +2,23 @@ package xodus.configs
 
 
 trait Configs {
-  val conf = new ConfigMaps
+  val conf: ConfigMaps = new ConfigMaps
 
-  val Debug = true
+  val Debug: Boolean = true
 
-  val XLEN         = conf.params("XLEN")
-  val RegAddrWidth = conf.params("RegAddrWidth")
-  val OpcodeWidth  = conf.params("OpcodeWidth")
-  val Funct3Width  = conf.params("Funct3Width")
-  val Funct7Width  = conf.params("Funct7Width")
-  val MemDepth     = conf.params("MemDepth")
+  val XLEN        : Int = conf.params("XLEN")
+  val RegAddrWidth: Int = conf.params("RegAddrWidth")
+  val OpcodeWidth : Int = conf.params("OpcodeWidth")
+  val Funct3Width : Int = conf.params("Funct3Width")
+  val Funct7Width : Int = conf.params("Funct7Width")
+  val MemDepth    : Int = conf.params("MemDepth")
 
-  val isa = Map(
+  val isa: Map[String, Map[String, Map[String, String]]] = Map(
     "opcodes" -> conf.iOpcodeMap,
     "insts"   -> conf.iInstMap
   )
 
-  val arch = Map(
+  val arch: Map[String, Seq[String]] = Map(
     "cuEn"  -> conf.iCuEn,
     "aluEn" -> conf.iAluEn
   )
