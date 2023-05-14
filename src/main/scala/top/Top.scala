@@ -22,4 +22,9 @@ class Top extends Module with Configs {
   ).map(
     x => x._2 <> x._1
   )
+
+  dontTouch(core.iMem.req.addr.valid)
+  dontTouch(core.iMem.req.data.valid)
+  dontTouch(iMem.req.addr.valid)
+  dontTouch(iMem.req.data.valid)
 }

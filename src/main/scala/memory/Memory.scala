@@ -33,5 +33,6 @@ class Memory extends Module with Configs {
   }
 
   // Read from memory
-  io.rsp.data := Mux(io.req.addr.valid, mem.read(io.req.addr.bits), 0.U)
+  //io.rsp.data := Mux(io.req.addr.valid, mem.read(io.req.addr.bits), 0.U)
+  io.rsp.data := mem.read(io.req.addr.bits)
 }

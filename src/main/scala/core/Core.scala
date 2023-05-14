@@ -111,4 +111,8 @@ class Core extends Module {
   //).map(
   //  x => x._2 := x._1
   //)
+
+  val debug_inst: UInt = dontTouch(WireInit(iMemJunc.inst))
+  val debug_load: Bool = dontTouch(WireInit(iMemJunc.iMemReqRsp.req.addr.valid))
+  val debug_store: Bool = dontTouch(WireInit(iMemJunc.iMemReqRsp.req.data.valid))
 }
