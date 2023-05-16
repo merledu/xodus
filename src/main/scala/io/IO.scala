@@ -24,8 +24,9 @@ class RegFDIO extends Bundle with Configs {
 }
 
 
-class CoreIO extends Bundle {
-  val iMem: MemoryIO = Flipped(new MemoryIO)
+class CoreIO extends Bundle with Configs {
+  val pc: Option[PCIO] = if (Debug) Some(new PCIO) else None
+  //val iMem: MemoryIO = Flipped(new MemoryIO)
   //val dMem: MemoryIO = Flipped(new MemoryIO)
 }
 
@@ -44,4 +45,9 @@ class MemRespIO extends Bundle with Configs {
 class MemoryIO extends Bundle {
   val req: MemReqIO  = new MemReqIO
   val rsp: MemRespIO = new MemRespIO
+}
+
+
+class TopIO extends Bundle with Configs {
+  val pc: Option[PCIO] = new CoreIO().pc
 }

@@ -17,11 +17,7 @@ class PC extends Module with Configs {
    * Interconnections *
    ********************/
 
-  Seq(
-    pc      -> (pc + 4.U),
-    io.addr -> pc(MemDepth + 1, 2),
-    io.pc   -> pc
-  ).map(
-    x => x._1 := dontTouch(WireInit(x._2))
-  )
+    pc      := (pc + 4.U)
+    io.addr := pc(MemDepth + 1, 2)
+    io.pc   := pc
 }

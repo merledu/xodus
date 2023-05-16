@@ -1,21 +1,22 @@
 package xodus.core
 
 import chisel3._
-import xodus.core.fetch_stage._,
+import xodus.configs.Configs,
+       xodus.core.fetch_stage._,
        xodus.io._,/*
        xodus.core.decode_stage._,
        xodus.core.execute_stage._*/
        xodus.core.pipeline_regs._
 
 
-class Core extends Module {
+class Core extends Module with Configs {
   val io: CoreIO = IO(new CoreIO)
 
   // Modules
   val pc      : PCIO          = Module(new PC).io
-  val iMemJunc: InstMemJuncIO = Module(new InstMemJunc).io
+  //val iMemJunc: InstMemJuncIO = Module(new InstMemJunc).io
 
-  val regFD = Module(new RegFD).io
+  //val regFD = Module(new RegFD).io
 
   //val decoder: DecoderIO = Module(new Decoder).io
   //val regFile: RegFileIO = Module(new RegFile).io
@@ -34,14 +35,14 @@ class Core extends Module {
    * Fetch Stage *
    ***************/
 
-  io.iMem <> iMemJunc.iMemReqRsp
-  Seq(
-    pc.pc         -> regFD.in.pc,
-    pc.addr       -> iMemJunc.addr,
-    iMemJunc.inst -> regFD.in.inst
-  ).map(
-    x => x._2 := x._1
-  )
+  //io.iMem <> iMemJunc.iMemReqRsp
+  //Seq(
+  //  pc.pc         -> regFD.in.pc,
+  //  pc.addr       -> iMemJunc.addr,
+  //  iMemJunc.inst -> regFD.in.inst
+  //).map(
+  //  x => x._2 := x._1
+  //)
 
 
   /****************
@@ -112,7 +113,10 @@ class Core extends Module {
   //  x => x._2 := x._1
   //)
 
-  val debug_inst: UInt = dontTouch(WireInit(iMemJunc.inst))
-  val debug_load: Bool = dontTouch(WireInit(iMemJunc.iMemReqRsp.req.addr.valid))
-  val debug_store: Bool = dontTouch(WireInit(iMemJunc.iMemReqRsp.req.data.valid))
+
+
+  // Debug
+  if (Debug) {
+    io.pc.get <> pc
+  }
 }
