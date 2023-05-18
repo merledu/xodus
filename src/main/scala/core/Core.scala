@@ -5,7 +5,7 @@ import xodus.configs.Configs,
        xodus.core.fetch_stage._,
        xodus.io._,/*
        xodus.core.decode_stage._,
-       xodus.core.execute_stage._*/
+       xodus.core.execute_stage._,*/
        xodus.core.pipeline_regs._
 
 
@@ -13,8 +13,8 @@ class Core extends Module with Configs {
   val io: CoreIO = IO(new CoreIO)
 
   // Modules
-  val pc      : PCIO          = Module(new PC).io
-  //val iMemJunc: InstMemJuncIO = Module(new InstMemJunc).io
+  val pc      : PCIO       = Module(new PC).io
+  val iMemJunc: IMemJuncIO = Module(new IMemJunc).io
 
   //val regFD = Module(new RegFD).io
 
@@ -35,14 +35,10 @@ class Core extends Module with Configs {
    * Fetch Stage *
    ***************/
 
-  //io.iMem <> iMemJunc.iMemReqRsp
-  //Seq(
-  //  pc.pc         -> regFD.in.pc,
-  //  pc.addr       -> iMemJunc.addr,
-  //  iMemJunc.inst -> regFD.in.inst
-  //).map(
-  //  x => x._2 := x._1
-  //)
+  iMemJunc.addr := pc.addr
+  //pc.pc         := regFD.in.pc
+  //iMemJunc.inst := regFD.in.inst
+  io.iMem <> iMemJunc.iMemReqResp
 
 
   /****************
@@ -117,6 +113,8 @@ class Core extends Module with Configs {
 
   // Debug
   if (Debug) {
-    io.pc.get <> pc
+    io.debug.get.pc               <> pc
+    io.debug.get.iMemJunc.iMemReq <> iMemJunc.iMemReqResp.req
+    io.debug.get.iMemJunc.inst    := iMemJunc.inst
   }
 }

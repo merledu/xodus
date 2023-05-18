@@ -11,7 +11,7 @@ class Top extends Module with Configs {
   val io: TopIO = IO(new TopIO)
 
   // Modules
-  val core: CoreIO   = Module(new Core).io
+  val core: CoreIO = Module(new Core).io
   //val iMem: MemoryIO = Module(new Memory).io
 
 
@@ -29,10 +29,8 @@ class Top extends Module with Configs {
 
   // Debug
   if (Debug) {
-    io.pc.get <> core.pc.get
+    io.debug.pc       <> core.debug.get.pc
+    io.debug.iMemJunc <> core.debug.get.iMemJunc
+    core.iMem.resp.data := 0.U
   }
-  //dontTouch(core.iMem.req.addr.valid)
-  //dontTouch(core.iMem.req.data.valid)
-  //dontTouch(iMem.req.addr.valid)
-  //dontTouch(iMem.req.data.valid)
 }

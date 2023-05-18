@@ -11,23 +11,27 @@ class PCIO extends Bundle with Configs {
 }
 
 
-class InstMemJuncIO extends Bundle with Configs {
+class IMemJuncIO extends Bundle with Configs {
   val addr      : UInt     = Flipped(new PCIO().addr)
+
   val inst      : UInt     = Output(UInt(XLEN.W))
-  val iMemReqRsp: MemoryIO = Flipped(new MemoryIO)
+
+  val iMemReqResp: MemoryIO = Flipped(new MemoryIO)
 }
 
 
 class RegFDIO extends Bundle with Configs {
   val pc  : UInt = Flipped(new PCIO().pc)
-  val inst: UInt = Flipped(new InstMemJuncIO().inst)
+  val inst: UInt = Flipped(new IMemJuncIO().inst)
 }
 
 
 class CoreIO extends Bundle with Configs {
-  val pc: Option[PCIO] = if (Debug) Some(new PCIO) else None
-  //val iMem: MemoryIO = Flipped(new MemoryIO)
+  val iMem: MemoryIO = Flipped(new MemoryIO)
   //val dMem: MemoryIO = Flipped(new MemoryIO)
+
+
+  val debug: Option[DebugIO] = if (Debug) Some(new DebugIO) else None
 }
 
 
@@ -43,11 +47,33 @@ class MemRespIO extends Bundle with Configs {
 
 
 class MemoryIO extends Bundle {
-  val req: MemReqIO  = new MemReqIO
-  val rsp: MemRespIO = new MemRespIO
+  val req : MemReqIO  = new MemReqIO
+
+  val resp: MemRespIO = new MemRespIO
 }
 
 
 class TopIO extends Bundle with Configs {
-  val pc: Option[PCIO] = new CoreIO().pc
+  val debug: DebugIO = new CoreIO().debug.get
+}
+
+
+
+
+// Debug
+class DebugPC extends Bundle with Configs {
+  val addr: UInt = new PCIO().addr
+  val pc  : UInt = new PCIO().pc
+}
+
+
+class DebugIMemJunc extends Bundle with Configs {
+  val inst   : UInt     = new IMemJuncIO().inst
+  val iMemReq: MemReqIO = Flipped(new IMemJuncIO().iMemReqResp.req)
+}
+
+
+class DebugIO extends Bundle with Configs {
+  val pc      : DebugPC       = new DebugPC
+  val iMemJunc: DebugIMemJunc = new DebugIMemJunc
 }

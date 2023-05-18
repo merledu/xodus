@@ -17,7 +17,7 @@ class PC extends Module with Configs {
    * Interconnections *
    ********************/
 
-    pc      := (pc + 4.U)
-    io.addr := pc(MemDepth + 1, 2)
-    io.pc   := pc
+  pc      := (pc + 4.U)
+  io.addr := pc(MemDepth + 1, 2)
+  io.pc   := pc
 }
