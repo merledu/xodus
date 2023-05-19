@@ -31,7 +31,7 @@ class CoreIO extends Bundle with Configs {
   //val dMem: MemoryIO = Flipped(new MemoryIO)
 
 
-  val debug: Option[DebugIO] = if (Debug) Some(new DebugIO) else None
+  val debug: Option[DebugCore] = if (Debug) Some(new DebugCore) else None
 }
 
 
@@ -54,7 +54,7 @@ class MemoryIO extends Bundle {
 
 
 class TopIO extends Bundle with Configs {
-  val debug: DebugIO = new CoreIO().debug.get
+  val debug: Option[DebugTop] = if (Debug) Some(new DebugTop) else None
 }
 
 
@@ -73,7 +73,18 @@ class DebugIMemJunc extends Bundle with Configs {
 }
 
 
-class DebugIO extends Bundle with Configs {
+class DebugIMem extends Bundle with Configs {
+  val resp: MemRespIO = new MemoryIO().resp
+}
+
+
+class DebugCore extends Bundle with Configs {
   val pc      : DebugPC       = new DebugPC
   val iMemJunc: DebugIMemJunc = new DebugIMemJunc
+}
+
+
+class DebugTop extends Bundle with Configs {
+  val core: DebugCore = new DebugCore
+  val iMem: DebugIMem = new DebugIMem
 }
