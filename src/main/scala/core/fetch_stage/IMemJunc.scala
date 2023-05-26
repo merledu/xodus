@@ -3,7 +3,16 @@ package xodus.core.fetch_stage
 import chisel3._,
        chisel3.util._
 import xodus.configs.Configs,
-       xodus.io.IMemJuncIO
+       xodus.memory.MemoryIO
+
+
+class IMemJuncIO extends Bundle with Configs {
+  val addr: UInt = Flipped(new PCIO().addr)
+
+  val inst: UInt = Output(UInt(XLEN.W))
+
+  val iMemReqResp: MemoryIO = Flipped(new MemoryIO)
+}
 
 
 class IMemJunc extends RawModule with Configs {

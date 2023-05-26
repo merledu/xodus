@@ -3,10 +3,20 @@ package xodus.core
 import chisel3._
 import xodus.configs.Configs,
        xodus.core.fetch_stage._,
-       xodus.io._,/*
-       xodus.core.decode_stage._,
+       /*xodus.core.decode_stage._,
        xodus.core.execute_stage._,*/
-       xodus.core.pipeline_regs._
+       xodus.core.pipeline_regs._,
+       xodus.memory.MemoryIO,
+       xodus.debug_io.DebugCore
+
+
+class CoreIO extends Bundle with Configs {
+  val iMem: MemoryIO = Flipped(new MemoryIO)
+  //val dMem: MemoryIO = Flipped(new MemoryIO)
+
+
+  val debug: Option[DebugCore] = if (Debug) Some(new DebugCore) else None
+}
 
 
 class Core extends Module with Configs {
@@ -16,7 +26,7 @@ class Core extends Module with Configs {
   val pc      : PCIO       = Module(new PC).io
   val iMemJunc: IMemJuncIO = Module(new IMemJunc).io
 
-  //val regFD = Module(new RegFD).io
+  val regFD = Module(new RegFD).io
 
   //val decoder: DecoderIO = Module(new Decoder).io
   //val regFile: RegFileIO = Module(new RegFile).io
@@ -36,8 +46,8 @@ class Core extends Module with Configs {
    ***************/
 
   iMemJunc.addr := pc.addr
-  //pc.pc         := regFD.in.pc
-  //iMemJunc.inst := regFD.in.inst
+  regFD.in.pc   := pc.pc
+  regFD.in.inst := iMemJunc.inst
   io.iMem <> iMemJunc.iMemReqResp
 
 
@@ -116,5 +126,6 @@ class Core extends Module with Configs {
     io.debug.get.pc               <> pc
     io.debug.get.iMemJunc.iMemReq <> iMemJunc.iMemReqResp.req
     io.debug.get.iMemJunc.inst    := iMemJunc.inst
+    io.debug.get.regFD.out        <> regFD.out
   }
 }

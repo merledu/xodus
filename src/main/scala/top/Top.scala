@@ -4,7 +4,14 @@ import chisel3._
 import xodus.core.{Core},
        xodus.memory.Memory,
        xodus.configs.Configs,
-       xodus.io._
+       xodus.debug_io.DebugTop,
+       xodus.core.CoreIO,
+       xodus.memory.MemoryIO
+
+
+class TopIO extends Bundle with Configs {
+  val debug: Option[DebugTop] = if (Debug) Some(new DebugTop) else None
+}
 
 
 class Top extends Module with Configs {
@@ -12,7 +19,7 @@ class Top extends Module with Configs {
 
   // Modules
   val core: CoreIO   = Module(new Core).io
-  val iMem: MemoryIO = Module(new Memory(Data=false)).io
+  val iMem: MemoryIO = Module(new Memory).io
 
 
   /********************
@@ -27,6 +34,7 @@ class Top extends Module with Configs {
   if (Debug) {
     io.debug.get.core.pc       <> core.debug.get.pc
     io.debug.get.core.iMemJunc <> core.debug.get.iMemJunc
+    io.debug.get.core.regFD    <> core.debug.get.regFD
     io.debug.get.iMem.resp     <> iMem.resp
   }
 }
