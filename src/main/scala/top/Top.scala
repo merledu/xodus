@@ -36,5 +36,6 @@ class Top extends Module with Configs {
     io.debug.get.core.iMemJunc <> core.debug.get.iMemJunc
     io.debug.get.core.regFD    <> core.debug.get.regFD
     io.debug.get.iMem.resp     <> iMem.resp
+    io.debug.get.core.decoder  <> core.debug.get.decoder
   }
 }

@@ -4,6 +4,7 @@ import chisel3._,
        chisel3.util._
 import xodus.configs.Configs,
        xodus.core.fetch_stage.{PCIO, IMemJuncIO},
+       xodus.core.decode_stage.{DecoderIO},
        xodus.core.pipeline_regs.RegFDIO,
        xodus.memory.{MemReqIO, MemRespIO, MemoryIO}
 
@@ -25,10 +26,20 @@ class DebugRegFD extends Bundle {
 }
 
 
+class DebugDecoder extends Bundle {
+  val opcode     : UInt      = new DecoderIO().opcode
+  val rAddr      : Vec[UInt] = new DecoderIO().rAddr
+  val funct3     : UInt      = new DecoderIO().funct3
+  val funct7_imm7: UInt      = new DecoderIO().funct7_imm7
+  val imm        : SInt      = new DecoderIO().imm
+}
+
+
 class DebugCore extends Bundle {
   val pc      : DebugPC       = new DebugPC
   val iMemJunc: DebugIMemJunc = new DebugIMemJunc
   val regFD   : DebugRegFD    = new DebugRegFD
+  val decoder : DebugDecoder  = new DebugDecoder
 }
 
 
