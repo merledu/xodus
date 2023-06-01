@@ -50,5 +50,5 @@ class Memory(Data :Boolean=false) extends Module with Configs {
   }
 
   // Read from memory
-  io.resp.data := Mux(io.req.addr.valid, mem.read(io.req.addr.bits), 0.U)
+  io.resp.data := dontTouch(Mux(io.req.addr.valid, mem.read(io.req.addr.bits), 0.U))
 }

@@ -8,6 +8,7 @@ import xodus.configs.Configs,
        xodus.core.pipeline_regs.RegFDIO,
        xodus.memory.{MemReqIO, MemRespIO, MemoryIO}
 import xodus.core.decode_stage.RegFileIO
+import xodus.core.pipeline_regs.RegDEIO
 
 
 class DebugPC extends Bundle {
@@ -41,12 +42,18 @@ class DebugRegFile extends Bundle {
 }
 
 
+class DebugRegDE extends Bundle {
+  val out: RegDEIO = new RegDEIO
+}
+
+
 class DebugCore extends Bundle {
   val pc      : DebugPC       = new DebugPC
   val iMemJunc: DebugIMemJunc = new DebugIMemJunc
   val regFD   : DebugRegFD    = new DebugRegFD
   val decoder : DebugDecoder  = new DebugDecoder
   val regFile : DebugRegFile  = new DebugRegFile
+  val regDE   : DebugRegDE    = new DebugRegDE
 }
 
 

@@ -18,6 +18,7 @@ class RegFD extends Module with Configs {
     val out: RegFDIO = new RegFDIO
   })
 
+
   // Pipeline
   genPipeline(Seq(
     io.in.pc   -> io.out.pc,
