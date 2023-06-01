@@ -19,7 +19,7 @@ class MemRespIO extends Bundle with Configs {
 
 
 class MemoryIO extends Bundle {
-  val req: MemReqIO  = new MemReqIO
+  val req: MemReqIO = new MemReqIO
 
   val resp: MemRespIO = new MemRespIO
 }

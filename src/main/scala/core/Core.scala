@@ -29,7 +29,7 @@ class Core extends Module with Configs {
   val regFD = Module(new RegFD).io
 
   val decoder: DecoderIO = Module(new Decoder).io
-  //val regFile: RegFileIO = Module(new RegFile).io
+  val regFile: RegFileIO = Module(new RegFile).io
 
   //val regDE: RegDE_IO = Module(new RegDE).io
 
@@ -48,28 +48,24 @@ class Core extends Module with Configs {
   iMemJunc.addr := pc.addr
   regFD.in.pc   := pc.pc
   regFD.in.inst := iMemJunc.inst
-  io.iMem <> iMemJunc.iMemReqResp
+  io.iMem       <> iMemJunc.iMemReqResp
 
 
   /****************
    * Decode Stage *
    ****************/
 
-  decoder.inst := regFD.out.inst
-
-  //Seq(regFile.rAddr, regDE.rAddrIn).map(
-  //  x => decoder.rAddr <> x
-  //)
-  //  0.S                 -> regFile.write.bits,
-  //  0.B                 -> regFile.write.valid,
+  decoder.inst        := regFD.out.inst
+  regFile.write.bits  := 0.S
+  regFile.write.valid := 0.B
+  Seq(regFile.rAddr/*, regDE.rAddrIn*/).map(
+    x => x <> decoder.rAddr
+  )
   //  decoder.opcode      -> regDE.opcodeIn,
   //  decoder.funct3      -> regDE.funct3In,
   //  decoder.funct7_imm7 -> regDE.funct7_imm7In,
   //  decoder.imm         -> regDE.dataIn(2),
   //  regFD.pcOut         -> regDE.pcIn
-  //).map(
-  //  x => x._2 := x._1
-  //)
   //for (i <- 0 to 1) {
   //  regDE.dataIn(i) := regFile.read(i)
   //}
@@ -135,5 +131,7 @@ class Core extends Module with Configs {
     io.debug.get.decoder.funct3      := decoder.funct3
     io.debug.get.decoder.funct7_imm7 := decoder.funct7_imm7
     io.debug.get.decoder.imm         := decoder.imm
+
+    io.debug.get.regFile.read <> regFile.read
   }
 }
