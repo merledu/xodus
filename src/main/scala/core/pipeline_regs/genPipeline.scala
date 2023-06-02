@@ -4,7 +4,7 @@ import chisel3._
 
 
 object genPipeline {
-  def apply(ports: Seq[(Bits, Bits)]): Unit = {
+  def apply(ports: Seq[(Data, Data)]): Unit = {
     ports.map(
       x => {
         val pipelineReg = Reg(chiselTypeOf(x._1))

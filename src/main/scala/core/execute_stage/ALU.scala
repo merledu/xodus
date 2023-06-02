@@ -6,17 +6,17 @@ import xodus.configs.Configs,
        xodus.core.pipeline_regs.RegDEIO
 
 
-class ALU_IO extends Bundle with Configs {
+class ALUIO extends Bundle with Configs {
   val in: Vec[SInt] = Flipped(new RegDEIO().data)
-  val pc: UInt      = Input(UInt(XLEN.W))
-  val en: Vec[Bool] = Input(Vec(arch("aluEn").length, Bool()))
+  val pc: UInt      = Flipped(new RegDEIO().pc)
+  val en: Vec[Bool] = Flipped(new RegDEIO().aluEN)
 
-  val out: SInt = Output(SInt(32.W))
+  val out: SInt = Output(SInt(XLEN.W))
 }
 
 
 class ALU extends RawModule with Configs {
-  val io: ALU_IO = IO(new ALU_IO)
+  val io: ALUIO = IO(new ALUIO)
 
   // Operands
   val sOperand: Vec[SInt] = VecInit(
@@ -26,7 +26,7 @@ class ALU extends RawModule with Configs {
 
   val uOperand: Vec[UInt] = VecInit(
     io.pc,
-    Mux(io.en(13), io.in(2).asUInt, 4.U)  // auipc or 4.U
+    Mux(io.en(11), io.in(2).asUInt, 4.U)  // auipc or 4.U
   )
 
 
@@ -35,20 +35,20 @@ class ALU extends RawModule with Configs {
    ********************/
 
   // Output Selection
-  // Default: s+
+  // Default: signed addition
   io.out := MuxCase(sOperand(0) + sOperand(1), Seq(
-    (sOperand(0) < sOperand(1)).asSInt,
-    (sOperand(0).asUInt < sOperand(1).asUInt).asSInt,
-    (sOperand(0) & sOperand(1)).asSInt,
-    (sOperand(0) | sOperand(1)).asSInt,
-    (sOperand(0) ^ sOperand(1)).asSInt,
-    (sOperand(0) << sOperand(1)(4, 0)).asSInt,
-    (sOperand(0).asUInt >> sOperand(1)(4, 0)).asSInt,
-    (sOperand(0) >> sOperand(1)(4, 0)),
-    sOperand(1),
-    (uOperand(0) + uOperand(1)).asSInt,
-    sOperand(0) - sOperand(1)
+    sOperand(0) - sOperand(1),                         // subtraction
+    (sOperand(0) << sOperand(1)(4, 0)).asSInt,         // shift left logical
+    (sOperand(0) < sOperand(1)).asSInt,                // signed less than
+    (sOperand(0).asUInt < sOperand(1).asUInt).asSInt,  // unsigned less than
+    (sOperand(0) ^ sOperand(1)).asSInt,                // xor
+    (sOperand(0).asUInt >> sOperand(1)(4, 0)).asSInt,  // shift right logical
+    (sOperand(0) >> sOperand(1)(4, 0)),                // shift right arithmetic
+    (sOperand(0) | sOperand(1)).asSInt,                // or
+    (sOperand(0) & sOperand(1)).asSInt,                // and
+    sOperand(1),                                       // lui
+    (uOperand(0) + uOperand(1)).asSInt                 // unsigned addition
   ).zipWithIndex.map(
-    x => io.en(x._2 + 1) -> x._1
+    x => io.en(x._2) -> x._1
   ))
 }

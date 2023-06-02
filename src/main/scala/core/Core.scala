@@ -4,7 +4,7 @@ import chisel3._
 import xodus.configs.Configs,
        xodus.core.fetch_stage._,
        xodus.core.decode_stage._,
-       /*xodus.core.execute_stage._,*/
+       xodus.core.execute_stage._,
        xodus.core.pipeline_regs._,
        xodus.memory.MemoryIO,
        xodus.debug_io.DebugCore
@@ -28,15 +28,15 @@ class Core extends Module with Configs {
 
   val regFD = Module(new RegFD).io
 
-  val decoder: DecoderIO = Module(new Decoder).io
-  val regFile: RegFileIO = Module(new RegFile).io
+  val decoder: DecoderIO     = Module(new Decoder).io
+  val regFile: RegFileIO     = Module(new RegFile).io
+  val cu     : ControlUnitIO = Module(new ControlUnit).io
 
   val regDE = Module(new RegDE).io
 
-  //val cu : ControlUnitIO = Module(new ControlUnit).io
-  //val alu: ALU_IO        = Module(new ALU).io
+  val alu: ALUIO = Module(new ALU).io
 
-  //val regEM: RegEM_IO = Module(new RegEM).io
+  val regEM = Module(new RegEM).io
 
   //val regMW: RegMW_IO = Module(new RegMW).io
 
@@ -56,13 +56,16 @@ class Core extends Module with Configs {
    ****************/
 
   decoder.inst         := regFD.out.inst
+  decoder.en           <> cu.en.decoder
   regFile.write.bits   := 0.S
   regFile.write.valid  := 0.B
+  cu.opcode            := decoder.opcode
+  cu.funct3            := decoder.funct3
+  cu.funct7_imm7       := decoder.funct7_imm7
   regDE.in.pc          := regFD.out.pc
-  regDE.in.opcode      := decoder.opcode
-  regDE.in.funct3      := decoder.funct3
-  regDE.in.funct7_imm7 := decoder.funct7_imm7
   regDE.in.data(2)     := decoder.imm
+  regDE.in.aluEN       <> cu.en.alu
+  regDE.in.regFileEN   := cu.en.regFile
   Seq(regFile.rAddr, regDE.in.rAddr).map(
     x => x <> decoder.rAddr
   )
@@ -75,23 +78,11 @@ class Core extends Module with Configs {
    * Execute Stage *
    *****************/
 
-  //Seq(
-  //  regDE.opcodeOut      -> cu.opcode,
-  //  regDE.funct3Out      -> cu.funct3,
-  //  regDE.funct7_imm7Out -> cu.funct7_imm7,
-  //  regDE.pcOut          -> alu.pc,
-  //  alu.out              -> regEM.aluIn
-  //).map(
-  //  x => x._2 := x._1
-  //)
-  //Seq(
-  //  regDE.dataOut -> alu.in
-  //).map(
-  //  x => x._1 <> x._2
-  //)
-  //for (i <- 0 until alu.en.length) {
-  //  alu.en(i) := cu.en(0)
-  //}
+  alu.pc             := regDE.out.pc
+  alu.in             <> regDE.out.data
+  alu.en             <> regDE.out.aluEN
+  regEM.in.regFileEN := regDE.out.regFileEN
+  regEM.in.alu       := alu.out
 
 
   /****************
@@ -134,6 +125,12 @@ class Core extends Module with Configs {
 
     io.debug.get.regFile.read <> regFile.read
 
+    io.debug.get.cu.en <> cu.en
+
     io.debug.get.regDE.out <> regDE.out
+
+    io.debug.get.alu.out := alu.out
+
+    io.debug.get.regEM.out <> regEM.out
   }
 }

@@ -2,12 +2,13 @@ package xodus.core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.Configs,
+import xodus.configs.{Configs, ISA},
        xodus.core.pipeline_regs.RegFDIO
 
 
 class DecoderIO extends Bundle with Configs {
-  val inst: UInt = Flipped(new RegFDIO().inst)
+  val inst: UInt      = Flipped(new RegFDIO().inst)
+  val en  : Vec[Bool] = Flipped(new Enables().decoder)
 
   val opcode     : UInt      = Output(UInt(OpcodeWidth.W))
   val rAddr      : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
@@ -19,30 +20,6 @@ class DecoderIO extends Bundle with Configs {
 
 class Decoder extends RawModule with Configs {
   val io: DecoderIO = IO(new DecoderIO)
-
-  val opcodes: Map[String, Seq[String]] = Map(
-    "R" -> Seq(
-      "b0110011"   // integer arithmetic
-    ),
-    "I" -> Seq(
-      "b1100111",  // jalr
-      "b0000011",  // integer load
-      "b0010011"   // integer arithmetic
-    ),
-    "S" -> Seq(
-      "b0100011"   // integer store
-    ),
-    "B" -> Seq(
-      "b1100011"   // branch
-    ),
-    "U" -> Seq(
-      "b0110111",  // lui
-      "b0010111"   // auipc
-    ),
-    "J" -> Seq(
-      "b1101111"   // jal
-    )
-  )
 
 
   /********************
@@ -68,15 +45,11 @@ class Decoder extends RawModule with Configs {
   // Immediate Generation
   // Default: I immediate
   io.imm := MuxCase(io.inst(31, 20).asSInt, Seq(
-    "S" -> Cat(io.inst(31, 25), io.inst(11, 7)),
-    "B" -> Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), 0.U(1.W)),
-    "U" -> Cat(io.inst(31, 12), 0.U(12.W)),
-    "J" -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
-  ).map(
-    x => opcodes(x._1).map(
-      y => io.opcode === y.U
-    ).reduce(
-      (a, b) => a || b
-    ) -> x._2.asSInt
+    Cat(io.inst(31, 25), io.inst(11, 7)),
+    Cat(io.inst(31), io.inst(7), io.inst(30, 25), io.inst(11, 8), 0.U(1.W)),
+    Cat(io.inst(31, 12), 0.U(12.W)),
+    Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
+  ).zipWithIndex.map(
+    x => io.en(x._2 + 2) -> x._1.asSInt
   ))
 }

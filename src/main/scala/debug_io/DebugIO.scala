@@ -4,11 +4,10 @@ import chisel3._,
        chisel3.util._
 import xodus.configs.Configs,
        xodus.core.fetch_stage.{PCIO, IMemJuncIO},
-       xodus.core.decode_stage.{DecoderIO},
-       xodus.core.pipeline_regs.RegFDIO,
+       xodus.core.decode_stage.{DecoderIO, RegFileIO, Enables},
+       xodus.core.execute_stage.ALUIO,
+       xodus.core.pipeline_regs.{RegFDIO, RegDEIO, RegEMIO},
        xodus.memory.{MemReqIO, MemRespIO, MemoryIO}
-import xodus.core.decode_stage.RegFileIO
-import xodus.core.pipeline_regs.RegDEIO
 
 
 class DebugPC extends Bundle {
@@ -42,18 +41,36 @@ class DebugRegFile extends Bundle {
 }
 
 
+class DebugControlUnit extends Bundle {
+  val en: Enables = new Enables
+}
+
+
 class DebugRegDE extends Bundle {
   val out: RegDEIO = new RegDEIO
 }
 
 
+class DebugALU extends Bundle {
+  val out: SInt = new ALUIO().out
+}
+
+
+class DebugRegEM extends Bundle {
+  val out: RegEMIO = new RegEMIO
+}
+
+
 class DebugCore extends Bundle {
-  val pc      : DebugPC       = new DebugPC
-  val iMemJunc: DebugIMemJunc = new DebugIMemJunc
-  val regFD   : DebugRegFD    = new DebugRegFD
-  val decoder : DebugDecoder  = new DebugDecoder
-  val regFile : DebugRegFile  = new DebugRegFile
-  val regDE   : DebugRegDE    = new DebugRegDE
+  val pc      : DebugPC          = new DebugPC
+  val iMemJunc: DebugIMemJunc    = new DebugIMemJunc
+  val regFD   : DebugRegFD       = new DebugRegFD
+  val decoder : DebugDecoder     = new DebugDecoder
+  val regFile : DebugRegFile     = new DebugRegFile
+  val cu      : DebugControlUnit = new DebugControlUnit
+  val regDE   : DebugRegDE       = new DebugRegDE
+  val alu     : DebugALU         = new DebugALU
+  val regEM   : DebugRegEM       = new DebugRegEM
 }
 
 
