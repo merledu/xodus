@@ -20,6 +20,30 @@ class DecoderIO extends Bundle with Configs {
 class Decoder extends RawModule with Configs {
   val io: DecoderIO = IO(new DecoderIO)
 
+  val opcodes: Map[String, Seq[String]] = Map(
+    "R" -> Seq(
+      "b0110011"   // integer arithmetic
+    ),
+    "I" -> Seq(
+      "b1100111",  // jalr
+      "b0000011",  // integer load
+      "b0010011"   // integer arithmetic
+    ),
+    "S" -> Seq(
+      "b0100011"   // integer store
+    ),
+    "B" -> Seq(
+      "b1100011"   // branch
+    ),
+    "U" -> Seq(
+      "b0110111",  // lui
+      "b0010111"   // auipc
+    ),
+    "J" -> Seq(
+      "b1101111"   // jal
+    )
+  )
+
 
   /********************
    * Interconnections *
@@ -49,7 +73,7 @@ class Decoder extends RawModule with Configs {
     "U" -> Cat(io.inst(31, 12), 0.U(12.W)),
     "J" -> Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
   ).map(
-    x => isa("opcodes")(x._1).values.map(
+    x => opcodes(x._1).map(
       y => io.opcode === y.U
     ).reduce(
       (a, b) => a || b

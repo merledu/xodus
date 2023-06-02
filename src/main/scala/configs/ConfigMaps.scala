@@ -14,19 +14,27 @@ class ConfigMaps {
   )
 
   val iOpcodeMap: Map[String, Map[String, String]] = Map(
-    "R" -> Map("iArith" -> "b0110011"),
+    "R" -> Map(
+      "iArith" -> "b0110011"
+    ),
     "I" -> Map(
       "jalr"   -> "b1100111",
       "load"   -> "b0000011",
       "iArith" -> "b0010011"
     ),
-    "S" -> Map("store" -> "b0100011"),
-    "B" -> Map("branch" -> "b1100011"),
+    "S" -> Map(
+      "store" -> "b0100011"
+    ),
+    "B" -> Map(
+      "branch" -> "b1100011"
+    ),
     "U" -> Map(
       "lui"   -> "b0110111",
       "auipc" -> "b0010111"
     ),
-    "J" -> Map("jal" -> "b1101111")
+    "J" -> Map(
+      "jal" -> "b1101111"
+    )
   )
 
   val iInstMap: Map[String, Map[String, String]] = ((
