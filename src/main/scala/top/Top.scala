@@ -1,12 +1,12 @@
-package xodus.top
+package top
 
 import chisel3._
-import xodus.core.{Core},
-       xodus.memory.Memory,
-       xodus.configs.Configs,
-       xodus.debug_io.DebugTop,
-       xodus.core.CoreIO,
-       xodus.memory.MemoryIO
+import core.{Core},
+       memory.Memory,
+       configs.Configs,
+       debug_io.DebugTop,
+       core.CoreIO,
+       memory.MemoryIO
 
 
 class TopIO extends Bundle with Configs {
@@ -33,7 +33,6 @@ class Top extends Module with Configs {
   // Debug
   if (Debug) {
     io.debug.get.core.pc       <> core.debug.get.pc
-    io.debug.get.core.iMemJunc <> core.debug.get.iMemJunc
     io.debug.get.core.regFD    <> core.debug.get.regFD
     io.debug.get.iMem.resp     <> iMem.resp
     io.debug.get.core.decoder  <> core.debug.get.decoder

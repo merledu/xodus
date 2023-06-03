@@ -1,4 +1,4 @@
-package xodus.top
+package top
 
 import chisel3._,
        chiseltest._,

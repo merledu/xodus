@@ -1,27 +1,27 @@
-//package xodus.core.pipeline_regs
+//package core.pipeline_regs
 //
 //import chisel3._
-//import xodus.configs.Configs
+//import configs.Configs,
+//       core.memory_stage.DMemAlignerIO
 //
 //
-//class RegMW_IO extends Bundle with Configs {
-//  // Input ports
-//  val aluIn: SInt = Flipped(new RegEM_IO().aluOut)
-//
-//  // Output ports
-//  val aluOut: SInt = Flipped(aluIn)
+//class RegMWIO extends Bundle with Configs {
+//  val regFileEN: Bool = new RegEMIO().regFileEN
+//  val alu      : SInt = new RegEMIO().alu
+//  //val load     : SInt = new DMemAlignerIO().load
 //}
 //
 //
 //class RegMW extends Module with Configs {
-//  val io: RegMW_IO = IO(new RegMW_IO)
+//  val io = IO(new Bundle {
+//    val in : RegMWIO = Flipped(new RegMWIO)
+//    val out: RegMWIO = new RegMWIO
+//  })
+//
 //
 //  // Pipeline
 //  genPipeline(Seq(
-//    io.aluIn -> io.aluOut
-//  )).map {
-//    x =>
-//      x._2 := x._3
-//      x._1 := x._2
-//  }
+//    io.in.regFileEN -> io.out.regFileEN,
+//    io.in.alu       -> io.out.alu
+//  ))
 //}

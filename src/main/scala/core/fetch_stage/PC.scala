@@ -1,8 +1,8 @@
-package xodus.core.fetch_stage
+package core.fetch_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.Configs
+import configs.Configs
 
 
 class PCIO extends Bundle with Configs {

@@ -1,10 +1,10 @@
-package xodus.memory
+package memory
 
 import chisel3._,
        chisel3.util._,
        chisel3.util.experimental.loadMemoryFromFile,
        scala.math.pow
-import xodus.configs.Configs
+import configs.Configs
 
 
 class MemReqIO extends Bundle with Configs {

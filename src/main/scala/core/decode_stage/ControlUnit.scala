@@ -1,14 +1,37 @@
-package xodus.core.decode_stage
+package core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.{Configs, ISA}
+import configs.{Configs, ISA}
 
 
-class Enables extends Bundle {
-  val decoder: Vec[Bool] = Output(Vec(6, Bool()))
-  val regFile: Bool      = Output(Bool())
-  val alu    : Vec[Bool] = Output(Vec(13, Bool()))
+class DecoderEN extends Bundle {
+  val immSel: Vec[Bool] = Output(Vec(4, Bool()))
+}
+
+
+class RegFileEN extends Bundle {
+  val write: Bool = Output(Bool())
+}
+
+
+class ALUEN extends Bundle {
+  val immSel: Bool      = Output(Bool())
+  val opSel : Vec[Bool] = Output(Vec(12, Bool()))
+}
+
+
+class DMemEN extends Bundle {
+  val load : Vec[Bool] = Output(Vec(5, Bool()))
+  val store: Vec[Bool] = Output(Vec(3, Bool()))
+}
+
+
+class EN extends Bundle {
+  val decoder: DecoderEN = new DecoderEN
+  val regFile: RegFileEN = new RegFileEN
+  val alu    : ALUEN     = new ALUEN
+  val dMem   : DMemEN    = new DMemEN
 }
 
 
@@ -17,7 +40,7 @@ class ControlUnitIO extends Bundle with Configs {
   val funct3     : UInt = Flipped(new DecoderIO().funct3)
   val funct7_imm7: UInt = Flipped(new DecoderIO().funct7_imm7)
 
-  val en: Enables = new Enables
+  val en: EN = new EN
 }
 
 
@@ -68,10 +91,12 @@ class ControlUnit extends RawModule with Configs {
    ********************/
 
   // Decoder
-  io.en.decoder <> opcode
+  for (i <- 0 until io.en.decoder.immSel.length) {
+    io.en.decoder.immSel(i) := opcode(i + 2)
+  }
 
   // Register File
-  io.en.regFile := Seq(0, 1, 4, 5).map(
+  io.en.regFile.write := Seq(0, 1, 4, 5).map(
     x => opcode(x)
   ).reduce(
     (y, z) => y || z
@@ -91,16 +116,24 @@ class ControlUnit extends RawModule with Configs {
     Seq(0),
     (1 to 3).toSeq,
     Seq(1)
-  ).zipWithIndex.map(
-    x => io.en.alu(x._2) := x._1.map(
+  ).zipWithIndex.foreach(
+    x => io.en.alu.opSel(x._2) := x._1.map(
       y => inst(y)
     ).reduce(
-      (a, b) => a || b
+      (y, z) => y || z
     )
   )
-  io.en.alu(12) := Seq(1, 2, 4).map(
+  io.en.alu.immSel := Seq(1, 2, 4).map(
     x => opcode(x)
   ).reduce(
     (y, z) => y || z
   )
+
+  // Data Memory
+  for (i <- 0 until io.en.dMem.load.length) {
+    io.en.dMem.load(i) := inst(i + 4)
+  }
+  for (i <- 0 until io.en.dMem.store.length) {
+    io.en.dMem.store(i) := inst(i + 15)
+  }
 }

@@ -1,11 +1,11 @@
-package xodus.core.pipeline_regs
+package core.pipeline_regs
 
 import chisel3._
 
 
 object genPipeline {
   def apply(ports: Seq[(Data, Data)]): Unit = {
-    ports.map(
+    ports.foreach(
       x => {
         val pipelineReg = Reg(chiselTypeOf(x._1))
 

@@ -1,14 +1,14 @@
-package xodus.core.decode_stage
+package core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.{Configs, ISA},
-       xodus.core.pipeline_regs.RegFDIO
+import configs.{Configs, ISA},
+       core.pipeline_regs.RegFDIO
 
 
 class DecoderIO extends Bundle with Configs {
   val inst: UInt      = Flipped(new RegFDIO().inst)
-  val en  : Vec[Bool] = Flipped(new Enables().decoder)
+  val en  : DecoderEN = Flipped(new DecoderEN)
 
   val opcode     : UInt      = Output(UInt(OpcodeWidth.W))
   val rAddr      : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
@@ -30,7 +30,7 @@ class Decoder extends RawModule with Configs {
     io.opcode      -> (6, 0),
     io.funct3      -> (14, 12),
     io.funct7_imm7 -> (31, 25)
-  ).map(
+  ).foreach(
     x => x._1 := io.inst(x._2._1, x._2._2)
   )
 
@@ -38,7 +38,7 @@ class Decoder extends RawModule with Configs {
     (11, 7),   // rd
     (19, 15),  // rs1
     (24, 20)   // rs2
-  ).zipWithIndex.map(
+  ).zipWithIndex.foreach(
     x => io.rAddr(x._2) := io.inst(x._1._1, x._1._2)
   )
 
@@ -50,6 +50,6 @@ class Decoder extends RawModule with Configs {
     Cat(io.inst(31, 12), 0.U(12.W)),
     Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
   ).zipWithIndex.map(
-    x => io.en(x._2 + 2) -> x._1.asSInt
+    x => io.en.immSel(x._2) -> x._1.asSInt
   ))
 }

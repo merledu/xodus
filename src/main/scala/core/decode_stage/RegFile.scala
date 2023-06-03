@@ -1,8 +1,8 @@
-package xodus.core.decode_stage
+package core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs._
+import configs._
 
 
 class RegFileIO extends Bundle with Configs {

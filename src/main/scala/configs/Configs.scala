@@ -1,4 +1,4 @@
-package xodus.configs
+package configs
 
 
 trait Configs {

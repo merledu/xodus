@@ -1,15 +1,16 @@
-package xodus.core.execute_stage
+package core.execute_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.Configs,
-       xodus.core.pipeline_regs.RegDEIO
+import configs.Configs,
+       core.decode_stage.ALUEN,
+       core.pipeline_regs.RegDEIO
 
 
 class ALUIO extends Bundle with Configs {
   val in: Vec[SInt] = Flipped(new RegDEIO().data)
   val pc: UInt      = Flipped(new RegDEIO().pc)
-  val en: Vec[Bool] = Flipped(new RegDEIO().aluEN)
+  val en: ALUEN     = Flipped(new RegDEIO().aluEN)
 
   val out: SInt = Output(SInt(XLEN.W))
 }
@@ -21,12 +22,12 @@ class ALU extends RawModule with Configs {
   // Operands
   val sOperand: Vec[SInt] = VecInit(
     io.in(0),
-    Mux(io.en(12), io.in(2), io.in(1))  // imm or rs2
+    Mux(io.en.immSel, io.in(2), io.in(1))  // imm or rs2
   )
 
   val uOperand: Vec[UInt] = VecInit(
     io.pc,
-    Mux(io.en(11), io.in(2).asUInt, 4.U)  // auipc or 4.U
+    Mux(io.en.opSel(11), io.in(2).asUInt, 4.U)  // auipc or 4.U
   )
 
 
@@ -49,6 +50,6 @@ class ALU extends RawModule with Configs {
     sOperand(1),                                       // lui
     (uOperand(0) + uOperand(1)).asSInt                 // unsigned addition
   ).zipWithIndex.map(
-    x => io.en(x._2) -> x._1
+    x => io.en.opSel(x._2) -> x._1
   ))
 }
