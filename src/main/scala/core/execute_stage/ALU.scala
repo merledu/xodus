@@ -38,17 +38,17 @@ class ALU extends RawModule with Configs {
   // Output Selection
   // Default: signed addition
   io.out := MuxCase(sOperand(0) + sOperand(1), Seq(
-    sOperand(0) - sOperand(1),                         // subtraction
-    (sOperand(0) << sOperand(1)(4, 0)).asSInt,         // shift left logical
-    (sOperand(0) < sOperand(1)).asSInt,                // signed less than
-    (sOperand(0).asUInt < sOperand(1).asUInt).asSInt,  // unsigned less than
-    (sOperand(0) ^ sOperand(1)).asSInt,                // xor
-    (sOperand(0).asUInt >> sOperand(1)(4, 0)).asSInt,  // shift right logical
-    (sOperand(0) >> sOperand(1)(4, 0)),                // shift right arithmetic
-    (sOperand(0) | sOperand(1)).asSInt,                // or
-    (sOperand(0) & sOperand(1)).asSInt,                // and
-    sOperand(1),                                       // lui
-    (uOperand(0) + uOperand(1)).asSInt                 // unsigned addition
+    sOperand(0) - sOperand(1),                                               // subtraction
+    (sOperand(0) << sOperand(1)(4, 0)).asSInt,                               // shift left logical
+    Cat(0.U((XLEN - 1).W), sOperand(0) < sOperand(1)).asSInt,                // signed less than
+    Cat(0.U((XLEN - 1).W), sOperand(0).asUInt < sOperand(1).asUInt).asSInt,  // unsigned less than
+    (sOperand(0) ^ sOperand(1)).asSInt,                                      // xor
+    (sOperand(0).asUInt >> sOperand(1)(4, 0)).asSInt,                        // shift right logical
+    (sOperand(0) >> sOperand(1)(4, 0)),                                      // shift right arithmetic
+    (sOperand(0) | sOperand(1)).asSInt,                                      // or
+    (sOperand(0) & sOperand(1)).asSInt,                                      // and
+    sOperand(1),                                                             // lui
+    (uOperand(0) + uOperand(1)).asSInt                                       // unsigned addition
   ).zipWithIndex.map(
     x => io.en.opSel(x._2) -> x._1
   ))
