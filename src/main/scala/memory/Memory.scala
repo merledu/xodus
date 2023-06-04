@@ -25,19 +25,17 @@ class MemoryIO extends Bundle {
 }
 
 
-// Default: Instruction Memory
-class Memory(Data :Boolean=false) extends Module with Configs {
+// Default: Data Memory
+class Memory(Inst :Boolean=false) extends Module with Configs {
   val io: MemoryIO = IO(new MemoryIO)
 
   val memDepth: Int = pow(2, MemDepth).toInt
-  
+
   // Memory
   val mem: Mem[UInt] = Mem(memDepth, UInt(XLEN.W))
-  loadMemoryFromFile(
-    mem,
-    if (Data) "hex/data.hex"
-    else "hex/inst.hex"
-  )
+  if (Inst) {
+    loadMemoryFromFile(mem, "hex/inst.hex")
+  }
 
 
   /********************

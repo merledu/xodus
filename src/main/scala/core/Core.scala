@@ -8,11 +8,13 @@ import configs.Configs,
        core.pipeline_regs._,
        memory.MemoryIO,
        debug_io.DebugCore
+import core.memory_stage.DMemAlignerIO
+import core.memory_stage.DMemAligner
 
 
 class CoreIO extends Bundle with Configs {
   val iMem: MemoryIO = Flipped(new MemoryIO)
-  //val dMem: MemoryIO = Flipped(new MemoryIO)
+  val dMem: MemoryIO = Flipped(new MemoryIO)
 
 
   val debug: Option[DebugCore] = if (Debug) Some(new DebugCore) else None
@@ -37,7 +39,9 @@ class Core extends Module with Configs {
 
   val regEM = Module(new RegEM).io
 
-  //val regMW: RegMW_IO = Module(new RegMW).io
+  val dMemAligner: DMemAlignerIO = Module(new DMemAligner).io
+
+  val regMW = Module(new RegMW).io
 
 
   /***************
@@ -91,6 +95,13 @@ class Core extends Module with Configs {
    * Memory Stage *
    ****************/
 
+  dMemAligner.en        <> regEM.out.dMemEN
+  dMemAligner.addr      := regEM.out.alu
+  dMemAligner.storeData := regEM.out.storeData
+  io.dMem               <> dMemAligner.dMemReqResp
+  regMW.in.regFileEN    <> regEM.out.regFileEN
+  regMW.in.alu          := regEM.out.alu
+  regMW.in.load         <> dMemAligner.load
 
 
   /********************
@@ -128,5 +139,10 @@ class Core extends Module with Configs {
     io.debug.get.alu.out := alu.out
 
     io.debug.get.regEM.out <> regEM.out
+
+    io.debug.get.dMemAligner.load    <> dMemAligner.load
+    io.debug.get.dMemAligner.dMemReq <> dMemAligner.dMemReqResp.req
+
+    io.debug.get.regMW.out <> regMW.out
   }
 }

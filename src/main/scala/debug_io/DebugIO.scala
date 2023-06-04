@@ -6,7 +6,8 @@ import configs.Configs,
        core.fetch_stage.PCIO,
        core.decode_stage.{DecoderIO, RegFileIO, EN},
        core.execute_stage.ALUIO,
-       core.pipeline_regs.{RegFDIO, RegDEIO, RegEMIO},
+       core.memory_stage.DMemAlignerIO,
+       core.pipeline_regs.{RegFDIO, RegDEIO, RegEMIO, RegMWIO},
        memory.{MemReqIO, MemRespIO, MemoryIO}
 
 
@@ -55,24 +56,43 @@ class DebugRegEM extends Bundle {
 }
 
 
+class DebugDMemAligner extends Bundle {
+  val load   : Valid[SInt] = new DMemAlignerIO().load
+  val dMemReq: MemReqIO = Flipped(new MemReqIO)
+}
+
+
+class DebugRegMW extends Bundle {
+  val out: RegMWIO = new RegMWIO
+}
+
+
 class DebugCore extends Bundle {
-  val pc      : DebugPC          = new DebugPC
-  val regFD   : DebugRegFD       = new DebugRegFD
-  val decoder : DebugDecoder     = new DebugDecoder
-  val regFile : DebugRegFile     = new DebugRegFile
-  val cu      : DebugControlUnit = new DebugControlUnit
-  val regDE   : DebugRegDE       = new DebugRegDE
-  val alu     : DebugALU         = new DebugALU
-  val regEM   : DebugRegEM       = new DebugRegEM
+  val pc         : DebugPC          = new DebugPC
+  val regFD      : DebugRegFD       = new DebugRegFD
+  val decoder    : DebugDecoder     = new DebugDecoder
+  val regFile    : DebugRegFile     = new DebugRegFile
+  val cu         : DebugControlUnit = new DebugControlUnit
+  val regDE      : DebugRegDE       = new DebugRegDE
+  val alu        : DebugALU         = new DebugALU
+  val regEM      : DebugRegEM       = new DebugRegEM
+  val dMemAligner: DebugDMemAligner = new DebugDMemAligner
+  val regMW      : DebugRegMW       = new DebugRegMW
 }
 
 
 class DebugIMem extends Bundle {
-  val resp: MemRespIO = new MemoryIO().resp
+  val resp: MemRespIO = new MemRespIO
+}
+
+
+class DebugDMem extends Bundle {
+  val resp: MemRespIO = new MemRespIO
 }
 
 
 class DebugTop extends Bundle {
   val core: DebugCore = new DebugCore
   val iMem: DebugIMem = new DebugIMem
+  val dMem: DebugDMem = new DebugDMem
 }
