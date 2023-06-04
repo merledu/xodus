@@ -5,11 +5,11 @@ import configs.Configs,
        core.fetch_stage._,
        core.decode_stage._,
        core.execute_stage._,
+       core.memory_stage._,
+       core.write_back_stage._,
        core.pipeline_regs._,
        memory.MemoryIO,
        debug_io.DebugCore
-import core.memory_stage.DMemAlignerIO
-import core.memory_stage.DMemAligner
 
 
 class CoreIO extends Bundle with Configs {
@@ -25,7 +25,7 @@ class Core extends Module with Configs {
   val io: CoreIO = IO(new CoreIO)
 
   // Modules
-  val pc: PCIO       = Module(new PC).io
+  val pc: PCIO = Module(new PC).io
 
   val regFD = Module(new RegFD).io
 
@@ -42,6 +42,8 @@ class Core extends Module with Configs {
   val dMemAligner: DMemAlignerIO = Module(new DMemAligner).io
 
   val regMW = Module(new RegMW).io
+
+  val wb: WriteBackIO = Module(new WriteBack).io
 
 
   /***************
@@ -70,11 +72,10 @@ class Core extends Module with Configs {
   regDE.in.regFileEN <> cu.en.regFile
   regDE.in.aluEN     <> cu.en.alu
   regDE.in.dMemEN    <> cu.en.dMem
-  Seq(regFile.rAddr, regDE.in.rAddr).map(
-    x => x <> decoder.rAddr
-  )
+  regDE.in.rAddr     <> decoder.rAddr
   for (i <- 0 to 1) {
-    regDE.in.data(i) := regFile.read(i)
+    regFile.rAddr(i + 1) := decoder.rAddr(i + 1)
+    regDE.in.data(i)     := regFile.read(i)
   }
 
 
@@ -85,6 +86,7 @@ class Core extends Module with Configs {
   alu.pc             := regDE.out.pc
   alu.in             <> regDE.out.data
   alu.en             <> regDE.out.aluEN
+  regEM.in.rAddr     <> regDE.out.rAddr
   regEM.in.regFileEN <> regDE.out.regFileEN
   regEM.in.alu       := alu.out
   regEM.in.dMemEN    <> regDE.out.dMemEN
@@ -99,6 +101,7 @@ class Core extends Module with Configs {
   dMemAligner.addr      := regEM.out.alu
   dMemAligner.storeData := regEM.out.storeData
   io.dMem               <> dMemAligner.dMemReqResp
+  regMW.in.rAddr        <> regEM.out.rAddr
   regMW.in.regFileEN    <> regEM.out.regFileEN
   regMW.in.alu          := regEM.out.alu
   regMW.in.load         <> dMemAligner.load
@@ -108,13 +111,11 @@ class Core extends Module with Configs {
    * Write Back Stage *
    ********************/
 
-  regFile.write.bits  := 0.S
-  regFile.write.valid := 0.B
-  //Seq(
-  //  regMW.aluOut -> regFile.write.bits
-  //).map(
-  //  x => x._2 := x._1
-  //)
+  wb.alu              := regMW.out.alu
+  wb.load             <> regMW.out.load
+  regFile.rAddr(0)    := regMW.out.rAddr(0)
+  regFile.write.valid := regMW.out.regFileEN.write
+  regFile.write.bits  := wb.out
 
 
 
@@ -144,5 +145,7 @@ class Core extends Module with Configs {
     io.debug.get.dMemAligner.dMemReq <> dMemAligner.dMemReqResp.req
 
     io.debug.get.regMW.out <> regMW.out
+
+    io.debug.get.wb.out := wb.out
   }
 }

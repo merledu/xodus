@@ -8,6 +8,7 @@ import configs.Configs,
 
 
 class RegMWIO extends Bundle with Configs {
+  val rAddr    : Vec[UInt]   = new RegEMIO().rAddr
   val regFileEN: RegFileEN   = new RegEMIO().regFileEN
   val alu      : SInt        = new RegEMIO().alu
   val load     : Valid[SInt] = new DMemAlignerIO().load
@@ -23,6 +24,7 @@ class RegMW extends Module with Configs {
 
   // Pipeline
   genPipeline(Seq(
+    io.in.rAddr     -> io.out.rAddr,
     io.in.regFileEN -> io.out.regFileEN,
     io.in.alu       -> io.out.alu,
     io.in.load      -> io.out.load

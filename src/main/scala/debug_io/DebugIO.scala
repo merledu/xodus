@@ -7,6 +7,7 @@ import configs.Configs,
        core.decode_stage.{DecoderIO, RegFileIO, EN},
        core.execute_stage.ALUIO,
        core.memory_stage.DMemAlignerIO,
+       core.write_back_stage.WriteBackIO,
        core.pipeline_regs.{RegFDIO, RegDEIO, RegEMIO, RegMWIO},
        memory.{MemReqIO, MemRespIO, MemoryIO}
 
@@ -58,12 +59,17 @@ class DebugRegEM extends Bundle {
 
 class DebugDMemAligner extends Bundle {
   val load   : Valid[SInt] = new DMemAlignerIO().load
-  val dMemReq: MemReqIO = Flipped(new MemReqIO)
+  val dMemReq: MemReqIO    = Flipped(new MemReqIO)
 }
 
 
 class DebugRegMW extends Bundle {
   val out: RegMWIO = new RegMWIO
+}
+
+
+class DebugWriteBack extends Bundle {
+  val out: SInt = new WriteBackIO().out
 }
 
 
@@ -78,6 +84,7 @@ class DebugCore extends Bundle {
   val regEM      : DebugRegEM       = new DebugRegEM
   val dMemAligner: DebugDMemAligner = new DebugDMemAligner
   val regMW      : DebugRegMW       = new DebugRegMW
+  val wb         : DebugWriteBack   = new DebugWriteBack
 }
 
 

@@ -34,7 +34,7 @@ class Memory(Inst :Boolean=false) extends Module with Configs {
   // Memory
   val mem: Mem[UInt] = Mem(memDepth, UInt(XLEN.W))
   if (Inst) {
-    loadMemoryFromFile(mem, "hex/inst.hex")
+    loadMemoryFromFile(mem, "hex/inst.txt")
   }
 
 

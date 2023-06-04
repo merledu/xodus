@@ -25,7 +25,7 @@ class RegFile extends Module with Configs {
    ********************/
 
   // Write to Register File
-  when (io.write.valid && io.rAddr(0).orR) {
+  when (io.write.valid) {
     regFile(io.rAddr(0)) := io.write.bits
   }
 

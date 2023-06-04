@@ -46,5 +46,6 @@ class Top extends Module with Configs {
     io.debug.get.core.dMemAligner <> core.debug.get.dMemAligner
     io.debug.get.dMem.resp        <> dMem.resp
     io.debug.get.core.regMW       <> core.debug.get.regMW
+    io.debug.get.core.wb          <> core.debug.get.wb
   }
 }

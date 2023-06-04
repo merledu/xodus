@@ -8,6 +8,7 @@ import configs.Configs,
 
 
 class RegEMIO extends Bundle with Configs {
+  val rAddr    : Vec[UInt] = new RegDEIO().rAddr
   val regFileEN: RegFileEN = new RegDEIO().regFileEN
   val alu      : SInt      = new ALUIO().out
   val dMemEN   : DMemEN    = new RegDEIO().dMemEN
@@ -24,6 +25,7 @@ class RegEM extends Module with Configs {
 
   // Pipeline
   genPipeline(Seq(
+    io.in.rAddr     -> io.out.rAddr,
     io.in.regFileEN -> io.out.regFileEN,
     io.in.alu       -> io.out.alu,
     io.in.dMemEN    -> io.out.dMemEN,
