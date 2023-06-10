@@ -1,22 +1,21 @@
 package core.pipeline_regs
 
-import chisel3._,
-       chisel3.util._
+import chisel3._
 import configs.Configs,
-       core.decode_stage.{DecoderIO, RegFileEN, ALUEN, DMemEN}
+       core.decode_stage.{DecoderIO, RegFileCtrl, ALUCtrl, DMemCtrl}
 
 
 class RegDEIO extends Bundle with Configs {
-  val pc       : UInt      = new RegFDIO().pc
-  val rAddr    : Vec[UInt] = new DecoderIO().rAddr
-  val data     : Vec[SInt] = Output(Vec(3, SInt(XLEN.W)))
-  val regFileEN: RegFileEN = new RegFileEN
-  val aluEN    : ALUEN     = new ALUEN
-  val dMemEN   : DMemEN    = new DMemEN
+  val pc         : UInt        = new RegFDIO().pc
+  val rAddr      : Vec[UInt]   = new DecoderIO().rAddr
+  val intData    : Vec[SInt]   = Output(Vec(3, SInt(XLEN.W)))
+  val regFileCtrl: RegFileCtrl = new RegFileCtrl
+  val aluCtrl    : ALUCtrl     = new ALUCtrl
+  val dMemCtrl   : DMemCtrl    = new DMemCtrl
 }
 
 
-class RegDE extends Module with Configs {
+class RegDE extends Module {
   val io = IO(new Bundle {
     val in : RegDEIO = Flipped(new RegDEIO)
     val out: RegDEIO = new RegDEIO
@@ -25,11 +24,11 @@ class RegDE extends Module with Configs {
 
   // Pipeline
   genPipeline(Seq(
-    io.in.pc        -> io.out.pc,
-    io.in.rAddr     -> io.out.rAddr,
-    io.in.data      -> io.out.data,
-    io.in.regFileEN -> io.out.regFileEN,
-    io.in.aluEN     -> io.out.aluEN,
-    io.in.dMemEN    -> io.out.dMemEN
+    io.in.pc          -> io.out.pc,
+    io.in.rAddr       -> io.out.rAddr,
+    io.in.intData     -> io.out.intData,
+    io.in.regFileCtrl -> io.out.regFileCtrl,
+    io.in.aluCtrl     -> io.out.aluCtrl,
+    io.in.dMemCtrl    -> io.out.dMemCtrl
   ))
 }

@@ -4,11 +4,11 @@ import chisel3._,
        chisel3.util._
 import configs.Configs,
        core.fetch_stage.{PCIO, IMemInterfaceIO},
-       core.decode_stage.{DecoderIO, RegFileIO, EN},
-       core.execute_stage.ALUIO,
+       core.decode_stage.{DecoderIO, IntRegFileIO, Controls},
+       //core.execute_stage.ALUIO,
        //core.memory_stage.DMemAlignerIO,
        //core.write_back_stage.WriteBackIO,
-       core.pipeline_regs.{RegFDIO, RegDEIO, RegEMIO/*, RegMWIO*/},
+       core.pipeline_regs.{RegFDIO, RegDEIO/*, RegEMIO, RegMWIO*/},
        sram.{SRAMReqIO, SRAMRespIO, SRAMTopIO}
 
 
@@ -29,30 +29,30 @@ class DebugRegFD extends Bundle {
 }
 
 
-//class DebugDecoder extends Bundle {
-//  val opcode     : UInt      = new DecoderIO().opcode
-//  val rAddr      : Vec[UInt] = new DecoderIO().rAddr
-//  val funct3     : UInt      = new DecoderIO().funct3
-//  val funct7_imm7: UInt      = new DecoderIO().funct7_imm7
-//  val imm        : SInt      = new DecoderIO().imm
-//}
-//
-//
-//class DebugRegFile extends Bundle {
-//  val read: Vec[SInt] = new RegFileIO().read
-//}
-//
-//
-//class DebugControlUnit extends Bundle {
-//  val en: EN = new EN
-//}
-//
-//
-//class DebugRegDE extends Bundle {
-//  val out: RegDEIO = new RegDEIO
-//}
-//
-//
+class DebugDecoder extends Bundle {
+  val opcode     : UInt      = new DecoderIO().opcode
+  val rAddr      : Vec[UInt] = new DecoderIO().rAddr
+  val funct3     : UInt      = new DecoderIO().funct3
+  val funct7_imm7: UInt      = new DecoderIO().funct7_imm7
+  val imm        : SInt      = new DecoderIO().imm
+}
+
+
+class DebugRegFile extends Bundle {
+  val read: Vec[SInt] = new IntRegFileIO().read
+}
+
+
+class DebugControlUnit extends Bundle {
+  val ctrl: Controls = new Controls
+}
+
+
+class DebugRegDE extends Bundle {
+  val out: RegDEIO = new RegDEIO
+}
+
+
 //class DebugALU extends Bundle {
 //  val out: SInt = new ALUIO().out
 //}
@@ -83,10 +83,10 @@ class DebugCore extends Bundle {
   val pc         : DebugPC            = new DebugPC
   val iMem       : DebugIMemInterface = new DebugIMemInterface
   val regFD      : DebugRegFD         = new DebugRegFD
-  //val decoder    : DebugDecoder       = new DebugDecoder
-  //val regFile    : DebugRegFile       = new DebugRegFile
-  //val cu         : DebugControlUnit   = new DebugControlUnit
-  //val regDE      : DebugRegDE         = new DebugRegDE
+  val decoder    : DebugDecoder       = new DebugDecoder
+  val regFile    : DebugRegFile       = new DebugRegFile
+  val cu         : DebugControlUnit   = new DebugControlUnit
+  val regDE      : DebugRegDE         = new DebugRegDE
   //val alu        : DebugALU           = new DebugALU
   //val regEM      : DebugRegEM         = new DebugRegEM
   //val dMemAligner: DebugDMemAligner = new DebugDMemAligner

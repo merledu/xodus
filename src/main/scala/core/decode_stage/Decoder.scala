@@ -7,8 +7,8 @@ import configs.{Configs, ISA},
 
 
 class DecoderIO extends Bundle with Configs {
-  val inst: UInt      = Flipped(new RegFDIO().inst)
-  val en  : DecoderEN = Flipped(new DecoderEN)
+  val inst: UInt        = Flipped(new RegFDIO().inst)
+  val ctrl: DecoderCtrl = Flipped(new DecoderCtrl)
 
   val opcode     : UInt      = Output(UInt(OpcodeWidth.W))
   val rAddr      : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
@@ -18,7 +18,7 @@ class DecoderIO extends Bundle with Configs {
 }
 
 
-class Decoder extends RawModule with Configs {
+class Decoder extends RawModule {
   val io: DecoderIO = IO(new DecoderIO)
 
 
@@ -50,6 +50,6 @@ class Decoder extends RawModule with Configs {
     Cat(io.inst(31, 12), 0.U(12.W)),
     Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))
   ).zipWithIndex.map(
-    x => io.en.immSel(x._2) -> x._1.asSInt
+    x => io.ctrl.immSel(x._2) -> x._1.asSInt
   ))
 }

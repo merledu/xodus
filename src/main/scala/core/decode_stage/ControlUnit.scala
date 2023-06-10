@@ -5,33 +5,33 @@ import chisel3._,
 import configs.{Configs, ISA}
 
 
-class DecoderEN extends Bundle {
+class DecoderCtrl extends Bundle {
   val immSel: Vec[Bool] = Output(Vec(4, Bool()))
 }
 
 
-class RegFileEN extends Bundle {
+class RegFileCtrl extends Bundle {
   val write: Bool = Output(Bool())
 }
 
 
-class ALUEN extends Bundle {
+class ALUCtrl extends Bundle {
   val immSel: Bool      = Output(Bool())
   val opSel : Vec[Bool] = Output(Vec(12, Bool()))
 }
 
 
-class DMemEN extends Bundle {
+class DMemCtrl extends Bundle {
   val load : Vec[Bool] = Output(Vec(5, Bool()))
   val store: Vec[Bool] = Output(Vec(3, Bool()))
 }
 
 
-class EN extends Bundle {
-  val decoder: DecoderEN = new DecoderEN
-  val regFile: RegFileEN = new RegFileEN
-  val alu    : ALUEN     = new ALUEN
-  val dMem   : DMemEN    = new DMemEN
+class Controls extends Bundle {
+  val decoder: DecoderCtrl = new DecoderCtrl
+  val regFile: RegFileCtrl = new RegFileCtrl
+  val alu    : ALUCtrl     = new ALUCtrl
+  val dMem   : DMemCtrl    = new DMemCtrl
 }
 
 
@@ -40,11 +40,11 @@ class ControlUnitIO extends Bundle with Configs {
   val funct3     : UInt = Flipped(new DecoderIO().funct3)
   val funct7_imm7: UInt = Flipped(new DecoderIO().funct7_imm7)
 
-  val en: EN = new EN
+  val ctrl: Controls = new Controls
 }
 
 
-class ControlUnit extends RawModule with Configs {
+class ControlUnit extends RawModule {
   val io: ControlUnitIO = IO(new ControlUnitIO)
 
   val opcodes: Map[String, Seq[String]] = new ISA().opcodes
@@ -91,12 +91,12 @@ class ControlUnit extends RawModule with Configs {
    ********************/
 
   // Decoder
-  for (i <- 0 until io.en.decoder.immSel.length) {
-    io.en.decoder.immSel(i) := opcode(i + 2)
+  for (i <- 0 until io.ctrl.decoder.immSel.length) {
+    io.ctrl.decoder.immSel(i) := opcode(i + 2)
   }
 
   // Register File
-  io.en.regFile.write := Seq(0, 1, 4, 5).map(
+  io.ctrl.regFile.write := Seq(0, 1, 4, 5).map(
     x => opcode(x)
   ).reduce(
     (y, z) => y || z
@@ -117,23 +117,23 @@ class ControlUnit extends RawModule with Configs {
     (1 to 3).toSeq,
     Seq(1)
   ).zipWithIndex.foreach(
-    x => io.en.alu.opSel(x._2) := x._1.map(
+    x => io.ctrl.alu.opSel(x._2) := x._1.map(
       y => inst(y)
     ).reduce(
       (y, z) => y || z
     )
   )
-  io.en.alu.immSel := Seq(1, 2, 4).map(
+  io.ctrl.alu.immSel := Seq(1, 2, 4).map(
     x => opcode(x)
   ).reduce(
     (y, z) => y || z
   )
 
   // Data Memory
-  for (i <- 0 until io.en.dMem.load.length) {
-    io.en.dMem.load(i) := inst(i + 4)
+  for (i <- 0 until io.ctrl.dMem.load.length) {
+    io.ctrl.dMem.load(i) := inst(i + 4)
   }
-  for (i <- 0 until io.en.dMem.store.length) {
-    io.en.dMem.store(i) := inst(i + 15)
+  for (i <- 0 until io.ctrl.dMem.store.length) {
+    io.ctrl.dMem.store(i) := inst(i + 15)
   }
 }

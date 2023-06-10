@@ -39,10 +39,10 @@ class Top(HexFiles:Seq[Option[String]]) extends Module with Configs {
     io.debug.get.iMem.respValid := iMem.resp.valid
     io.debug.get.iMem.respBits  <> iMem.resp.bits
     io.debug.get.core.regFD     <> core.debug.get.regFD
-    //io.debug.get.core.decoder   <> core.debug.get.decoder
-    //io.debug.get.core.regFile   <> core.debug.get.regFile
-    //io.debug.get.core.cu        <> core.debug.get.cu
-    //io.debug.get.core.regDE     <> core.debug.get.regDE
+    io.debug.get.core.decoder   <> core.debug.get.decoder
+    io.debug.get.core.regFile   <> core.debug.get.regFile
+    io.debug.get.core.cu        <> core.debug.get.cu
+    io.debug.get.core.regDE     <> core.debug.get.regDE
     //io.debug.get.core.alu       <> core.debug.get.alu
     //io.debug.get.core.regEM     <> core.debug.get.regEM
     //io.debug.get.core.dMemAligner <> core.debug.get.dMemAligner

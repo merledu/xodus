@@ -45,15 +45,12 @@ class SRAMTop(HexFile:Option[String]) extends Module with Configs {
     x => x := 1.B
   )
 
-  sram.clk0  := clock.asBool
-  sram.csb0  := !io.req.valid       // active-low
-  sram.web0  := !io.req.bits.write  // active-low
-  sram.addr0 := io.req.bits.addr
-
-  // Write to memory
+  sram.clk0   := clock.asBool
+  sram.csb0   := !io.req.valid       // active-low
+  sram.web0   := !io.req.bits.write  // active-low
+  sram.addr0  := io.req.bits.addr
   sram.wmask0 := io.req.bits.wmask
   sram.din0   := io.req.bits.data
 
-  // Read from memory
   io.resp.bits.data := Mux(io.resp.ready, sram.dout0, 0.U)
 }

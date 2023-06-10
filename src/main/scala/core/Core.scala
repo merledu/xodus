@@ -30,11 +30,11 @@ class Core extends Module with Configs {
 
   val regFD = Module(new RegFD).io
 
-  //val decoder: DecoderIO     = Module(new Decoder).io
-  //val regFile: RegFileIO     = Module(new RegFile).io
-  //val cu     : ControlUnitIO = Module(new ControlUnit).io
+  val decoder: DecoderIO     = Module(new Decoder).io
+  val regFile: IntRegFileIO  = Module(new IntRegFile).io
+  val cu     : ControlUnitIO = Module(new ControlUnit).io
 
-  //val regDE = Module(new RegDE).io
+  val regDE = Module(new RegDE).io
 
   //val alu: ALUIO = Module(new ALU).io
 
@@ -61,21 +61,25 @@ class Core extends Module with Configs {
    * Decode Stage *
    ****************/
 
-  //decoder.inst       := regFD.out.inst
-  //decoder.en         <> cu.en.decoder
-  //cu.opcode          := decoder.opcode
-  //cu.funct3          := decoder.funct3
-  //cu.funct7_imm7     := decoder.funct7_imm7
-  //regDE.in.pc        := regFD.out.pc
-  //regDE.in.data(2)   := decoder.imm
-  //regDE.in.regFileEN <> cu.en.regFile
-  //regDE.in.aluEN     <> cu.en.alu
-  //regDE.in.dMemEN    <> cu.en.dMem
-  //regDE.in.rAddr     <> decoder.rAddr
-  //for (i <- 0 to 1) {
-  //  regFile.rAddr(i + 1) := decoder.rAddr(i + 1)
-  //  regDE.in.data(i)     := regFile.read(i)
-  //}
+  decoder.inst         := regFD.out.inst
+  decoder.ctrl         <> cu.ctrl.decoder
+  cu.opcode            := decoder.opcode
+  cu.funct3            := decoder.funct3
+  cu.funct7_imm7       := decoder.funct7_imm7
+  regDE.in.pc          := regFD.out.pc
+  regDE.in.rAddr       <> decoder.rAddr
+  regDE.in.intData(2)  := decoder.imm
+  regDE.in.regFileCtrl <> cu.ctrl.regFile
+  regDE.in.aluCtrl     <> cu.ctrl.alu
+  regDE.in.dMemCtrl    <> cu.ctrl.dMem
+  for (i <- 0 to 1) {
+    regFile.rAddr(i + 1) := decoder.rAddr(i + 1)
+    regDE.in.intData(i)  := regFile.read(i)
+  }
+
+  regFile.rAddr(0) := 0.U
+  regFile.write.valid := 0.B
+  regFile.write.bits := 0.S
 
 
   /*****************
@@ -128,17 +132,17 @@ class Core extends Module with Configs {
 
     io.debug.get.regFD.out <> regFD.out
 
-    //io.debug.get.decoder.opcode      := decoder.opcode
-    //io.debug.get.decoder.rAddr       <> decoder.rAddr
-    //io.debug.get.decoder.funct3      := decoder.funct3
-    //io.debug.get.decoder.funct7_imm7 := decoder.funct7_imm7
-    //io.debug.get.decoder.imm         := decoder.imm
+    io.debug.get.decoder.opcode      := decoder.opcode
+    io.debug.get.decoder.rAddr       <> decoder.rAddr
+    io.debug.get.decoder.funct3      := decoder.funct3
+    io.debug.get.decoder.funct7_imm7 := decoder.funct7_imm7
+    io.debug.get.decoder.imm         := decoder.imm
 
-    //io.debug.get.regFile.read <> regFile.read
+    io.debug.get.regFile.read <> regFile.read
 
-    //io.debug.get.cu.en <> cu.en
+    io.debug.get.cu.ctrl <> cu.ctrl
 
-    //io.debug.get.regDE.out <> regDE.out
+    io.debug.get.regDE.out <> regDE.out
 
     //io.debug.get.alu.out := alu.out
 
