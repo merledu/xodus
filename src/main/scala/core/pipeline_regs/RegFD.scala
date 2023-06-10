@@ -1,19 +1,17 @@
 package core.pipeline_regs
 
-import chisel3._,
-       chisel3.util._
+import chisel3._
 import configs.Configs,
-       core.fetch_stage.PCIO,
-       memory.MemRespIO
+       core.fetch_stage.{PCIO, IMemInterfaceIO}
 
 
 class RegFDIO extends Bundle with Configs {
   val pc  : UInt = new PCIO().pc
-  val inst: UInt = new MemRespIO().data
+  val inst: UInt = new IMemInterfaceIO().inst
 }
 
 
-class RegFD extends Module with Configs {
+class RegFD extends Module {
   val io = IO(new Bundle {
     val in : RegFDIO = Flipped(new RegFDIO)
     val out: RegFDIO = new RegFDIO

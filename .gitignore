@@ -340,8 +340,6 @@ project/plugins/project/
 hs_err_pid*
 
 # Project files
-!hex/inst.hex
-!hex/data.hex
 trace/*.csv
 
 # Miscellenous files

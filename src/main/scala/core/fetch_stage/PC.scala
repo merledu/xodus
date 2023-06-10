@@ -1,13 +1,11 @@
 package core.fetch_stage
 
-import chisel3._,
-       chisel3.util._
+import chisel3._
 import configs.Configs
 
 
 class PCIO extends Bundle with Configs {
-  val pc  : UInt = Output(UInt(XLEN.W))
-  val addr: UInt = Output(UInt(MemDepth.W))
+  val pc: UInt = Output(UInt(XLEN.W))
 }
 
 
@@ -22,7 +20,6 @@ class PC extends Module with Configs {
    * Interconnections *
    ********************/
 
-  pc      := (pc + 4.U)
-  io.pc   := pc
-  io.addr := pc(MemDepth + 1, 2)
+  pc    := (pc + 4.U)
+  io.pc := pc
 }

@@ -1,0 +1,9 @@
+num_rw_ports = 1
+write_size = 8
+num_words = 256
+word_size = 32
+words_per_row = 1
+netlist_only = True
+output_name = 'SRAM'
+bitcell = 'bitcell_1rw'
+replica_bitcell = 'replica_bitcell_1rw'
