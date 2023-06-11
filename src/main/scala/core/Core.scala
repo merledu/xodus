@@ -5,7 +5,7 @@ import configs.Configs,
        core.fetch_stage._,
        core.decode_stage._,
        core.execute_stage._,
-       //core.memory_stage._,
+       core.memory_stage._,
        //core.write_back_stage._,
        core.pipeline_regs._,
        sram.SRAMTopIO,
@@ -14,10 +14,10 @@ import configs.Configs,
 
 class CoreIO extends Bundle with Configs {
   val iMem: SRAMTopIO = Flipped(new SRAMTopIO)
-  //val dMem: MemoryIO = Flipped(new MemoryIO)
+  val dMem: SRAMTopIO = Flipped(new SRAMTopIO)
 
 
-  val debug: Option[DebugCore] = if (Debug) Some(new DebugCore) else None
+  //val debug: Option[DebugCore] = if (Debug) Some(new DebugCore) else None
 }
 
 
@@ -36,13 +36,13 @@ class Core extends Module with Configs {
 
   val regDE = Module(new RegDE).io
 
-  //val alu: ALUIO = Module(new ALU).io
+  val alu: ALUIO = Module(new ALU).io
 
-  //val regEM = Module(new RegEM).io
+  val regEM = Module(new RegEM).io
 
-  //val dMemAligner: DMemAlignerIO = Module(new DMemAligner).io
+  val dMemInterface: DMemInterfaceIO = Module(new DMemInterface).io
 
-  //val regMW = Module(new RegMW).io
+  val regMW = Module(new RegMW).io
 
   //val wb: WriteBackIO = Module(new WriteBack).io
 
@@ -86,28 +86,28 @@ class Core extends Module with Configs {
    * Execute Stage *
    *****************/
 
-  //alu.pc             := regDE.out.pc
-  //alu.in             <> regDE.out.data
-  //alu.en             <> regDE.out.aluEN
-  //regEM.in.rAddr     <> regDE.out.rAddr
-  //regEM.in.regFileEN <> regDE.out.regFileEN
-  //regEM.in.alu       := alu.out
-  //regEM.in.dMemEN    <> regDE.out.dMemEN
-  //regEM.in.storeData := regDE.out.data(1)
+  alu.pc               := regDE.out.pc
+  alu.in               <> regDE.out.intData
+  alu.ctrl             <> regDE.out.aluCtrl
+  regEM.in.rAddr       <> regDE.out.rAddr
+  regEM.in.regFileCtrl <> regDE.out.regFileCtrl
+  regEM.in.alu         := alu.out
+  regEM.in.dMemCtrl    <> regDE.out.dMemCtrl
+  regEM.in.storeData   := regDE.out.intData(1)
 
 
   /****************
    * Memory Stage *
    ****************/
 
-  //dMemAligner.en        <> regEM.out.dMemEN
-  //dMemAligner.addr      := regEM.out.alu
-  //dMemAligner.storeData := regEM.out.storeData
-  //io.dMem               <> dMemAligner.dMemReqResp
-  //regMW.in.rAddr        <> regEM.out.rAddr
-  //regMW.in.regFileEN    <> regEM.out.regFileEN
-  //regMW.in.alu          := regEM.out.alu
-  //regMW.in.load         <> dMemAligner.load
+  dMemInterface.ctrl      <> regEM.out.dMemCtrl
+  dMemInterface.alu       := regEM.out.alu
+  dMemInterface.storeData := regEM.out.storeData
+  io.dMem                 <> dMemInterface.dMemInterface
+  regMW.in.rAddr          <> regEM.out.rAddr
+  regMW.in.regFileCtrl    <> regEM.out.regFileCtrl
+  regMW.in.alu            := regEM.out.alu
+  regMW.in.load           <> dMemInterface.load
 
 
   /********************
@@ -124,25 +124,24 @@ class Core extends Module with Configs {
 
   // Debug
   if (Debug) {
-    io.debug.get.pc <> pc
+    //io.debug.get.pc <> pc
 
-    io.debug.get.iMem.reqValid  := iMemInterface.iMemInterface.req.valid
-    io.debug.get.iMem.reqBits   <> iMemInterface.iMemInterface.req.bits
-    io.debug.get.iMem.respReady := iMemInterface.iMemInterface.resp.ready
+    //io.debug.get.iMemInterface.inst := iMemInterface.inst
+    //io.debug.get.iMemInterface.req  <> iMemInterface.iMemInterface.req
 
-    io.debug.get.regFD.out <> regFD.out
+    //io.debug.get.regFD.out <> regFD.out
 
-    io.debug.get.decoder.opcode      := decoder.opcode
-    io.debug.get.decoder.rAddr       <> decoder.rAddr
-    io.debug.get.decoder.funct3      := decoder.funct3
-    io.debug.get.decoder.funct7_imm7 := decoder.funct7_imm7
-    io.debug.get.decoder.imm         := decoder.imm
+    //io.debug.get.decoder.opcode      := decoder.opcode
+    //io.debug.get.decoder.rAddr       <> decoder.rAddr
+    //io.debug.get.decoder.funct3      := decoder.funct3
+    //io.debug.get.decoder.funct7_imm7 := decoder.funct7_imm7
+    //io.debug.get.decoder.imm         := decoder.imm
 
-    io.debug.get.regFile.read <> regFile.read
+    //io.debug.get.regFile.read <> regFile.read
 
-    io.debug.get.cu.ctrl <> cu.ctrl
+    //io.debug.get.cu.ctrl <> cu.ctrl
 
-    io.debug.get.regDE.out <> regDE.out
+    //io.debug.get.regDE.out <> regDE.out
 
     //io.debug.get.alu.out := alu.out
 

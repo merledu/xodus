@@ -22,12 +22,11 @@ class IMemInterface extends Module with Configs {
    * Interconnections *
    ********************/
 
-  io.iMemInterface.req.valid      := Mux(reset.asBool, 0.B, 1.B)  // Always ready to send requests
-  io.iMemInterface.req.bits.addr  := Mux(io.iMemInterface.req.ready, io.pc(ADDR_WIDTH + 1, 2), 0.U)
+  io.iMemInterface.req.valid      := !reset.asBool
+  io.iMemInterface.req.bits.addr  := io.pc(ADDR_WIDTH + 1, 2)
   io.iMemInterface.req.bits.data  := 0.U
   io.iMemInterface.req.bits.write := 0.B
-  io.iMemInterface.req.bits.wmask := "b1111".U
-  io.iMemInterface.resp.ready     := 1.B  // Always ready to receive responds
+  io.iMemInterface.req.bits.wmask := 0.U
 
-  io.inst := Mux(io.iMemInterface.resp.valid, io.iMemInterface.resp.bits.data, 0.U)
+  io.inst := io.iMemInterface.resp.data
 }

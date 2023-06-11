@@ -11,7 +11,7 @@ class DecoderCtrl extends Bundle {
 
 
 class RegFileCtrl extends Bundle {
-  val write: Bool = Output(Bool())
+  val intWrite: Bool = Output(Bool())
 }
 
 
@@ -96,7 +96,7 @@ class ControlUnit extends RawModule {
   }
 
   // Register File
-  io.ctrl.regFile.write := Seq(0, 1, 4, 5).map(
+  io.ctrl.regFile.intWrite := Seq(0, 1, 4, 5).map(
     x => opcode(x)
   ).reduce(
     (y, z) => y || z
@@ -104,18 +104,18 @@ class ControlUnit extends RawModule {
 
   // ALU
   Seq(
-    Seq(28),
-    Seq(24, 29),
-    Seq(10, 30),
-    Seq(11, 31),
-    Seq(12, 32),
-    Seq(25, 33),
-    Seq(26, 34),
-    Seq(13, 35),
-    Seq(14, 36),
-    Seq(0),
-    (1 to 3).toSeq,
-    Seq(1)
+    Seq(28),         // subtraction
+    Seq(24, 29),     // shift left logical
+    Seq(10, 30),     // signed less than
+    Seq(11, 31),     // unsigned less than
+    Seq(12, 32),     // xor
+    Seq(25, 33),     // shift right logical
+    Seq(26, 34),     // shift right arithmetic
+    Seq(13, 35),     // or
+    Seq(14, 36),     // and
+    Seq(0),          // lui
+    (1 to 3).toSeq,  // unsigned addition
+    Seq(1)           // auipc
   ).zipWithIndex.foreach(
     x => io.ctrl.alu.opSel(x._2) := x._1.map(
       y => inst(y)
