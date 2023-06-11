@@ -6,18 +6,14 @@ import configs.Configs,
        core.decode_stage._,
        core.execute_stage._,
        core.memory_stage._,
-       //core.write_back_stage._,
+       core.write_back_stage._,
        core.pipeline_regs._,
-       sram.SRAMTopIO,
-       debug_io.DebugCore
+       sram.SRAMTopIO
 
 
 class CoreIO extends Bundle with Configs {
   val iMem: SRAMTopIO = Flipped(new SRAMTopIO)
   val dMem: SRAMTopIO = Flipped(new SRAMTopIO)
-
-
-  //val debug: Option[DebugCore] = if (Debug) Some(new DebugCore) else None
 }
 
 
@@ -44,7 +40,7 @@ class Core extends Module with Configs {
 
   val regMW = Module(new RegMW).io
 
-  //val wb: WriteBackIO = Module(new WriteBack).io
+  val wb: WriteBackIO = Module(new WriteBack).io
 
 
   /***************
@@ -114,44 +110,9 @@ class Core extends Module with Configs {
    * Write Back Stage *
    ********************/
 
-  //wb.alu              := regMW.out.alu
-  //wb.load             <> regMW.out.load
-  //regFile.rAddr(0)    := regMW.out.rAddr(0)
-  //regFile.write.valid := regMW.out.regFileEN.write
-  //regFile.write.bits  := wb.out
-
-
-
-  // Debug
-  if (Debug) {
-    //io.debug.get.pc <> pc
-
-    //io.debug.get.iMemInterface.inst := iMemInterface.inst
-    //io.debug.get.iMemInterface.req  <> iMemInterface.iMemInterface.req
-
-    //io.debug.get.regFD.out <> regFD.out
-
-    //io.debug.get.decoder.opcode      := decoder.opcode
-    //io.debug.get.decoder.rAddr       <> decoder.rAddr
-    //io.debug.get.decoder.funct3      := decoder.funct3
-    //io.debug.get.decoder.funct7_imm7 := decoder.funct7_imm7
-    //io.debug.get.decoder.imm         := decoder.imm
-
-    //io.debug.get.regFile.read <> regFile.read
-
-    //io.debug.get.cu.ctrl <> cu.ctrl
-
-    //io.debug.get.regDE.out <> regDE.out
-
-    //io.debug.get.alu.out := alu.out
-
-    //io.debug.get.regEM.out <> regEM.out
-
-    //io.debug.get.dMemAligner.load    <> dMemAligner.load
-    //io.debug.get.dMemAligner.dMemReq <> dMemAligner.dMemReqResp.req
-
-    //io.debug.get.regMW.out <> regMW.out
-
-    //io.debug.get.wb.out := wb.out
-  }
+  wb.alu              := regMW.out.alu
+  wb.load             <> regMW.out.load
+  regFile.rAddr(0)    := regMW.out.rAddr(0)
+  regFile.write.valid := regMW.out.regFileCtrl.intWrite
+  regFile.write.bits  := wb.out
 }

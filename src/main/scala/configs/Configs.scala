@@ -2,8 +2,6 @@ package configs
 
 
 trait Configs {
-  val Debug: Boolean = true
-
   // Core
   val XLEN        : Int = 32
   val RegAddrWidth: Int = 5
