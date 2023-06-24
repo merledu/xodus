@@ -5,7 +5,7 @@ import chisel3._,
 import configs.Configs
 
 
-class IntRegFileIO extends Bundle with Configs {
+class RegisterFileIO extends Bundle with Configs {
   val rAddr: Vec[UInt]   = Flipped(new DecoderIO().rAddr)
   val write: Valid[SInt] = Flipped(Valid(SInt(XLEN.W)))
 
@@ -13,11 +13,11 @@ class IntRegFileIO extends Bundle with Configs {
 }
 
 
-class IntRegFile extends Module with Configs {
-  val io: IntRegFileIO = IO(new IntRegFileIO)
+class RegisterFile extends Module with Configs {
+  val io: RegisterFileIO = IO(new RegisterFileIO)
 
   // Register File
-  val regFile: Vec[SInt] = Reg(Vec(XLEN, SInt(XLEN.W)))
+  val intRegFile: Vec[SInt] = Reg(Vec(XLEN, SInt(XLEN.W)))
  
 
   /********************
@@ -25,15 +25,15 @@ class IntRegFile extends Module with Configs {
    ********************/
 
   // Hardcode x0
-  regFile(0) := 0.S
+  intRegFile(0) := 0.S
 
   // Write to Register File
   when (io.write.valid && io.rAddr(0).orR) {
-    regFile(io.rAddr(0)) := io.write.bits
+    intRegFile(io.rAddr(0)) := io.write.bits
   }
 
   // Read from Register File
   for (i <- 0 until io.read.length) {
-    io.read(i) := regFile(io.rAddr(i + 1))
+    io.read(i) := intRegFile(io.rAddr(i + 1))
   }
 }

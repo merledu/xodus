@@ -2,7 +2,8 @@ package core.pipeline_regs
 
 import chisel3._
 import configs.Configs,
-       core.fetch_stage.{PCIO, IMemInterfaceIO}
+       core.fetch_stage.{PCIO, IMemInterfaceIO},
+       core.decode_stage.RegFDCtrl
 
 
 class RegFDIO extends Bundle with Configs {
@@ -13,7 +14,9 @@ class RegFDIO extends Bundle with Configs {
 
 class RegFD extends Module {
   val io = IO(new Bundle {
-    val in : RegFDIO = Flipped(new RegFDIO)
+    val in   : RegFDIO = Flipped(new RegFDIO)
+    val stall: Bool    = Flipped(new RegFDCtrl().stall)
+
     val out: RegFDIO = new RegFDIO
   })
 
@@ -22,5 +25,7 @@ class RegFD extends Module {
   genPipeline(Seq(
     io.in.pc   -> io.out.pc,
     io.in.inst -> io.out.inst
+  ).map(
+    x => Mux(io.stall, x._2, x._1) -> x._2
   ))
 }

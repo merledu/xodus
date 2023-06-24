@@ -26,13 +26,14 @@ class Core extends Module with Configs {
 
   val regFD = Module(new RegFD).io
 
-  val decoder: DecoderIO     = Module(new Decoder).io
-  val regFile: IntRegFileIO  = Module(new IntRegFile).io
-  val cu     : ControlUnitIO = Module(new ControlUnit).io
+  val decoder: DecoderIO      = Module(new Decoder).io
+  val regFile: RegisterFileIO = Module(new RegisterFile).io
+  val cu     : ControlUnitIO  = Module(new ControlUnit).io
 
   val regDE = Module(new RegDE).io
 
   val alu: ALUIO = Module(new ALU).io
+  val dMemAligner: DMemAlignerIO = Module(new DMemAligner).io
 
   val regEM = Module(new RegEM).io
 
@@ -47,35 +48,37 @@ class Core extends Module with Configs {
    * Fetch Stage *
    ***************/
 
+  pc.stall         := cu.ctrl.pc.stall
   iMemInterface.pc := pc.pc
   io.iMem          <> iMemInterface.iMemInterface
   regFD.in.pc      := pc.pc
   regFD.in.inst    := iMemInterface.inst
+  regFD.stall      := cu.ctrl.regFD.stall
 
 
   /****************
    * Decode Stage *
    ****************/
 
-  decoder.inst         := regFD.out.inst
-  decoder.ctrl         <> cu.ctrl.decoder
-  cu.opcode            := decoder.opcode
-  cu.funct3            := decoder.funct3
-  cu.funct7_imm7       := decoder.funct7_imm7
-  regDE.in.pc          := regFD.out.pc
-  regDE.in.rAddr       <> decoder.rAddr
-  regDE.in.intData(2)  := decoder.imm
-  regDE.in.regFileCtrl <> cu.ctrl.regFile
-  regDE.in.aluCtrl     <> cu.ctrl.alu
-  regDE.in.dMemCtrl    <> cu.ctrl.dMem
+  decoder.inst             := regFD.out.inst
+  decoder.ctrl             <> cu.ctrl.decoder
+  cu.opcode                := decoder.opcode
+  cu.funct3                := decoder.funct3
+  cu.funct7                := decoder.funct7
+  cu.dMemOffset            <> dMemAligner.offset
+  cu.dMemAlign             <> dMemAligner.align
+  regDE.in.pc              := regFD.out.pc
+  regDE.in.rAddr           <> decoder.rAddr
+  regDE.in.intData(2)      := decoder.imm
+  regDE.in.regFileCtrl     <> cu.ctrl.regFile
+  regDE.in.aluCtrl         <> cu.ctrl.alu
+  regDE.in.dMemAlignerCtrl <> cu.ctrl.dMemAligner
+  regDE.in.dMemCtrl        <> cu.ctrl.dMem
+  regDE.stall              := cu.ctrl.regDE.stall
   for (i <- 0 to 1) {
     regFile.rAddr(i + 1) := decoder.rAddr(i + 1)
     regDE.in.intData(i)  := regFile.read(i)
   }
-
-  regFile.rAddr(0) := 0.U
-  regFile.write.valid := 0.B
-  regFile.write.bits := 0.S
 
 
   /*****************
@@ -85,25 +88,32 @@ class Core extends Module with Configs {
   alu.pc               := regDE.out.pc
   alu.in               <> regDE.out.intData
   alu.ctrl             <> regDE.out.aluCtrl
+  dMemAligner.alu      := alu.out
+  dMemAligner.ctrl     <> regDE.out.dMemAlignerCtrl
+  dMemAligner.dMemCtrl <> regDE.out.dMemCtrl
+  dMemAligner.store    := regDE.out.intData(1)
   regEM.in.rAddr       <> regDE.out.rAddr
   regEM.in.regFileCtrl <> regDE.out.regFileCtrl
   regEM.in.alu         := alu.out
   regEM.in.dMemCtrl    <> regDE.out.dMemCtrl
-  regEM.in.storeData   := regDE.out.intData(1)
+  regEM.in.wmask       := dMemAligner.wmask
+  regEM.in.dMemAddr    := dMemAligner.addr
+  regEM.in.store       := dMemAligner.alignedStore
 
 
   /****************
    * Memory Stage *
    ****************/
 
-  dMemInterface.ctrl      <> regEM.out.dMemCtrl
-  dMemInterface.alu       := regEM.out.alu
-  dMemInterface.storeData := regEM.out.storeData
-  io.dMem                 <> dMemInterface.dMemInterface
-  regMW.in.rAddr          <> regEM.out.rAddr
-  regMW.in.regFileCtrl    <> regEM.out.regFileCtrl
-  regMW.in.alu            := regEM.out.alu
-  regMW.in.load           <> dMemInterface.load
+  dMemInterface.ctrl   <> regEM.out.dMemCtrl
+  dMemInterface.addr   := regEM.out.dMemAddr
+  dMemInterface.wmask  := regEM.out.wmask
+  dMemInterface.store  := regEM.out.store
+  io.dMem              <> dMemInterface.dMemInterface
+  regMW.in.rAddr       <> regEM.out.rAddr
+  regMW.in.regFileCtrl <> regEM.out.regFileCtrl
+  regMW.in.alu         := regEM.out.alu
+  regMW.in.load        <> dMemInterface.load
 
 
   /********************

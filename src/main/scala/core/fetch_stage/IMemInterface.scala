@@ -23,7 +23,7 @@ class IMemInterface extends Module with Configs {
    ********************/
 
   io.iMemInterface.req.valid      := !reset.asBool
-  io.iMemInterface.req.bits.addr  := io.pc(ADDR_WIDTH + 1, 2)
+  io.iMemInterface.req.bits.addr  := io.pc(AddrWidth + 1, 2)
   io.iMemInterface.req.bits.data  := 0.U
   io.iMemInterface.req.bits.write := 0.B
   io.iMemInterface.req.bits.wmask := 0.U

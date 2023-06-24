@@ -1,10 +1,13 @@
 package core.fetch_stage
 
 import chisel3._
-import configs.Configs
+import configs.Configs,
+       core.decode_stage.PCCtrl
 
 
 class PCIO extends Bundle with Configs {
+  val stall: Bool = Flipped(new PCCtrl().stall)
+
   val pc: UInt = Output(UInt(XLEN.W))
 }
 
@@ -20,6 +23,6 @@ class PC extends Module with Configs {
    * Interconnections *
    ********************/
 
-  pc    := (pc + 4.U)
+  pc    := Mux(io.stall, pc, pc + 4.U)
   io.pc := pc
 }

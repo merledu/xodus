@@ -25,7 +25,7 @@ class SRAMTopIO extends Bundle {
 }
 
 
-class SRAMTop(HexFile:Option[String]) extends Module with Configs {
+class SRAMTop(HexFile:Option[String]) extends Module {
   val io: SRAMTopIO = IO(new SRAMTopIO)
 
   // Memory

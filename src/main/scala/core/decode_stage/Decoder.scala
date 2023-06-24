@@ -10,11 +10,11 @@ class DecoderIO extends Bundle with Configs {
   val inst: UInt        = Flipped(new RegFDIO().inst)
   val ctrl: DecoderCtrl = Flipped(new DecoderCtrl)
 
-  val opcode     : UInt      = Output(UInt(OpcodeWidth.W))
-  val rAddr      : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
-  val funct3     : UInt      = Output(UInt(Funct3Width.W))
-  val funct7_imm7: UInt      = Output(UInt(Funct7Width.W))
-  val imm        : SInt      = Output(SInt(XLEN.W))
+  val opcode: UInt      = Output(UInt(OpcodeWidth.W))
+  val rAddr : Vec[UInt] = Output(Vec(3, UInt(RegAddrWidth.W)))
+  val funct3: UInt      = Output(UInt(Funct3Width.W))
+  val funct7: UInt      = Output(UInt(Funct7Width.W))
+  val imm   : SInt      = Output(SInt(XLEN.W))
 }
 
 
@@ -27,9 +27,9 @@ class Decoder extends RawModule {
    ********************/
 
   Seq(
-    io.opcode      -> (6, 0),
-    io.funct3      -> (14, 12),
-    io.funct7_imm7 -> (31, 25)
+    io.opcode -> (6, 0),
+    io.funct3 -> (14, 12),
+    io.funct7 -> (31, 25)
   ).foreach(
     x => x._1 := io.inst(x._2._1, x._2._2)
   )

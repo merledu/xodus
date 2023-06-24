@@ -9,8 +9,8 @@ class SRAMIO extends Bundle with Configs {
   val clk0  : Bool = Input(Bool())
   val csb0  : Bool = Input(Bool())
   val web0  : Bool = Input(Bool())
-  val addr0 : UInt = Input(UInt(ADDR_WIDTH.W))
-  val wmask0: UInt = Input(UInt(NUM_WMASKS.W))
+  val addr0 : UInt = Input(UInt(AddrWidth.W))
+  val wmask0: UInt = Input(UInt(WMaskWidth.W))
   val din0  : UInt = Input(UInt(XLEN.W))
 
   val dout0: UInt = Output(UInt(XLEN.W))
