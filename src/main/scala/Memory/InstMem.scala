@@ -21,7 +21,7 @@ class InstMem extends Module {
         val instMem = Mem(pow(2, 16).toInt, UInt(32.W))
 
         // Loading instructions from file
-        loadMemoryFromFile(instMem, "assembly/assembly.hex")
+        loadMemoryFromFile(instMem, "asm/assembly.hex")
 
         // Wiring ports
         io.inst := dontTouch(instMem.read(io.addr))

@@ -1,0 +1,12 @@
+---
+Vendor: "MERLEDU"
+Device: "XODUS32-5S"
+ISA   : "RV32I"
+
+User_Spec_Version     : "2.1"
+Privilege_Spec_Version: "1.12"
+
+hw_data_misaligned_support: False
+supported_xlen : [32]
+pmp_granularity : 0
+physical_addr_sz : 16
