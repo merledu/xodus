@@ -49,6 +49,24 @@ class DMemAligner extends RawModule with Configs {
     io.alignedStore := Mux(io.ctrl.align, io.store(15, 8), MuxLookup(offset, halfWord)((1 to 3).toSeq.map(
       x => x.U -> Cat(halfWord, 0.U((ByteWidth * x).W))
     )))
+  }.elsewhen (io.ctrl.store(2)) {  // sw
+    io.wmask := Mux(io.ctrl.align, MuxLookup(offset, "b0001".U)(Seq(
+      "0011", "0111"
+    ).zipWithIndex.map(
+      x => (x._2 + 2).U -> ("b" + x._1).U
+    )), MuxLookup(offset, "b1111".U)(Seq(
+      "1110", "1100", "1000"
+    ).zipWithIndex.map(
+      x => (x._2 + 1).U -> ("b" + x._1).U
+    )))
+
+    io.alignedStore := Mux(io.ctrl.align, MuxLookup(offset, io.store(31, 24))(Seq(
+      HalfWordWidth, ByteWidth
+    ).zipWithIndex.map(
+      x => (x._2 + 2).U -> io.store(XLEN - 1, x._1)
+    )), MuxLookup(offset, io.store.asUInt)((1 to 3).toSeq.map(
+      x => x.U -> Cat(io.store, 0.U((ByteWidth * x).W))
+    )))
   } otherwise {  // sb
     io.wmask := MuxLookup(offset, "b0001".U)(Seq(
       "0010", "0100", "1000"

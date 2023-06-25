@@ -138,7 +138,8 @@ class ControlUnit extends RawModule {
   ))
 
   val dMemAlign: Bool = MuxCase(0.B, Seq(
-    io.dMemAlign(1) -> (io.dMemOffset === 3.U)
+    io.dMemAlign(1) -> (io.dMemOffset === 3.U),
+    io.dMemAlign(2) -> (1 to 3).toSeq.map(io.dMemOffset === _.U).reduce(_ || _)
   ))
 
   // Data Memory
