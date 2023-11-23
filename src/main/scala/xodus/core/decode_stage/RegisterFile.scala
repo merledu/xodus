@@ -20,9 +20,7 @@ class RegisterFile extends Module with Configs {
   val intRegFile: Vec[SInt] = Reg(Vec(XLEN, SInt(XLEN.W)))
  
 
-  /********************
-   * Interconnections *
-   ********************/
+   /*** Interconnections ***/
 
   // Hardcode x0
   intRegFile(0) := 0.S

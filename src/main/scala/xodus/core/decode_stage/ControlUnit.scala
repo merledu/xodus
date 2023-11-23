@@ -10,8 +10,14 @@ class DecoderCtrl extends Bundle {
 }
 
 
+class RegFileCtrl extends Bundle {
+  val int_write: Bool = Output(Bool())
+}
+
+
 class Controls extends Bundle {
   val decoder: DecoderCtrl = new DecoderCtrl
+  val regfile: RegFileCtrl = new RegFileCtrl
 }
 
 
@@ -30,12 +36,12 @@ class ControlUnit extends RawModule {
   // Selection Wires
   val opcode_sel: UInt = MuxCase(0.U, Seq(
     // I EXTENSION
-    Seq(0),       // R-Type = 1
+    Seq(0),  // R-Type = 1
     1 to 3,  // I-Type = 2
-    Seq(4),       // S-Type = 3
-    Seq(5),       // B-Type = 4
+    Seq(4),  // S-Type = 3
+    Seq(5),  // B-Type = 4
     6 to 7,  // U-Type = 5
-    Seq(8)        // J-Type = 6
+    Seq(8)   // J-Type = 6
   ).zipWithIndex.map(
     x => x._1.map(
       y => io.opcode === ("b" + opcodes(y)).U
@@ -46,6 +52,10 @@ class ControlUnit extends RawModule {
    /*** Interconnections ***/
 
   io.ctrl.decoder.imm_gen_sel := opcode_sel
+
+  io.ctrl.regfile.int_write := ((1 to 2) ++ (5 to 6)).map(
+    x => opcode_sel === x.U
+  ).reduce(_ || _)
 }
 //class RegFileCtrl extends Bundle {
 //  val intWrite: Bool = Output(Bool())
