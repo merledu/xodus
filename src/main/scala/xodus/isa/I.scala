@@ -1,9 +1,8 @@
 package xodus.isa
 
 
-class ISA {
+class I {
   val opcodes: Seq[String] = Seq(
-    /*** I EXTENSION ***/
     // R-Type -> 0
     "0110011",  // integer arithmetic
     // I-Type -> 1 to 3
@@ -20,8 +19,6 @@ class ISA {
     // J-Type -> 8
     "1101111"   // jal
   )
-
-  val insts: Map[String, ] =
 
   val instID: Map[String, Seq[String]] = (Seq(
     "lui", "auipc"

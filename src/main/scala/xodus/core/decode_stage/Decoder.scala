@@ -3,7 +3,6 @@ package xodus.core.decode_stage
 import chisel3._,
        chisel3.util._
 import xodus.configs.Configs,
-       xodus.isa.ISA,
        xodus.core.pipeline_regs.RegFDIO
 
 
@@ -23,9 +22,7 @@ class Decoder extends RawModule {
   val io: DecoderIO = IO(new DecoderIO)
 
 
-  /********************
-   * Interconnections *
-   ********************/
+   /*** Interconnections ***/
 
   Seq(
     io.opcode -> (6, 0),

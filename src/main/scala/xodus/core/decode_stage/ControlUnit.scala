@@ -2,9 +2,7 @@ package xodus.core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.Configs,
-       xodus.isa.ISA/*,
-       xodus.core.execute_stage.DMemAlignerIO*/
+import xodus.isa.I
 
 
 class DecoderCtrl extends Bundle {
@@ -27,8 +25,9 @@ class ControlUnitIO extends Bundle {
 class ControlUnit extends RawModule {
   val io: ControlUnitIO = IO(new ControlUnitIO())
 
-  val opcodes: Seq[String] = new ISA().opcodes
+  val opcodes: Seq[String] = new I().opcodes
 
+  // Selection Wires
   val opcode_sel: UInt = MuxCase(0.U, Seq(
     // I EXTENSION
     Seq(0),       // R-Type = 1
@@ -48,23 +47,6 @@ class ControlUnit extends RawModule {
 
   io.ctrl.decoder.imm_gen_sel := opcode_sel
 }
-
-
-//class PCCtrl extends Bundle {
-//  val stall: Bool = Output(Bool())
-//}
-//
-//
-//class RegFDCtrl extends Bundle {
-//  val stall: Bool = Output(Bool())
-//}
-//
-//
-//class DecoderCtrl extends Bundle {
-//  val immSel: Vec[Bool] = Output(Vec(4, Bool()))
-//}
-//
-//
 //class RegFileCtrl extends Bundle {
 //  val intWrite: Bool = Output(Bool())
 //}

@@ -1,12 +1,12 @@
 package xodus.core
 
 import chisel3._
-import xodus.core.fetch_stage._/*,
+import fetch_stage._/*,
        xodus.core.decode_stage._,
        core.execute_stage._,
        core.memory_stage._,
        core.write_back_stage._*/,
-       xodus.core.pipeline_regs._,
+       pipeline_regs._,
        xodus.sram.IMemTopIO
 
 
