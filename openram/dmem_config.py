@@ -1,0 +1,13 @@
+num_rw_ports  = 2
+num_r_ports   = 0
+num_w_ports   = 0
+write_size    = 8
+num_words     = 256
+word_size     = 32
+words_per_row = 1
+rom_endian    = "little"
+verbose_level = 1
+netlist_only  = True
+num_threads   = 3
+output_path   = "./DMem"
+output_name   = "DMem"

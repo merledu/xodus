@@ -3,7 +3,7 @@
 // Word size: 32
 // Write size: 8
 
-module SRAM(
+module IMem(
 // Port 0: RW
     clk0,csb0,web0,wmask0,addr0,din0,dout0
   );
@@ -24,6 +24,15 @@ module SRAM(
   input [DATA_WIDTH-1:0]  din0;
   output [DATA_WIDTH-1:0] dout0;
 
+  reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
+  integer i;
+  initial
+    if (IFILE != "")
+      $readmemh(IFILE, mem);
+    else
+      for (i = 0; i < RAM_DEPTH; i = i + 1)
+        mem[i] = {DATA_WIDTH{1'b0}};
+
   reg  csb0_reg;
   reg  web0_reg;
   reg [NUM_WMASKS-1:0]   wmask0_reg;
@@ -41,15 +50,6 @@ module SRAM(
     din0_reg = din0;
   end
 
-
-  reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
-  integer i;
-  initial
-    if (IFILE != "")
-      $readmemh(IFILE, mem);
-    else
-      for (i = 0; i < RAM_DEPTH; i = i + 1)
-        mem[i] = {DATA_WIDTH{1'b0}};
 
   // Memory Write Block Port 0
   // Write Operation : When web0 = 0, csb0 = 0

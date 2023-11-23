@@ -2,7 +2,8 @@ package xodus.core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.Configs/*,
+import xodus.configs.Configs,
+       xodus.isa.ISA/*,
        xodus.core.execute_stage.DMemAlignerIO*/
 
 
@@ -26,23 +27,26 @@ class ControlUnitIO extends Bundle {
 class ControlUnit extends RawModule {
   val io: ControlUnitIO = IO(new ControlUnitIO())
 
-  val opcodes: Map[String, Seq[String]] = new ISA().opcodes
-  val insts  : Map[String, Seq[String]] = new ISA().insts
+  val opcodes: Seq[String] = new ISA().opcodes
 
-  val opcode: UInt = MuxCase(0.U, opcodes.keys)
-
-
-  /********************
-   * Interconnections *
-   *******************/
-
-  io.ctrl.decoder.imm_gen_sel := MuxCase(0.U, Seq(
-    "I", "S", "B", "U", "J"
+  val opcode_sel: UInt = MuxCase(0.U, Seq(
+    // I EXTENSION
+    Seq(0),       // R-Type = 1
+    1 to 3,  // I-Type = 2
+    Seq(4),       // S-Type = 3
+    Seq(5),       // B-Type = 4
+    6 to 7,  // U-Type = 5
+    Seq(8)        // J-Type = 6
   ).zipWithIndex.map(
-    x => opcodes(x._1).map(
-      y => io.opcode === ("b" + y).U
+    x => x._1.map(
+      y => io.opcode === ("b" + opcodes(y)).U
     ).reduce(_ || _) -> (x._2 + 1).U
   ))
+
+
+   /*** Interconnections ***/
+
+  io.ctrl.decoder.imm_gen_sel := opcode_sel
 }
 
 

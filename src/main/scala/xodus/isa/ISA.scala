@@ -2,29 +2,26 @@ package xodus.isa
 
 
 class ISA {
-  val opcodes: Map[String, Seq[String]] = Map(
-    "R" -> Seq(
-      "0110011"   // integer arithmetic
-    ),
-    "I" -> Seq(
-      "1100111",  // jalr
-      "0000011",  // integer load
-      "0010011"   // integer arithmetic
-    ),
-    "S" -> Seq(
-      "0100011"   // integer store
-    ),
-    "B" -> Seq(
-      "1100011"   // branch
-    ),
-    "U" -> Seq(
-      "0110111",  // lui
-      "0010111"   // auipc
-    ),
-    "J" -> Seq(
-      "1101111"   // jal
-    )
+  val opcodes: Seq[String] = Seq(
+    /*** I EXTENSION ***/
+    // R-Type -> 0
+    "0110011",  // integer arithmetic
+    // I-Type -> 1 to 3
+    "1100111",  // jalr
+    "0000011",  // integer load
+    "0010011",  // integer arithmetic
+    // S-Type -> 4
+    "0100011",  // integer store
+    // B-Type -> 5
+    "1100011",  // branch
+    // U-Type -> 6 to 7
+    "0110111",  // lui
+    "0010111",  // auipc
+    // J-Type -> 8
+    "1101111"   // jal
   )
+
+  val insts: Map[String, ] =
 
   val instID: Map[String, Seq[String]] = (Seq(
     "lui", "auipc"

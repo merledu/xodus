@@ -7,10 +7,10 @@ object genPipeline {
   def apply(ports: Seq[(Bits, Bits)]): Unit = {
     ports.foreach(
       x => {
-        val pipelineReg = Reg(chiselTypeOf(x._1))
+        val pipeline_reg = Reg(chiselTypeOf(x._1))
 
-        pipelineReg := x._1
-        x._2        := pipelineReg
+        pipeline_reg := x._1
+        x._2        := pipeline_reg
       }
     )
   }

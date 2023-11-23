@@ -1,18 +1,37 @@
 package xodus.core
 
 import chisel3._
-import xodus.core.fetch_stage._,
-       xodus.core.decode_stage._/*,
+import xodus.core.fetch_stage._/*,
+       xodus.core.decode_stage._,
        core.execute_stage._,
        core.memory_stage._,
-       core.write_back_stage._,
-       core.pipeline_regs._,
-       sram.SRAMTopIO*/
+       core.write_back_stage._*/,
+       xodus.core.pipeline_regs._,
+       xodus.sram.IMemTopIO
+
+
+class CoreIO extends Bundle {
+  val imem: IMemTopIO = Flipped(new IMemTopIO)
+}
 
 
 class Core extends Module {
+  val io: CoreIO = IO(new CoreIO)
+
   // Modules
-  val pc: PCIO = Module(new PC).io
+  val pc            : PCIO            = Module(new PC).io
+  val imem_interface: IMemInterfaceIO = Module(new IMemInterface).io
+
+  val reg_fd = Module(new RegFD).io
+
+
+  /*** Interconnections ***/
+
+  // Fetch Stage
+  imem_interface := pc.pc
+  io.imem        <> imem_interface.imem
+  reg_fd.in.pc   := pc.pc
+  reg_fd.in.inst := imem_interface.inst
 }
 //class CoreIO extends Bundle with Configs {
 //  val iMem: SRAMTopIO = Flipped(new SRAMTopIO)
