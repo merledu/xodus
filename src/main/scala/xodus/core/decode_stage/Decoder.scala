@@ -48,6 +48,6 @@ class Decoder extends RawModule {
     Cat(io.inst(31, 12), 0.U(12.W)),                                           // U
     Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W))  // J
   ).zipWithIndex.map(
-    x => (x._2 + 2).U -> x._1.asSInt
+    x => (x._2 + 1).U -> x._1.asSInt
   ))
 }

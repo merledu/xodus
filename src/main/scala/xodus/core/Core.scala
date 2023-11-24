@@ -1,9 +1,9 @@
 package xodus.core
 
 import chisel3._
-import fetch_stage._/*,
+import fetch_stage._,
        xodus.core.decode_stage._,
-       core.execute_stage._,
+       xodus.core.execute_stage._/*,
        core.memory_stage._,
        core.write_back_stage._*/,
        pipeline_regs._,
@@ -24,6 +24,14 @@ class Core extends Module {
 
   val reg_fd = Module(new RegFD).io
 
+  val decoder  : DecoderIO      = Module(new Decoder).io
+  val reg_file : RegisterFileIO = Module(new RegisterFile).io
+  val ctrl_unit: ControlUnitIO  = Module(new ControlUnit).io
+
+  val reg_de = Module(new RegDE).io
+
+  val alu: ALUIO = Module(new ALU).io
+
 
   /*** Interconnections ***/
 
@@ -32,29 +40,38 @@ class Core extends Module {
   io.imem        <> imem_interface.imem
   reg_fd.in.pc   := pc.pc
   reg_fd.in.inst := imem_interface.inst
+
+  // Decode Stage
+  decoder.inst            := reg_fd.out.inst
+  ctrl_unit.opcode        := decoder.opcode
+  ctrl_unit.funct3        := decoder.funct3
+  ctrl_unit.funct7        := decoder.funct7
+  decoder.ctrl            <> ctrl_unit.ctrl.decoder
+  reg_de.in.pc            := reg_fd.out.pc
+  reg_de.in.rd_addr       := decoder.r_addr(0)
+  reg_de.in.int_data(2)   := decoder.imm
+  reg_de.in.reg_file_ctrl <> ctrl_unit.ctrl.reg_file
+  reg_de.in.alu_ctrl      <> ctrl_unit.ctrl.alu
+  for (i <- 0 until 2) {
+    reg_file.r_addr(i + 1) := decoder.r_addr(i + 1)
+    reg_de.in.int_data(i)  := reg_file.read(i)
+  }
+
+  // Execute Stage
+  alu.in   <> reg_de.out.int_data
+  alu.pc   := reg_de.out.pc
+  alu.ctrl <> reg_de.out.alu_ctrl
+
+  // Memory Stage
+
+  // Write Back Stage
 }
 //class CoreIO extends Bundle with Configs {
-//  val iMem: SRAMTopIO = Flipped(new SRAMTopIO)
 //  val dMem: SRAMTopIO = Flipped(new SRAMTopIO)
 //}
 //
 //
 //class Core extends Module with Configs {
-//  val io: CoreIO = IO(new CoreIO)
-//
-//  // Modules
-//  val pc           : PCIO            = Module(new PC).io
-//  val iMemInterface: IMemInterfaceIO = Module(new IMemInterface).io
-//
-//  val regFD = Module(new RegFD).io
-//
-//  val decoder: DecoderIO      = Module(new Decoder).io
-//  val regFile: RegisterFileIO = Module(new RegisterFile).io
-//  val cu     : ControlUnitIO  = Module(new ControlUnit).io
-//
-//  val regDE = Module(new RegDE).io
-//
-//  val alu: ALUIO = Module(new ALU).io
 //  val dMemAligner: DMemAlignerIO = Module(new DMemAligner).io
 //
 //  val regEM = Module(new RegEM).io
@@ -64,52 +81,10 @@ class Core extends Module {
 //  val regMW = Module(new RegMW).io
 //
 //  val wb: WriteBackIO = Module(new WriteBack).io
-//
-//
-//  /***************
-//   * Fetch Stage *
-//   ***************/
-//
-//  pc.stall         := cu.ctrl.pc.stall
-//  iMemInterface.pc := pc.pc
-//  io.iMem          <> iMemInterface.iMemInterface
-//  regFD.in.pc      := pc.pc
-//  regFD.in.inst    := iMemInterface.inst
-//  regFD.stall      := cu.ctrl.regFD.stall
-//
-//
-//  /****************
-//   * Decode Stage *
-//   ****************/
-//
-//  decoder.inst             := regFD.out.inst
-//  decoder.ctrl             <> cu.ctrl.decoder
-//  cu.opcode                := decoder.opcode
-//  cu.funct3                := decoder.funct3
-//  cu.funct7                := decoder.funct7
-//  cu.dMemOffset            <> dMemAligner.offset
-//  cu.dMemAlign             <> dMemAligner.align
-//  regDE.in.pc              := regFD.out.pc
-//  regDE.in.rAddr           <> decoder.rAddr
-//  regDE.in.intData(2)      := decoder.imm
-//  regDE.in.regFileCtrl     <> cu.ctrl.regFile
-//  regDE.in.aluCtrl         <> cu.ctrl.alu
-//  regDE.in.dMemAlignerCtrl <> cu.ctrl.dMemAligner
-//  regDE.in.dMemCtrl        <> cu.ctrl.dMem
-//  regDE.stall              := cu.ctrl.regDE.stall
-//  for (i <- 0 to 1) {
-//    regFile.rAddr(i + 1) := decoder.rAddr(i + 1)
-//    regDE.in.intData(i)  := regFile.read(i)
-//  }
-//
-//
 //  /*****************
 //   * Execute Stage *
 //   *****************/
 //
-//  alu.pc               := regDE.out.pc
-//  alu.in               <> regDE.out.intData
-//  alu.ctrl             <> regDE.out.aluCtrl
 //  dMemAligner.alu      := alu.out
 //  dMemAligner.ctrl     <> regDE.out.dMemAlignerCtrl
 //  dMemAligner.dMemCtrl <> regDE.out.dMemCtrl

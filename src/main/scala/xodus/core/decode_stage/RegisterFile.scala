@@ -17,21 +17,21 @@ class RegisterFile extends Module with Configs {
   val io: RegisterFileIO = IO(new RegisterFileIO)
 
   // Register File
-  val intRegFile: Vec[SInt] = Reg(Vec(XLEN, SInt(XLEN.W)))
+  val int_reg_file: Vec[SInt] = Reg(Vec(XLEN, SInt(XLEN.W)))
  
 
    /*** Interconnections ***/
 
   // Hardcode x0
-  intRegFile(0) := 0.S
+  int_reg_file(0) := 0.S
 
   // Write to Register File
   when (io.write.valid && io.r_addr(0).orR) {
-    intRegFile(io.r_addr(0)) := io.write.bits
+    int_reg_file(io.r_addr(0)) := io.write.bits
   }
 
   // Read from Register File
   for (i <- 0 until io.read.length) {
-    io.read(i) := intRegFile(io.r_addr(i + 1))
+    io.read(i) := int_reg_file(io.r_addr(i + 1))
   }
 }

@@ -15,14 +15,23 @@ class RegFileCtrl extends Bundle {
 }
 
 
+class ALUCtrl extends Bundle {
+  val imm_sel: Bool = Output(Bool())
+  val op_sel : UInt = Output(UInt(1.W))
+}
+
+
 class Controls extends Bundle {
-  val decoder: DecoderCtrl = new DecoderCtrl
-  val regfile: RegFileCtrl = new RegFileCtrl
+  val decoder : DecoderCtrl = new DecoderCtrl
+  val reg_file: RegFileCtrl = new RegFileCtrl
+  val alu     : ALUCtrl     = new ALUCtrl
 }
 
 
 class ControlUnitIO extends Bundle {
   val opcode: UInt = Flipped(new DecoderIO().opcode)
+  val funct3: UInt = Flipped(new DecoderIO().funct3)
+  val funct7: UInt = Flipped(new DecoderIO().funct7)
 
   val ctrl: Controls = new Controls
 }
@@ -32,54 +41,66 @@ class ControlUnit extends RawModule {
   val io: ControlUnitIO = IO(new ControlUnitIO())
 
   val opcodes: Seq[String] = new I().opcodes
+  val insts  : Seq[String] = new I().insts
 
   // Selection Wires
-  val opcode_sel: UInt = MuxCase(0.U, Seq(
-    // I EXTENSION
-    Seq(0),  // R-Type = 1
-    1 to 3,  // I-Type = 2
-    Seq(4),  // S-Type = 3
-    Seq(5),  // B-Type = 4
-    6 to 7,  // U-Type = 5
-    Seq(8)   // J-Type = 6
+  val opcode_sel: UInt = MuxCase(0.U, opcodes.indices.map(  // opcode_sel(x) = opcodes(x) + 1
+    x => (io.opcode === ("b" + opcodes(x)).U) -> (x + 1).U
+  ))
+
+  val inst_sel: UInt = MuxCase(0.U, ((0 to 20).map(  // inst_sel(x) = insts(x) + 1
+    (Cat(io.funct3, io.opcode), _)
+  ) ++ (21 to 33).map(
+    (Cat(io.funct7, io.funct3, io.opcode), _)
+  )).map(
+    x => (x._1 === ("b" + insts(x._2)).U) -> (x._2 + 1).U
+  ))
+
+
+   /*** Interconnections ***/
+
+  io.ctrl.decoder.imm_gen_sel := MuxCase(0.U, Seq(
+    1 to 3,  // I-Type = 1
+    Seq(4),  // S-Type = 2
+    Seq(5),  // B-Type = 3
+    6 to 7,  // U-Type = 4
+    Seq(8)   // J-Type = 5
   ).zipWithIndex.map(
     x => x._1.map(
       y => io.opcode === ("b" + opcodes(y)).U
     ).reduce(_ || _) -> (x._2 + 1).U
   ))
 
+  Seq(
+    io.ctrl.reg_file.int_write -> ((1 to 4) ++ (7 to 9)),
+    io.ctrl.alu.imm_sel        -> ((2 to 5) ++ (7 to 9))
+  ).foreach(
+    x => x._1 := x._2.map(
+      opcode_sel === _.U
+    ).reduce(_ || _)
+  )
 
-   /*** Interconnections ***/
-
-  io.ctrl.decoder.imm_gen_sel := opcode_sel
-
-  io.ctrl.regfile.int_write := ((1 to 2) ++ (5 to 6)).map(
-    x => opcode_sel === x.U
-  ).reduce(_ || _)
+  io.ctrl.alu.op_sel := MuxCase(0.U, (Seq(
+    Seq(16, 25),  // signed addition
+    Seq(17, 28),  // signed less than
+    Seq(18, 29),  // unsigned less than
+    Seq(19, 30),  // xor
+    Seq(20, 33),  // or
+    Seq(21, 34),  // and
+    Seq(22, 27),  // shift left logical
+    Seq(23, 31),  // shift right logical
+    Seq(24, 32),  // shift right arithmetic
+    Seq(26),      // subtraction
+    Seq(1)        // jalr
+  ).map((inst_sel, _)) ++ Seq(
+    Seq(7),    // lui
+    Seq(8, 9)  // unsigned addition
+  ).map((opcode_sel, _))).zipWithIndex.map(
+    x => x._1._2.map(
+      x._1._1 === _.U
+    ).reduce(_ || _) -> (x._2 + 1).U
+  ))
 }
-//class RegFileCtrl extends Bundle {
-//  val intWrite: Bool = Output(Bool())
-//}
-//
-//
-//class RegDECtrl extends Bundle {
-//  val stall: Bool = Output(Bool())
-//}
-//
-//
-//class ALUCtrl extends Bundle {
-//  val immSel: Bool      = Output(Bool())
-//  val opSel : Vec[Bool] = Output(Vec(12, Bool()))
-//}
-//
-//
-//class DMemAlignerCtrl extends Bundle {
-//  val load : Vec[Bool] = Output(Vec(5, Bool()))
-//  val store: Vec[Bool] = Output(Vec(3, Bool()))
-//  val align: Bool      = Output(Bool())
-//}
-//
-//
 //class DMemCtrl extends Bundle {
 //  val load : Bool = Output(Bool())
 //  val store: Bool = Output(Bool())
