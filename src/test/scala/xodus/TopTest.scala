@@ -14,6 +14,11 @@ class TopTest extends AnyFreeSpec with ChiselScalatestTester {
       None
   )
 
+  def getISA: Option[String] = if (scalaTestContext.value.get.configMap.contains("isa"))
+    Some(scalaTestContext.value.get.configMap("isa").toString)
+  else
+    None
+
 
   "XODUS" in {
     test(new Top(getMemFiles)).withAnnotations(Seq(VerilatorBackendAnnotation)) {

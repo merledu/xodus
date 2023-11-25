@@ -18,15 +18,13 @@ class IMemTop(imem_file: Option[String]) extends Module {
   val imem: IMemIO = Module(new IMem(imem_file)).io
 
 
-  /********************
-   * Interconnections *
-   ********************/
+   /*** Interconnections ***/
 
   imem.clk0   := clock.asBool
   imem.csb0   := !io.req.valid       // active-low
   imem.web0   := !io.req.bits.write  // active-low
-  imem.addr0  := io.req.bits.addr
   imem.wmask0 := io.req.bits.wmask
+  imem.addr0  := io.req.bits.addr
   imem.din0   := io.req.bits.data
 
   io.resp.data := imem.dout0

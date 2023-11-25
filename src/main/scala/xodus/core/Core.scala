@@ -32,6 +32,8 @@ class Core extends Module {
 
   val alu: ALUIO = Module(new ALU).io
 
+  val reg_em = Module(new RegEM).io
+
 
   /*** Interconnections ***/
 
@@ -58,9 +60,14 @@ class Core extends Module {
   }
 
   // Execute Stage
-  alu.in   <> reg_de.out.int_data
-  alu.pc   := reg_de.out.pc
-  alu.ctrl <> reg_de.out.alu_ctrl
+  alu.in                  <> reg_de.out.int_data
+  alu.pc                  := reg_de.out.pc
+  alu.ctrl                <> reg_de.out.alu_ctrl
+  reg_em.in.rd_addr       := reg_de.out.rd_addr
+  reg_em.in.store_data    := reg_de.out.int_data(1)
+  reg_em.in.reg_file_ctrl <> reg_de.out.reg_file_ctrl
+  reg_em.in.alu           := alu.out
+  reg_em.in.dmem_ctrl     <> reg_de.out.dmem_ctrl
 
   // Memory Stage
 

@@ -17,7 +17,12 @@ class RegFileCtrl extends Bundle {
 
 class ALUCtrl extends Bundle {
   val imm_sel: Bool = Output(Bool())
-  val op_sel : UInt = Output(UInt(1.W))
+  val op_sel : UInt = Output(UInt(6.W))
+}
+
+
+class DMemCtrl extends Bundle {
+  val en_sel: UInt = Output(UInt(4.W))
 }
 
 
@@ -25,6 +30,7 @@ class Controls extends Bundle {
   val decoder : DecoderCtrl = new DecoderCtrl
   val reg_file: RegFileCtrl = new RegFileCtrl
   val alu     : ALUCtrl     = new ALUCtrl
+  val dmem    : DMemCtrl    = new DMemCtrl
 }
 
 
@@ -81,17 +87,17 @@ class ControlUnit extends RawModule {
   )
 
   io.ctrl.alu.op_sel := MuxCase(0.U, (Seq(
-    Seq(16, 25),  // signed addition
-    Seq(17, 28),  // signed less than
-    Seq(18, 29),  // unsigned less than
-    Seq(19, 30),  // xor
-    Seq(20, 33),  // or
-    Seq(21, 34),  // and
-    Seq(22, 27),  // shift left logical
-    Seq(23, 31),  // shift right logical
-    Seq(24, 32),  // shift right arithmetic
-    Seq(26),      // subtraction
-    Seq(1)        // jalr
+    (8 to 16) ++ Seq(25),  // signed addition
+    Seq(17, 28),           // signed less than
+    Seq(18, 29),           // unsigned less than
+    Seq(19, 30),           // xor
+    Seq(20, 33),           // or
+    Seq(21, 34),           // and
+    Seq(22, 27),           // shift left logical
+    Seq(23, 31),           // shift right logical
+    Seq(24, 32),           // shift right arithmetic
+    Seq(26),               // subtraction
+    Seq(1)                 // jalr
   ).map((inst_sel, _)) ++ Seq(
     Seq(7),    // lui
     Seq(8, 9)  // unsigned addition
@@ -99,6 +105,10 @@ class ControlUnit extends RawModule {
     x => x._1._2.map(
       x._1._1 === _.U
     ).reduce(_ || _) -> (x._2 + 1).U
+  ))
+
+  io.ctrl.dmem.en_sel := MuxCase(0.U, (8 to 15).zipWithIndex.map(
+    x => (inst_sel === x._1.U) -> (x._2 + 1).U
   ))
 }
 //class DMemCtrl extends Bundle {
