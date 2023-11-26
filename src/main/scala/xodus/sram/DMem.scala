@@ -19,8 +19,8 @@ class DMemIO extends Bundle with Configs {
   val addr1 : UInt = Input(UInt(ADDR_WIDTH.W))
   val din1  : UInt = Input(UInt(XLEN.W))
 
-  val dout0: UInt = Input(UInt(XLEN.W))
-  val dout1: UInt = Input(UInt(XLEN.W))
+  val dout0: UInt = Output(UInt(XLEN.W))
+  val dout1: UInt = Output(UInt(XLEN.W))
 }
 
 

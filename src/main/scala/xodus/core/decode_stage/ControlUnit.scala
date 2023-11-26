@@ -22,7 +22,7 @@ class ALUCtrl extends Bundle {
 
 
 class DMemCtrl extends Bundle {
-  val en_sel: UInt = Output(UInt(4.W))
+  val op_sel: UInt = Output(UInt(4.W))
 }
 
 
@@ -96,8 +96,7 @@ class ControlUnit extends RawModule {
     Seq(22, 27),           // shift left logical
     Seq(23, 31),           // shift right logical
     Seq(24, 32),           // shift right arithmetic
-    Seq(26),               // subtraction
-    Seq(1)                 // jalr
+    Seq(26)                // subtraction
   ).map((inst_sel, _)) ++ Seq(
     Seq(7),    // lui
     Seq(8, 9)  // unsigned addition
@@ -107,7 +106,7 @@ class ControlUnit extends RawModule {
     ).reduce(_ || _) -> (x._2 + 1).U
   ))
 
-  io.ctrl.dmem.en_sel := MuxCase(0.U, (8 to 15).zipWithIndex.map(
+  io.ctrl.dmem.op_sel := MuxCase(0.U, (8 to 15).zipWithIndex.map(
     x => (inst_sel === x._1.U) -> (x._2 + 1).U
   ))
 }

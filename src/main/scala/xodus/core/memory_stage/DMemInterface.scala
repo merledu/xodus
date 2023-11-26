@@ -9,9 +9,9 @@ import xodus.configs.Configs,
 
 
 class DMemInterfaceIO extends Bundle with Configs {
-  val ctrl : DMemCtrl = Flipped(new RegEMIO().dmem_ctrl)
-  val addr : UInt     = Flipped(new RegEMIO().alu.asUInt)
-  val store_data: SInt = Flipped(new RegEMIO().store_data)
+  val ctrl      : DMemCtrl = Flipped(new RegEMIO().dmem_ctrl)
+  val addr      : UInt     = new DMemTopIO().req.bits(0).addr
+  val store_data: SInt     = Flipped(new RegEMIO().store_data)
 
   val load: Valid[SInt] = Valid(SInt(XLEN.W))
 
@@ -23,45 +23,51 @@ class DMemInterface extends Module with Configs {
   val io: DMemInterfaceIO = IO(new DMemInterfaceIO)
 
   val addr_offset: UInt = WireInit(io.addr(1, 0))
+
   val en: Vec[Bool] = VecInit(Seq(
     1 to 5,  // load
     6 to 8   // store
   ).map(
-    x => x.map(io.ctrl.en_sel === _.U).reduce( _ || _)
+    x => x.map(io.ctrl.op_sel === _.U).reduce( _ || _)
   ))
+
+  val wmask: UInt = WireDefault(UInt((WMASK_WIDTH * 2).W), MuxLookup(io.ctrl.op_sel, 0.U)(Seq(
+    6 -> "00000001",
+    7 -> "00000011",
+    8 -> "00001111"
+  ).map(
+    x => x._1.U -> (("b" + x._2).U << addr_offset).asUInt
+  )))
+
+  val store_data: UInt = (io.store_data << (addr_offset * 8.U)).asUInt
+  val load_data : UInt = (Cat(io.dmem.resp(1).data, io.dmem.resp(0).data) >> (addr_offset * 8.U)).asUInt
 
 
   /*** Interconnections ***/
 
   io.dmem.req.valid         := !reset.asBool && en.reduce(_ || _)
   io.dmem.req.bits(0).write := en(1)
-  io.dmem.req.bits(1).write := en(1) && (addr_offset > 0.U)
-  io.dmem.req.bits(0).wmask := MuxLookup(io.ctrl.en_sel, 0.U)(Seq(
-    6 -> "0001",
-    7 -> "0011",
-    8 -> "1111"
-  ).map(
-    x => x._1.U -> (("b" + x._2).U(OFFSET_WIDTH.W) << addr_offset)//.asUInt
-  ))
-  io.dmem.req.bits(0).addr := io.addr
-  io.dmem.req.bits(1).addr := io.addr + 1.U
+  io.dmem.req.bits(1).write := en(1) && wmask(7, 4).orR
+  io.dmem.req.bits(0).addr  := io.addr
+  io.dmem.req.bits(1).addr  := io.addr + 1.U
+  Seq(
+    Seq(0, 0),
+    Seq(4, 32)
+  ).zipWithIndex.foreach(
+    x => {
+      io.dmem.req.bits(x._2).wmask := wmask(x._1.head + 3, x._1.head)
+      io.dmem.req.bits(x._2).data  := store_data(x._1(1) + 31, x._1(1))
+    }
+  )
 
   io.load.valid := en(0)
+  io.load.bits  := MuxLookup(io.ctrl.op_sel, 0.S)(Seq(
+    7, 15, 31
+  ).zipWithIndex.map(
+    x => x._2.U -> load_data(x._1, 0).asSInt
+  ) ++ Seq(
+    7, 15
+  ).zipWithIndex.map(
+    x => (x._2 + 4).U -> Cat(Fill(XLEN - x._1 - 1, 0.U(1.W)), load_data(x._1, 0)).asSInt
+  ))
 }
-//class DMemInterface extends Module with Configs {
-//  val io: DMemInterfaceIO = IO(new DMemInterfaceIO)
-//
-//
-//  /********************
-//   * Interconnections *
-//   ********************/
-//
-//  io.dMemInterface.req.valid      := !reset.asBool && (io.ctrl.load || io.ctrl.store)
-//  io.dMemInterface.req.bits.addr  := io.addr
-//  io.dMemInterface.req.bits.write := io.ctrl.store
-//  io.dMemInterface.req.bits.wmask := io.wmask
-//  io.dMemInterface.req.bits.data  := io.store
-//
-//  io.load.valid := io.ctrl.load
-//  io.load.bits  := io.dMemInterface.resp.data.asSInt
-//}

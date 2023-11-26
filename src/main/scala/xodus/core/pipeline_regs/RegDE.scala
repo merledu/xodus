@@ -2,13 +2,13 @@ package xodus.core.pipeline_regs
 
 import chisel3._
 import xodus.configs.Configs,
-       xodus.core.decode_stage.{DecoderIO, RegFileCtrl, ALUCtrl, DMemCtrl}
+       xodus.core.decode_stage.{RegFileCtrl, ALUCtrl, DMemCtrl, RegisterFileIO}
 
 
 class RegDEIO extends Bundle with Configs {
   val pc           : UInt        = new RegFDIO().pc
-  val rd_addr      : UInt        = new DecoderIO().r_addr(0)
-  val int_data     : Vec[SInt]   = Output(Vec(3, SInt(XLEN.W)))
+  val rd_addr      : UInt        = Output(UInt(REG_ADDR_WIDTH.W))
+  val int_data     : Vec[SInt]   = Output(Vec(new RegisterFileIO().int_read.length + 1, SInt(XLEN.W)))
   val reg_file_ctrl: RegFileCtrl = new RegFileCtrl
   val alu_ctrl     : ALUCtrl     = new ALUCtrl
   val dmem_ctrl    : DMemCtrl    = new DMemCtrl
@@ -17,7 +17,7 @@ class RegDEIO extends Bundle with Configs {
 
 class RegDE extends Module {
   val io = IO(new Bundle {
-    val in   : RegDEIO = Flipped(new RegDEIO)
+    val in: RegDEIO = Flipped(new RegDEIO)
 
     val out: RegDEIO = new RegDEIO
   })

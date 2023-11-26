@@ -45,7 +45,6 @@ class ALU extends RawModule with Configs {
     (s_operand(0).asUInt >> s_operand(1)(4, 0)).asSInt,                        // shift right logical
     (s_operand(0) >> s_operand(1)(4, 0)).asSInt,                               // shift right arithmetic
     s_operand(0) - s_operand(1),                                               // subtraction
-    (s_operand(0) + s_operand(1)) & Cat(-1.S((XLEN - 1).W), 0.U(1.W)).asSInt,  // jalr
     s_operand(1),                                                              // lui
     (u_operand(0) + u_operand(1)).asSInt                                       // unsigned addition
   ).zipWithIndex.map(

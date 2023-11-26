@@ -1,0 +1,1 @@
+ChiselStage.emitSystemVerilogFile(new MyModule, Array.empty, Array("--strip-debug-info", "--split-verilog", "-o="+targetDir, "--disable-all-randomization"))
