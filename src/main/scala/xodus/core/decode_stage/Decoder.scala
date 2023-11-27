@@ -2,12 +2,11 @@ package xodus.core.decode_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.configs.Configs,
-       xodus.core.pipeline_regs.RegFDIO
+import xodus.configs.Configs
 
 
 class DecoderIO extends Bundle with Configs {
-  val inst: UInt        = Flipped(new RegFDIO().inst)
+  val inst: UInt        = Input(UInt(XLEN.W))
   val ctrl: DecoderCtrl = Flipped(new DecoderCtrl)
 
   val opcode: UInt      = Output(UInt(OPCODE_WIDTH.W))

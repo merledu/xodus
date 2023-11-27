@@ -4,14 +4,13 @@ import chisel3._,
        chisel3.util._
 import xodus.configs.Configs,
        xodus.core.decode_stage.DMemCtrl,
-       xodus.core.pipeline_regs.RegEMIO,
        xodus.sram.DMemTopIO
 
 
 class DMemInterfaceIO extends Bundle with Configs {
-  val ctrl      : DMemCtrl = Flipped(new RegEMIO().dmem_ctrl)
-  val addr      : UInt     = new DMemTopIO().req.bits(0).addr
-  val store_data: SInt     = Flipped(new RegEMIO().store_data)
+  val ctrl      : DMemCtrl = Flipped(new DMemCtrl)
+  val addr      : UInt     = Input(UInt(ADDR_WIDTH.W))
+  val store_data: SInt     = Input(SInt(XLEN.W))
 
   val load: Valid[SInt] = Valid(SInt(XLEN.W))
 
@@ -22,7 +21,7 @@ class DMemInterfaceIO extends Bundle with Configs {
 class DMemInterface extends Module with Configs {
   val io: DMemInterfaceIO = IO(new DMemInterfaceIO)
 
-  val addr_offset: UInt = WireInit(io.addr(1, 0))
+  val addr_offset: UInt = io.addr(1, 0)
 
   val en: Vec[Bool] = VecInit(Seq(
     1 to 5,  // load
@@ -32,9 +31,9 @@ class DMemInterface extends Module with Configs {
   ))
 
   val wmask: UInt = WireDefault(UInt((WMASK_WIDTH * 2).W), MuxLookup(io.ctrl.op_sel, 0.U)(Seq(
-    6 -> "00000001",
-    7 -> "00000011",
-    8 -> "00001111"
+    6 -> "00000001",  // sb
+    7 -> "00000011",  // sh
+    8 -> "00001111"   // sw
   ).map(
     x => x._1.U -> (("b" + x._2).U << addr_offset).asUInt
   )))
@@ -62,12 +61,15 @@ class DMemInterface extends Module with Configs {
 
   io.load.valid := en(0)
   io.load.bits  := MuxLookup(io.ctrl.op_sel, 0.S)(Seq(
-    7, 15, 31
+    BYTE_WIDTH,       // lb
+    HALF_WORD_WIDTH,  // lh
+    XLEN              // lw
   ).zipWithIndex.map(
-    x => x._2.U -> load_data(x._1, 0).asSInt
+    x => (x._2 + 1).U -> load_data(x._1, 0).asSInt
   ) ++ Seq(
-    7, 15
+    BYTE_WIDTH,      // lbu
+    HALF_WORD_WIDTH  // lhu
   ).zipWithIndex.map(
-    x => (x._2 + 4).U -> Cat(Fill(XLEN - x._1 - 1, 0.U(1.W)), load_data(x._1, 0)).asSInt
+    x => (x._2 + 4).U -> Cat(Fill(XLEN - x._1 - 2, 0.U(1.W)), load_data(x._1 - 1, 0)).asSInt
   ))
 }

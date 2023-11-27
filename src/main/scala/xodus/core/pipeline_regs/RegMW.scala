@@ -2,15 +2,15 @@ package xodus.core.pipeline_regs
 
 import chisel3._,
        chisel3.util._
-import xodus.core.decode_stage.RegFileCtrl,
-       xodus.core.memory_stage.DMemInterfaceIO
+import xodus.configs.Configs,
+       xodus.core.decode_stage.RegFileCtrl
 
 
-class RegMWIO extends Bundle {
-  val rd_addr      : UInt        = new RegEMIO().rd_addr
-  val reg_file_ctrl: RegFileCtrl = new RegEMIO().reg_file_ctrl
-  val alu          : SInt        = new RegEMIO().alu
-  val load         : Valid[SInt] = new DMemInterfaceIO().load
+class RegMWIO extends Bundle with Configs {
+  val rd_addr      : UInt        = Output(UInt(REG_ADDR_WIDTH.W))
+  val reg_file_ctrl: RegFileCtrl = new RegFileCtrl
+  val alu          : SInt        = Output(SInt(XLEN.W))
+  val load         : Valid[SInt] = Valid(SInt(XLEN.W))
 }
 
 

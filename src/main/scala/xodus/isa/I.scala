@@ -4,20 +4,20 @@ package xodus.isa
 class I {
   val opcodes: Seq[String] = Seq(
     // R-Type -> 0
-    "0110011",  // integer arithmetic
+    "0110011",  // integer arithmetic -> 0
     // I-Type -> 1 to 3
-    "1100111",  // jalr
-    "0000011",  // integer load
-    "0010011",  // integer arithmetic
+    "1100111",  // jalr               -> 1
+    "0000011",  // integer load       -> 2
+    "0010011",  // integer arithmetic -> 3
     // S-Type -> 4
-    "0100011",  // integer store
+    "0100011",  // integer store -> 4
     // B-Type -> 5
-    "1100011",  // branch
+    "1100011",  // branch -> 5
     // U-Type -> 6 to 7
-    "0110111",  // lui
-    "0010111",  // auipc
+    "0110111",  // lui   -> 6
+    "0010111",  // auipc -> 7
     // J-Type -> 8
-    "1101111"   // jal
+    "1101111"   // jal -> 8
   )
 
   val insts: Seq[String] = Seq(

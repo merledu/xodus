@@ -3,14 +3,13 @@ package xodus.core.execute_stage
 import chisel3._,
        chisel3.util._
 import xodus.configs.Configs,
-       xodus.core.decode_stage.ALUCtrl,
-       xodus.core.pipeline_regs.RegDEIO
+       xodus.core.decode_stage.ALUCtrl
 
 
 class ALUIO extends Bundle with Configs {
-  val in  : Vec[SInt] = Flipped(new RegDEIO().int_data)
-  val pc  : UInt      = Flipped(new RegDEIO().pc)
-  val ctrl: ALUCtrl   = Flipped(new RegDEIO().alu_ctrl)
+  val in  : Vec[SInt] = Input(Vec(3, SInt(XLEN.W)))
+  val pc  : UInt      = Input(UInt(XLEN.W))
+  val ctrl: ALUCtrl   = Flipped(new ALUCtrl)
 
   val out: SInt = Output(SInt(XLEN.W))
 }

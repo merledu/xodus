@@ -28,10 +28,12 @@ class Core extends Module {
   val decoder  : DecoderIO      = Module(new Decoder).io
   val reg_file : RegisterFileIO = Module(new RegisterFile).io
   val ctrl_unit: ControlUnitIO  = Module(new ControlUnit).io
+  val jump_unit: JumpUnitIO     = Module(new JumpUnit).io
 
   val reg_de = Module(new RegDE).io
 
-  val alu: ALUIO = Module(new ALU).io
+  val alu         : ALUIO         = Module(new ALU).io
+  val fwd_unit: ForwardUnitIO = Module(new ForwardUnit).io
 
   val reg_em = Module(new RegEM).io
 
@@ -49,6 +51,7 @@ class Core extends Module {
   io.imem           <> imem_interface.imem
   reg_fd.in.pc      := pc.pc
   reg_fd.in.inst    := imem_interface.inst
+  pc.jump           <> jump_unit.jump
 
   // Decode Stage
   decoder.inst            := reg_fd.out.inst
@@ -56,26 +59,45 @@ class Core extends Module {
   ctrl_unit.funct3        := decoder.funct3
   ctrl_unit.funct7        := decoder.funct7
   decoder.ctrl            <> ctrl_unit.ctrl.decoder
+  jump_unit.pc            := reg_fd.out.pc
+  jump_unit.ctrl          <> ctrl_unit.ctrl.jump_unit
   reg_de.in.pc            := reg_fd.out.pc
-  reg_de.in.rd_addr       := decoder.r_addr(0)
-  reg_de.in.int_data(2)   := decoder.imm
+  reg_de.in.r_addr(0)     := decoder.r_addr(0)
   reg_de.in.reg_file_ctrl <> ctrl_unit.ctrl.reg_file
   reg_de.in.alu_ctrl      <> ctrl_unit.ctrl.alu
   reg_de.in.dmem_ctrl     <> ctrl_unit.ctrl.dmem
+  reg_de.fwd_sel          <> fwd_unit.fwd_sel
+  Seq(jump_unit.int_data, reg_de.in.int_data).foreach(_(2) := decoder.imm)
   for (i <- 0 until 2) {
-    reg_file.r_addr(i + 1) := decoder.r_addr(i + 1)
-    reg_de.in.int_data(i)  := reg_file.int_read(i)
+    Seq(
+      Seq(reg_file.r_addr, reg_de.in.r_addr)      -> (i + 1, decoder.r_addr),
+      Seq(jump_unit.int_data, reg_de.in.int_data) -> (i, reg_file.int_read)
+    ).foreach(
+      x => x._1.foreach(_(x._2._1) := x._2._2(x._2._1))
+    )
+    reg_de.fwd_data(i)(0) := reg_em.out.alu
+    reg_de.fwd_data(i)(1) := reg_mw.out.alu
   }
 
   // Execute Stage
   alu.in                  <> reg_de.out.int_data
   alu.pc                  := reg_de.out.pc
   alu.ctrl                <> reg_de.out.alu_ctrl
-  reg_em.in.rd_addr       := reg_de.out.rd_addr
+  reg_em.in.rd_addr       := reg_de.out.r_addr(0)
   reg_em.in.store_data    := reg_de.out.int_data(1)
   reg_em.in.reg_file_ctrl <> reg_de.out.reg_file_ctrl
   reg_em.in.alu           := alu.out
   reg_em.in.dmem_ctrl     <> reg_de.out.dmem_ctrl
+  Seq(
+    reg_de.out.r_addr(1),
+    reg_de.out.r_addr(2),
+    reg_em.out.rd_addr,
+    reg_mw.out.rd_addr
+  ).zipWithIndex.foreach(x => fwd_unit.r_addr(x._2) := x._1)
+  Seq(
+    reg_em.out.reg_file_ctrl,
+    reg_mw.out.reg_file_ctrl
+  ).zipWithIndex.foreach(x => fwd_unit.reg_file_ctrl(x._2) <> x._1)
 
   // Memory Stage
   dmem_interface.ctrl       <> reg_em.out.dmem_ctrl

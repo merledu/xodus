@@ -1,12 +1,12 @@
 package xodus.core.pipeline_regs
 
 import chisel3._
-import xodus.core.fetch_stage.{PCIO, IMemInterfaceIO}
+import xodus.configs.Configs
 
 
-class RegFDIO extends Bundle {
-  val pc  : UInt = new PCIO().pc
-  val inst: UInt = new IMemInterfaceIO().inst
+class RegFDIO extends Bundle with Configs {
+  val pc  : UInt = Output(UInt(XLEN.W))
+  val inst: UInt = Output(UInt(XLEN.W))
 }
 
 

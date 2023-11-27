@@ -14,8 +14,13 @@ class TopTest extends AnyFreeSpec with ChiselScalatestTester {
       None
   )
 
-  def getISA: Option[String] = if (scalaTestContext.value.get.configMap.contains("isa"))
-    Some(scalaTestContext.value.get.configMap("isa").toString)
+  //def getISA: Option[String] = if (scalaTestContext.value.get.configMap.contains("isa"))
+  //  Some(scalaTestContext.value.get.configMap("isa").toString)
+  //else
+  //  None
+
+  def getVariant: Option[String] = if (scalaTestContext.value.get.configMap.contains("variant"))
+    Some(scalaTestContext.value.get.configMap("variant").toString)
   else
     None
 

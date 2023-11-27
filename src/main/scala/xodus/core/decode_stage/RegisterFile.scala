@@ -5,7 +5,7 @@ import xodus.configs.Configs
 
 
 class RegisterFileIO extends Bundle with Configs {
-  val r_addr    : Vec[UInt]   = Flipped(new DecoderIO().r_addr)
+  val r_addr    : Vec[UInt]   = Input(Vec(3, UInt(REG_ADDR_WIDTH.W)))
   val write_data: SInt        = Input(SInt(XLEN.W))
   val ctrl      : RegFileCtrl = Flipped(new RegFileCtrl)
 

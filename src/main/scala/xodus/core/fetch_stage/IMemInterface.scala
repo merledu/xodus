@@ -6,9 +6,9 @@ import xodus.configs.Configs,
 
 
 class IMemInterfaceIO extends Bundle with Configs {
-  val pc: UInt = Flipped(new PCIO().pc)
+  val pc: UInt = Input(UInt(XLEN.W))
 
-  val inst: UInt = new IMemTopIO().resp.data
+  val inst: UInt = Output(UInt(XLEN.W))
 
   val imem: IMemTopIO = Flipped(new IMemTopIO)
 }

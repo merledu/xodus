@@ -2,14 +2,14 @@ package xodus.core.write_back_stage
 
 import chisel3._,
        chisel3.util._
-import xodus.core.pipeline_regs.RegMWIO
+import xodus.configs.Configs
 
 
-class WriteBackIO extends Bundle {
-  val alu : SInt        = Flipped(new RegMWIO().alu)
-  val load: Valid[SInt] = Flipped(new RegMWIO().load)
+class WriteBackIO extends Bundle with Configs {
+  val alu : SInt        = Input(SInt(XLEN.W))
+  val load: Valid[SInt] = Flipped(Valid(SInt(XLEN.W)))
 
-  val out: SInt = new RegMWIO().alu
+  val out: SInt = Output(SInt(XLEN.W))
 }
 
 
