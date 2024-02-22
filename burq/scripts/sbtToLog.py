@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 from re import match, sub, split
-from icecream import ic
 
 def readSBTlog(sbtFile):
     traceDict = {

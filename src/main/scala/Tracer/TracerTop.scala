@@ -63,7 +63,7 @@ class TracerTop(progFile: Option[String], dataFile: Option[String]) extends Modu
     val valid: Bool = (!Tracer.io.stallControl) && (Tracer.io.rvfi_insn =/= 0.U)
     when (valid) {
         printf(
-            "ClkCycle: %d, pc_rdata: %x, pc_wdata: %x, insn: %x, mode: %d, rs1_addr: %d, rs1_rdata: %x, rs2_addr: %d, rs2_rdata: %x, rd_addr: %d, rd_wdata: %x, mem_addr: %x, mem_rdata: %x, mem_wdata: %x\n",
+            "ClkCycle: %d, pc_rdata: %x, pc_wdata: %x, insn: %x, mode: %d, rs1_addr: x%d, rs1_rdata: %x, rs2_addr: x%d, rs2_rdata: %x, rd_addr: x%d, rd_wdata: %x, mem_addr: %x, mem_rdata: %x, mem_wdata: %x\n",
             clkCycle,                Tracer.io.rvfi_pc_rdata,  Tracer.io.rvfi_pc_wdata,  Tracer.io.rvfi_insn,      Tracer.io.rvfi_mode,
             Tracer.io.rvfi_rs1_addr, Tracer.io.rvfi_rs1_rdata, Tracer.io.rvfi_rs2_addr,  Tracer.io.rvfi_rs2_rdata, Tracer.io.rvfi_rd_addr,
             Tracer.io.rvfi_rd_wdata, Tracer.io.rvfi_mem_addr,  Tracer.io.rvfi_mem_rdata, Tracer.io.rvfi_mem_wdata
