@@ -21,6 +21,7 @@ class PC extends Module with Configs {
 
   /*** Interconnections ***/
 
-  pc    := Mux(io.jump.valid, io.jump.bits, pc + 4.U)
+  pc := Mux(io.jump.valid, io.jump.bits, pc + 4.U)
   io.pc := pc
 }
+
